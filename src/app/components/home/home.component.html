@@ -1,0 +1,58 @@
+<!-- src/app/components/home/home.component.html -->
+<div class="home-container">
+  <div class="hero-section">
+    <h1>🎲 Bienvenido a Rifas Solidarias</h1>
+    <p>Sistema de gestión para rifas de instituciones solidarias</p>
+  </div>
+
+  <div class="status-section">
+    <div class="status-card">
+      <h3>Estado del Backend</h3>
+      <p class="status">{{ connectionStatus }}</p>
+      
+      @if (dbInfo) {
+        <div class="db-info">
+          <h4>Información de la Base de Datos:</h4>
+          <ul>
+            <li><strong>Base:</strong> {{ dbInfo.base_datos }}</li>
+            <li><strong>Versión:</strong> {{ dbInfo.version }}</li>
+            <li><strong>Tablas:</strong> {{ dbInfo.total_tablas }}</li>
+            <li><strong>Usuarios:</strong> {{ dbInfo.total_usuarios }}</li>
+          </ul>
+        </div>
+      }
+
+      @if (error) {
+        <div class="error">
+          <p>Error: {{ error }}</p>
+          <button (click)="testConnection()" class="btn btn-primary">
+            🔄 Reintentar
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="features-section">
+    <h2>Funcionalidades</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>🏢 Instituciones</h3>
+        <p>Gestiona clubes, colegios y organizaciones</p>
+        <a routerLink="/instituciones" class="btn btn-primary">Ver Instituciones</a>
+      </div>
+      
+      <div class="feature-card">
+        <h3>👥 Usuarios</h3>
+        <p>Administra usuarios, vendedores y compradores</p>
+        <button class="btn btn-secondary" disabled>Próximamente</button>
+      </div>
+      
+      <div class="feature-card">
+        <h3>🎲 Rifas</h3>
+        <p>Crea y gestiona rifas solidarias</p>
+        <button class="btn btn-secondary" disabled>Próximamente</button>
+      </div>
+    </div>
+  </div>
+</div>
