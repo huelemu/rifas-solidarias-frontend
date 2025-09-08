@@ -2,56 +2,164 @@
 <div class="home-container">
   <div class="hero-section">
     <h1>🎲 Bienvenido a Rifas Solidarias</h1>
-    <p>Sistema de gestión para rifas de instituciones solidarias</p>
+    <p>Sistema de gestión integral para rifas de instituciones solidarias</p>
   </div>
 
   <div class="status-section">
     <div class="status-card">
-      <h3>Estado del Backend</h3>
+      <h3>📊 Estado del Sistema</h3>
       <p class="status">{{ connectionStatus }}</p>
       
-      @if (dbInfo) {
-        <div class="db-info">
-          <h4>Información de la Base de Datos:</h4>
-          <ul>
-            <li><strong>Base:</strong> {{ dbInfo.base_datos }}</li>
-            <li><strong>Versión:</strong> {{ dbInfo.version }}</li>
-            <li><strong>Tablas:</strong> {{ dbInfo.total_tablas }}</li>
-            <li><strong>Usuarios:</strong> {{ dbInfo.total_usuarios }}</li>
-          </ul>
+      <div *ngIf="dbInfo" class="db-info">
+        <h4>Información de la Base de Datos:</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Base de datos:</span>
+            <span class="value">{{ dbInfo.base_datos }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Versión:</span>
+            <span class="value">{{ dbInfo.version }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Total tablas:</span>
+            <span class="value">{{ dbInfo.total_tablas }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Usuarios registrados:</span>
+            <span class="value">{{ dbInfo.total_usuarios }}</span>
+          </div>
         </div>
-      }
+      </div>
 
-      @if (error) {
-        <div class="error">
-          <p>Error: {{ error }}</p>
-          <button (click)="testConnection()" class="btn btn-primary">
-            🔄 Reintentar
-          </button>
-        </div>
-      }
+      <div *ngIf="error" class="error">
+        <p>❌ {{ error }}</p>
+        <button (click)="testConnection()" class="btn btn-primary">
+          🔄 Reintentar Conexión
+        </button>
+      </div>
     </div>
   </div>
 
   <div class="features-section">
-    <h2>Funcionalidades</h2>
+    <h2>🚀 Funcionalidades Disponibles</h2>
     <div class="features-grid">
-      <div class="feature-card">
-        <h3>🏢 Instituciones</h3>
-        <p>Gestiona clubes, colegios y organizaciones</p>
+      <div class="feature-card completed">
+        <div class="feature-icon">🏢</div>
+        <h3>Gestión de Instituciones</h3>
+        <p>Administra clubes, colegios y organizaciones solidarias. CRUD completo implementado.</p>
+        <div class="feature-status">
+          <span class="status-badge completed">✅ Completado</span>
+        </div>
         <a routerLink="/instituciones" class="btn btn-primary">Ver Instituciones</a>
       </div>
       
-      <div class="feature-card">
-        <h3>👥 Usuarios</h3>
-        <p>Administra usuarios, vendedores y compradores</p>
+      <div class="feature-card completed">
+        <div class="feature-icon">👥</div>
+        <h3>Gestión de Usuarios</h3>
+        <p>Administra usuarios con diferentes roles: administradores, vendedores y compradores.</p>
+        <div class="feature-status">
+          <span class="status-badge completed">✅ Completado</span>
+        </div>
+        <a routerLink="/usuarios" class="btn btn-primary">Ver Usuarios</a>
+      </div>
+      
+      <div class="feature-card pending">
+        <div class="feature-icon">🎲</div>
+        <h3>Sistema de Rifas</h3>
+        <p>Crea y gestiona rifas solidarias con números, sorteos y seguimiento completo.</p>
+        <div class="feature-status">
+          <span class="status-badge pending">🚧 En desarrollo</span>
+        </div>
         <button class="btn btn-secondary" disabled>Próximamente</button>
       </div>
       
-      <div class="feature-card">
-        <h3>🎲 Rifas</h3>
-        <p>Crea y gestiona rifas solidarias</p>
+      <div class="feature-card pending">
+        <div class="feature-icon">🔐</div>
+        <h3>Autenticación</h3>
+        <p>Sistema de login/logout con roles y permisos según el tipo de usuario.</p>
+        <div class="feature-status">
+          <span class="status-badge pending">📋 Planificado</span>
+        </div>
         <button class="btn btn-secondary" disabled>Próximamente</button>
+      </div>
+      
+      <div class="feature-card pending">
+        <div class="feature-icon">📊</div>
+        <h3>Reportes y Analytics</h3>
+        <p>Estadísticas detalladas, reportes de ventas y análisis de rendimiento.</p>
+        <div class="feature-status">
+          <span class="status-badge pending">📋 Planificado</span>
+        </div>
+        <button class="btn btn-secondary" disabled>Próximamente</button>
+      </div>
+      
+      <div class="feature-card pending">
+        <div class="feature-icon">💳</div>
+        <h3>Pagos Online</h3>
+        <p>Integración con pasarelas de pago para compras de números online.</p>
+        <div class="feature-status">
+          <span class="status-badge pending">💡 Idea</span>
+        </div>
+        <button class="btn btn-secondary" disabled>Futuro</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tech-section">
+    <h2>🛠️ Tecnologías Utilizadas</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <span class="tech-icon">🅰️</span>
+        <span class="tech-name">Angular 20</span>
+        <span class="tech-status">Frontend</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🟢</span>
+        <span class="tech-name">Node.js + Express</span>
+        <span class="tech-status">Backend API</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🐬</span>
+        <span class="tech-name">MariaDB/MySQL</span>
+        <span class="tech-status">Base de datos</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">📚</span>
+        <span class="tech-name">Swagger</span>
+        <span class="tech-status">Documentación</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🔒</span>
+        <span class="tech-name">bcrypt</span>
+        <span class="tech-status">Seguridad</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🎨</span>
+        <span class="tech-name">CSS3</span>
+        <span class="tech-status">Estilos</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-section">
+    <h2>📈 Estadísticas del Proyecto</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">8</div>
+        <div class="stat-label">Endpoints API</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Módulos Completados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Backend Funcional</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">60%</div>
+        <div class="stat-label">Frontend Completo</div>
       </div>
     </div>
   </div>

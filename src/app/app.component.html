@@ -1,10 +1,50 @@
 <!-- src/app/app.component.html -->
-<nav class="navbar">
-  <div class="nav-container">
-    <h1 class="nav-title">🎲 Rifas Solidarias</h1>
-  </div>
-</nav>
+<div class="app-container">
+  <!-- Navegación -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <a routerLink="/" class="brand-link">
+          🎲 Rifas Solidarias
+        </a>
+      </div>
+      
+      <div class="nav-menu">
+        <a routerLink="/home" routerLinkActive="active" class="nav-link">
+          🏠 Inicio
+        </a>
+        <a routerLink="/instituciones" routerLinkActive="active" class="nav-link">
+          🏢 Instituciones
+        </a>
+        <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
+          👥 Usuarios
+        </a>
+        <a href="#" class="nav-link disabled">
+          🎲 Rifas <span class="badge-soon">Próximamente</span>
+        </a>
+      </div>
+      
+      <div class="nav-actions">
+        <button class="btn btn-outline" disabled>
+          👤 Login
+        </button>
+      </div>
+    </div>
+  </nav>
 
-<main class="main-content">
-  <router-outlet></router-outlet>
-</main>
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Rifas Solidarias. Sistema de gestión para instituciones.</p>
+      <div class="footer-links">
+        <a href="/docs" class="footer-link">📚 Documentación API</a>
+        <a href="#" class="footer-link">ℹ️ Acerca de</a>
+      </div>
+    </div>
+  </footer>
+</div>

@@ -1,72 +1,66 @@
-// src/app/services/api.service.ts
+// src/app/services/institucion.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface Institucion {
+  id?: number;
+  nombre: string;
+  descripcion?: string;
+  direccion?: string;
+  telefono?: string;
+  email: string;
+  logo_url?: string;
+  estado?: 'activa' | 'inactiva';
+  fecha_creacion?: string;
+}
+
+export interface InstitucionInput {
+  nombre: string;
+  descripcion?: string;
+  direccion?: string;
+  telefono?: string;
+  email: string;
+  logo_url?: string;
+}
+
+export interface ApiResponse<T> {
+  status: string;
+  message?: string;
+  data?: T;
+  total?: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class ApiService {
-  private baseUrl = 'http://localhost:3100'; // Tu API backend
+export class InstitucionService {
+  private baseUrl = 'http://localhost:3100/api';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  // GET request
-  get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`${this.baseUrl}${endpoint}`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  // Obtener todas las instituciones
+  obtenerInstituciones(): Observable<ApiResponse<Institucion[]>> {
+    return this.http.get<ApiResponse<Institucion[]>>(`${this.baseUrl}/instituciones`);
   }
 
-  // POST request
-  post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}${endpoint}`, data)
-      .pipe(
-        catchError(this.handleError)
-      );
+  // Obtener institución por ID
+  obtenerInstitucionPorId(id: number): Observable<ApiResponse<Institucion>> {
+    return this.http.get<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones/${id}`);
   }
 
-  // PUT request
-  put<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.put<T>(`${this.baseUrl}${endpoint}`, data)
-      .pipe(
-        catchError(this.handleError)
-      );
+  // Crear nueva institución
+  crearInstitucion(institucion: InstitucionInput): Observable<ApiResponse<Institucion>> {
+    return this.http.post<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones`, institucion);
   }
 
-  // DELETE request
-  delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.baseUrl}${endpoint}`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  // Actualizar institución
+  actualizarInstitucion(id: number, institucion: Partial<Institucion>): Observable<ApiResponse<Institucion>> {
+    return this.http.put<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones/${id}`, institucion);
   }
 
-  // Manejo de errores
-  private handleError(error: HttpErrorResponse) {
-    console.error('Error en API:', error);
-    
-    let errorMessage = 'Error desconocido';
-    
-    if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Error del lado del servidor
-      if (error.error && error.error.message) {
-        errorMessage = error.error.message;
-      } else {
-        errorMessage = `Código de error: ${error.status}, mensaje: ${error.message}`;
-      }
-    }
-    
-    return throwError(() => errorMessage);
-  }
-
-  // Test de conexión
-  testConnection(): Observable<any> {
-    return this.get('/test-db');
+  // Eliminar institución
+  eliminarInstitucion(id: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/instituciones/${id}`);
   }
 }
