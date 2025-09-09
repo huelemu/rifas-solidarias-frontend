@@ -39,7 +39,7 @@ export interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class UsuarioService {
-  private baseUrl = 'http://localhost:3100/api';
+  private baseUrl = 'http://localhost:3100'; // Corregido: puerto 3100, sin /api
 
   constructor(private http: HttpClient) {}
 

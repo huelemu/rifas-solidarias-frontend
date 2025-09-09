@@ -68,19 +68,25 @@ export class UsuariosComponent implements OnInit {
   }
 
   cargarUsuarios() {
+    console.log('👥 Cargando usuarios...');
     this.loading = true;
     this.error = '';
     
     this.usuarioService.obtenerUsuarios().subscribe({
       next: (response) => {
+        console.log('✅ Respuesta usuarios:', response);
         if (response.status === 'success' && response.data) {
           this.usuarios = response.data;
+          console.log('📊 Usuarios cargados:', this.usuarios.length);
+        } else {
+          console.log('⚠️ Respuesta sin datos:', response);
+          this.error = 'No se encontraron usuarios';
         }
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar usuarios:', error);
-        this.error = 'Error al cargar los usuarios';
+        console.error('❌ Error al cargar usuarios:', error);
+        this.error = 'Error al cargar los usuarios: ' + (error.message || 'Error desconocido');
         this.loading = false;
       }
     });

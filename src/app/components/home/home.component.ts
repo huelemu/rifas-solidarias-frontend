@@ -34,14 +34,15 @@ export class HomeComponent implements OnInit {
     this.error = '';
     this.dbInfo = null;
 
-    this.http.get<any>('http://localhost:3100/api/test-db').subscribe({
+    // Corregido: puerto 3100, sin /api, endpoint correcto
+    this.http.get<any>('http://localhost:3100/test-db').subscribe({
       next: (response) => {
-        if (response.status === 'success') {
+        if (response.status === 'OK') {
           this.connectionStatus = '✅ Conexión exitosa al backend';
           this.dbInfo = {
-            base_datos: response.database || 'rifas_solidarias',
+            base_datos: response.base_datos || 'rifas_solidarias',
             version: response.version || 'MariaDB',
-            total_tablas: response.tables?.length || 0,
+            total_tablas: response.total_tablas || 0,
             total_usuarios: response.total_usuarios || 0
           };
         } else {

@@ -73,6 +73,11 @@
   font-weight: 600;
 }
 
+/* Estilo específico para el link de inicio */
+.nav-link.home-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 .nav-link.disabled {
   opacity: 0.5;
   cursor: not-allowed;

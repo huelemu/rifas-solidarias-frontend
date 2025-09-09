@@ -54,19 +54,25 @@ export class InstitucionesComponent implements OnInit {
   }
 
   cargarInstituciones() {
+    console.log('🏢 Cargando instituciones...');
     this.loading = true;
     this.error = '';
     
     this.institucionService.obtenerInstituciones().subscribe({
       next: (response) => {
+        console.log('✅ Respuesta instituciones:', response);
         if (response.status === 'success' && response.data) {
           this.instituciones = response.data;
+          console.log('📊 Instituciones cargadas:', this.instituciones.length);
+        } else {
+          console.log('⚠️ Respuesta sin datos:', response);
+          this.error = 'No se encontraron instituciones';
         }
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar instituciones:', error);
-        this.error = 'Error al cargar las instituciones';
+        console.error('❌ Error al cargar instituciones:', error);
+        this.error = 'Error al cargar las instituciones: ' + (error.message || 'Error desconocido');
         this.loading = false;
       }
     });
