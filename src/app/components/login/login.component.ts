@@ -20,7 +20,7 @@ interface LoginResponse {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="login-container">
       <div class="login-card">
