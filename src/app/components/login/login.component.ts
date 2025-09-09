@@ -297,4 +297,10 @@ export class LoginComponent {
       this.router.navigate(['/dashboard']);
     }
   }
+
+  // Navegar al registro
+  goToRegister(event: Event) {
+    event.preventDefault();
+    this.router.navigate(['/register']);
+  }
 }
