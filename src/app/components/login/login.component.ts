@@ -1,5 +1,5 @@
-// src/app/components/login/login.component.ts
-import { Component } from '@angular/core';
+// src/app/components/login/login.component.ts - VERSIÓN CORRECTA
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ interface LoginResponse {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="login-container">
       <div class="login-card">
@@ -81,7 +81,7 @@ interface LoginResponse {
         </form>
 
         <div class="register-link">
-          <p>¿No tienes cuenta? <a [routerLink]="['/register']">Regístrate aquí</a></p>
+          <p>¿No tienes cuenta? <a href="#" (click)="goToRegister($event)">Regístrate aquí</a></p>
         </div>
       </div>
     </div>
@@ -135,6 +135,7 @@ interface LoginResponse {
       border-radius: 6px;
       font-size: 16px;
       transition: border-color 0.3s;
+      box-sizing: border-box;
     }
 
     input:focus {
@@ -206,9 +207,15 @@ interface LoginResponse {
     .register-link a:hover {
       text-decoration: underline;
     }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 30px 20px;
+      }
+    }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   credentials = {
     email: '',
     password: ''
@@ -232,6 +239,14 @@ export class LoginComponent {
       return 'http://localhost:3100';
     } else {
       return 'https://apirifas.huelemu.com.ar';
+    }
+  }
+
+  ngOnInit() {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      // Si ya hay token, redirigir al dashboard
+      this.router.navigate(['/dashboard']);
     }
   }
 
@@ -289,16 +304,6 @@ export class LoginComponent {
       });
   }
 
-  // Método para verificar si el usuario ya está logueado
-  ngOnInit() {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      // Si ya hay token, redirigir al dashboard
-      this.router.navigate(['/dashboard']);
-    }
-  }
-
-  // Navegar al registro
   goToRegister(event: Event) {
     event.preventDefault();
     this.router.navigate(['/register']);
