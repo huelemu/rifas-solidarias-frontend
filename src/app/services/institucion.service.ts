@@ -14,6 +14,8 @@ export interface Institucion {
   estado: 'activa' | 'inactiva';
   created_at?: string;
   updated_at?: string;
+  fecha_creacion?: string;
+  fecha_actualizacion?: string;
 }
 
 export interface InstitucionInput {
