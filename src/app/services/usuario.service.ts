@@ -104,4 +104,4 @@ export class UsuarioService {
     console.log('📡 DELETE', `${this.baseUrl}/usuarios/${id}`, 'with auth headers');
     return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/usuarios/${id}`, { headers });
   }
-}
+} 
