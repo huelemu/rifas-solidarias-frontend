@@ -1,6 +1,6 @@
-// src/app/services/usuario.service.ts - CORREGIDO
+// src/app/services/usuario.service.ts - CORREGIDO CON AUTENTICACIÓN
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Usuario {
@@ -56,33 +56,52 @@ export class UsuarioService {
     }
   }
 
+  // Método para obtener headers con token de autorización
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      return new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+    }
+    return new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+  }
+
   // Obtener todos los usuarios
   obtenerUsuarios(): Observable<ApiResponse<Usuario[]>> {
-    console.log('📡 GET', `${this.baseUrl}/usuarios`);
-    return this.http.get<ApiResponse<Usuario[]>>(`${this.baseUrl}/usuarios`);
+    const headers = this.getAuthHeaders();
+    console.log('📡 GET', `${this.baseUrl}/usuarios`, 'with auth headers');
+    return this.http.get<ApiResponse<Usuario[]>>(`${this.baseUrl}/usuarios`, { headers });
   }
 
   // Obtener usuario por ID
   obtenerUsuarioPorId(id: number): Observable<ApiResponse<Usuario>> {
-    console.log('📡 GET', `${this.baseUrl}/usuarios/${id}`);
-    return this.http.get<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios/${id}`);
+    const headers = this.getAuthHeaders();
+    console.log('📡 GET', `${this.baseUrl}/usuarios/${id}`, 'with auth headers');
+    return this.http.get<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios/${id}`, { headers });
   }
 
   // Crear nuevo usuario
   crearUsuario(usuario: UsuarioInput): Observable<ApiResponse<Usuario>> {
-    console.log('📡 POST', `${this.baseUrl}/usuarios`, usuario);
-    return this.http.post<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios`, usuario);
+    const headers = this.getAuthHeaders();
+    console.log('📡 POST', `${this.baseUrl}/usuarios`, usuario, 'with auth headers');
+    return this.http.post<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios`, usuario, { headers });
   }
 
   // Actualizar usuario
   actualizarUsuario(id: number, usuario: Partial<Usuario>): Observable<ApiResponse<Usuario>> {
-    console.log('📡 PUT', `${this.baseUrl}/usuarios/${id}`, usuario);
-    return this.http.put<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios/${id}`, usuario);
+    const headers = this.getAuthHeaders();
+    console.log('📡 PUT', `${this.baseUrl}/usuarios/${id}`, usuario, 'with auth headers');
+    return this.http.put<ApiResponse<Usuario>>(`${this.baseUrl}/usuarios/${id}`, usuario, { headers });
   }
 
   // Eliminar usuario
   eliminarUsuario(id: number): Observable<ApiResponse<any>> {
-    console.log('📡 DELETE', `${this.baseUrl}/usuarios/${id}`);
-    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/usuarios/${id}`);
+    const headers = this.getAuthHeaders();
+    console.log('📡 DELETE', `${this.baseUrl}/usuarios/${id}`, 'with auth headers');
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/usuarios/${id}`, { headers });
   }
 }
