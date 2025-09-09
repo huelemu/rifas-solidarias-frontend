@@ -1,10 +1,35 @@
-// js/authService.js - Servicio completo de autenticación
+// js/authService.js - Servicio de autenticación actualizado para producción
 console.log('🔧 Cargando AuthService...');
 
 class AuthService {
     constructor() {
-        this.API_BASE_URL = 'http://localhost:3100';
-        console.log('✅ AuthService inicializado con API:', this.API_BASE_URL);
+        // ==========================================
+        // CONFIGURACIÓN DINÁMICA DE API
+        // ==========================================
+        
+        // Usar configuración central si está disponible
+        if (window.APP_CONFIG) {
+            this.API_BASE_URL = window.APP_CONFIG.getApiUrl();
+            console.log('✅ Usando configuración central:', this.API_BASE_URL);
+        } else {
+            // Fallback: detección automática
+            this.API_BASE_URL = this.detectApiUrl();
+            console.log('⚠️  Usando detección automática:', this.API_BASE_URL);
+        }
+    }
+
+    // Detectar URL de API automáticamente
+    detectApiUrl() {
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            // Desarrollo
+            return 'http://localhost:3100';
+        } else {
+            // Producción - Configuración para Huelemu
+            return 'https://apirifas.huelemu.com.ar';
+        }
     }
 
     // ========================
@@ -38,7 +63,7 @@ class AuthService {
             }
         } catch (error) {
             console.error('❌ Error en login:', error);
-            return { success: false, error: 'Error de conexión con el servidor' };
+            return { success: false, error: 'Error de conexión con el servidor. Verifica que el backend esté funcionando.' };
         }
     }
 
@@ -69,7 +94,7 @@ class AuthService {
             }
         } catch (error) {
             console.error('❌ Error en registro:', error);
-            return { success: false, error: 'Error de conexión con el servidor' };
+            return { success: false, error: 'Error de conexión con el servidor. Verifica que el backend esté funcionando.' };
         }
     }
 
@@ -79,7 +104,7 @@ class AuthService {
         try {
             const refreshToken = this.getRefreshToken();
             if (!refreshToken) {
-                throw new Error('No hay refresh token');
+                throw new Error('No hay refresh token disponible');
             }
 
             const response = await fetch(`${this.API_BASE_URL}/auth/refresh`, {
@@ -93,17 +118,18 @@ class AuthService {
             const data = await response.json();
 
             if (response.ok) {
-                this.setAccessToken(data.data.access_token);
+                this.setTokens(data.data.access_token, data.data.refresh_token);
                 console.log('✅ Token renovado exitosamente');
-                return data.data.access_token;
+                return { success: true, token: data.data.access_token };
             } else {
                 console.log('❌ Error renovando token:', data.message);
-                throw new Error(data.message);
+                this.logout(); // Limpiar tokens inválidos
+                return { success: false, error: data.message };
             }
         } catch (error) {
             console.error('❌ Error renovando token:', error);
             this.logout();
-            throw error;
+            return { success: false, error: 'Error renovando token' };
         }
     }
 
@@ -111,53 +137,92 @@ class AuthService {
         console.log('🚪 Cerrando sesión...');
         
         try {
-            const accessToken = this.getAccessToken();
             const refreshToken = this.getRefreshToken();
-
-            if (accessToken) {
+            if (refreshToken) {
                 await fetch(`${this.API_BASE_URL}/auth/logout`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
+                        'Authorization': `Bearer ${this.getAccessToken()}`
                     },
                     body: JSON.stringify({ refresh_token: refreshToken })
                 });
             }
         } catch (error) {
-            console.error('❌ Error en logout:', error);
-        } finally {
-            // Limpiar datos locales siempre
-            this.clearAuthData();
-            console.log('✅ Sesión cerrada, datos locales limpiados');
+            console.log('⚠️  Error en logout del servidor:', error);
         }
+        
+        // Limpiar datos locales siempre
+        this.clearTokens();
+        this.clearUserData();
+        console.log('✅ Sesión cerrada localmente');
+        
+        // Redirigir al login
+        window.location.href = 'login.html';
     }
 
-    async getProfile() {
-        console.log('👤 Obteniendo perfil del usuario...');
+    // =====================
+    // REQUESTS AUTENTICADOS
+    // =====================
+
+    async authenticatedRequest(endpoint, options = {}) {
+        let token = this.getAccessToken();
         
+        if (!token) {
+            throw new Error('No hay token de acceso disponible');
+        }
+
+        const requestOptions = {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            }
+        };
+
         try {
-            const response = await this.authenticatedRequest(`${this.API_BASE_URL}/auth/me`);
-            return response;
+            let response = await fetch(`${this.API_BASE_URL}${endpoint}`, requestOptions);
+            
+            // Si token expiró, intentar renovar
+            if (response.status === 401) {
+                console.log('🔄 Token expirado, intentando renovar...');
+                const refreshResult = await this.refreshToken();
+                
+                if (refreshResult.success) {
+                    // Reintentar con nuevo token
+                    requestOptions.headers['Authorization'] = `Bearer ${this.getAccessToken()}`;
+                    response = await fetch(`${this.API_BASE_URL}${endpoint}`, requestOptions);
+                } else {
+                    throw new Error('Token expirado y no se pudo renovar');
+                }
+            }
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                return { success: true, data: data.data || data };
+            } else {
+                throw new Error(data.message || 'Error en la petición');
+            }
         } catch (error) {
-            console.error('❌ Error obteniendo perfil:', error);
+            console.error('❌ Error en request autenticado:', error);
+            
+            if (error.message.includes('Token expirado')) {
+                this.logout();
+            }
+            
             throw error;
         }
     }
 
-    // ========================
+    // ==================
     // GESTIÓN DE TOKENS
-    // ========================
+    // ==================
 
     setTokens(accessToken, refreshToken) {
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
-        console.log('💾 Tokens guardados en localStorage');
-    }
-
-    setAccessToken(token) {
-        localStorage.setItem('access_token', token);
-        console.log('💾 Access token actualizado');
     }
 
     getAccessToken() {
@@ -168,9 +233,17 @@ class AuthService {
         return localStorage.getItem('refresh_token');
     }
 
+    clearTokens() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+    }
+
+    // =====================
+    // GESTIÓN DE USUARIO
+    // =====================
+
     setUserData(userData) {
         localStorage.setItem('user_data', JSON.stringify(userData));
-        console.log('💾 Datos de usuario guardados:', userData.email, userData.rol);
     }
 
     getUserData() {
@@ -178,226 +251,128 @@ class AuthService {
         return userData ? JSON.parse(userData) : null;
     }
 
-    clearAuthData() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+    clearUserData() {
         localStorage.removeItem('user_data');
-        console.log('🗑️ Datos de autenticación eliminados');
     }
 
-    // ========================
+    // ===================
     // VERIFICACIONES
-    // ========================
+    // ===================
 
     isAuthenticated() {
-        const token = this.getAccessToken();
-        if (!token) {
-            console.log('❌ No hay token de acceso');
-            return false;
-        }
-
-        // Verificar si el token no está expirado
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const now = Date.now() / 1000;
-            const isValid = payload.exp > now;
-            console.log('🔍 Token válido:', isValid, 'Expira en:', new Date(payload.exp * 1000));
-            return isValid;
-        } catch (error) {
-            console.log('❌ Error verificando token:', error);
-            return false;
-        }
-    }
-
-    getCurrentUser() {
-        if (!this.isAuthenticated()) {
-            console.log('❌ Usuario no autenticado');
-            return null;
-        }
-        const user = this.getUserData();
-        console.log('👤 Usuario actual:', user?.email, user?.rol);
-        return user;
+        return !!this.getAccessToken();
     }
 
     hasRole(role) {
-        const user = this.getCurrentUser();
-        const hasRole = user && user.rol === role;
-        console.log(`🎭 Usuario tiene rol '${role}':`, hasRole);
-        return hasRole;
+        const userData = this.getUserData();
+        return userData && userData.rol === role;
     }
 
-    hasAnyRole(roles) {
-        const user = this.getCurrentUser();
-        const hasAnyRole = user && roles.includes(user.rol);
-        console.log(`🎭 Usuario tiene alguno de los roles [${roles.join(', ')}]:`, hasAnyRole);
-        return hasAnyRole;
+    canAccess(requiredRole) {
+        if (!this.isAuthenticated()) return false;
+        
+        const userData = this.getUserData();
+        if (!userData) return false;
+
+        // Jerarquía de roles
+        const roleHierarchy = {
+            'admin_global': 4,
+            'admin_institucion': 3,
+            'vendedor': 2,
+            'comprador': 1
+        };
+
+        const userLevel = roleHierarchy[userData.rol] || 0;
+        const requiredLevel = roleHierarchy[requiredRole] || 0;
+
+        return userLevel >= requiredLevel;
     }
 
-    // ========================
-    // REQUESTS AUTENTICADAS
-    // ========================
+    // ==================
+    // PROTECCIÓN DE RUTAS
+    // ==================
 
-    async authenticatedRequest(url, options = {}) {
-        let token = this.getAccessToken();
-
-        if (!token) {
-            throw new Error('No hay token de acceso');
+    async checkAuthAndRedirect() {
+        if (!this.isAuthenticated()) {
+            console.log('❌ Usuario no autenticado, redirigiendo al login');
+            window.location.href = 'login.html';
+            return false;
         }
 
+        // Verificar si el token es válido
         try {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    ...options.headers
-                }
-            });
-
-            // Si el token expiró, intentar renovarlo
-            if (response.status === 401) {
-                const data = await response.json();
-                if (data.code === 'TOKEN_EXPIRED') {
-                    console.log('🔄 Token expirado, renovando...');
-                    token = await this.refreshToken();
-                    
-                    // Reintentar la request con el nuevo token
-                    const retryResponse = await fetch(url, {
-                        ...options,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                            ...options.headers
-                        }
-                    });
-
-                    if (retryResponse.ok) {
-                        return await retryResponse.json();
-                    } else {
-                        throw new Error('Error en request autenticada después de renovar token');
-                    }
-                } else {
-                    this.logout();
-                    throw new Error('No autorizado');
-                }
-            }
-
-            if (response.ok) {
-                return await response.json();
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Error en request');
-            }
-
+            const result = await this.authenticatedRequest('/auth/me');
+            console.log('✅ Usuario autenticado:', result.data.email);
+            return true;
         } catch (error) {
-            console.error('❌ Error en request autenticada:', error);
-            throw error;
+            console.log('❌ Token inválido, redirigiendo al login');
+            return false;
         }
     }
-
-    // ========================
-    // UTILIDADES DE NAVEGACIÓN
-    // ========================
 
     redirectToLogin() {
-        console.log('🔄 Redirigiendo al login...');
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
     }
 
     redirectToDashboard() {
-        const user = this.getCurrentUser();
-        if (user) {
-            console.log('🔄 Redirigiendo al dashboard para rol:', user.rol);
-            // Redirigir según el rol del usuario
-            switch (user.rol) {
-                case 'admin_global':
-                    window.location.href = '/dashboard.html?admin=global';
-                    break;
-                case 'admin_institucion':
-                    window.location.href = '/dashboard.html?admin=institucion';
-                    break;
-                case 'vendedor':
-                    window.location.href = '/dashboard.html?role=vendedor';
-                    break;
-                case 'comprador':
-                default:
-                    window.location.href = '/dashboard.html';
-                    break;
+        window.location.href = 'dashboard.html';
+    }
+
+    // ==================
+    // CARGA DE DATOS
+    // ==================
+
+    async loadInstituciones() {
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/instituciones`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                return { success: true, data: data.data || [] };
+            } else {
+                return { success: false, error: data.message };
             }
+        } catch (error) {
+            console.error('❌ Error cargando instituciones:', error);
+            return { success: false, error: 'Error de conexión' };
+        }
+    }
+
+    // ==================
+    // UTILIDADES
+    // ==================
+
+    showMessage(message, type = 'info') {
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
         } else {
-            console.log('❌ No hay usuario para redirigir');
-            this.redirectToLogin();
+            // Fallback si no hay div de mensaje
+            alert(message);
         }
     }
 
-    // Verificar autenticación en páginas protegidas
-    requireAuth() {
-        if (!this.isAuthenticated()) {
-            console.log('🚫 Acceso denegado: usuario no autenticado');
-            this.redirectToLogin();
-            return false;
+    // Test de conexión
+    async testConnection() {
+        try {
+            console.log('🔍 Probando conexión con:', this.API_BASE_URL);
+            const response = await fetch(`${this.API_BASE_URL}/`);
+            const data = await response.json();
+            console.log('✅ Conexión exitosa:', data);
+            return { success: true, data };
+        } catch (error) {
+            console.error('❌ Error de conexión:', error);
+            return { success: false, error: error.message };
         }
-        console.log('✅ Usuario autenticado, acceso permitido');
-        return true;
-    }
-
-    // Verificar rol específico
-    requireRole(requiredRole) {
-        if (!this.requireAuth()) return false;
-        
-        if (!this.hasRole(requiredRole)) {
-            console.log(`🚫 Acceso denegado: se requiere rol '${requiredRole}'`);
-            alert('No tienes permisos para acceder a esta página');
-            this.redirectToDashboard();
-            return false;
-        }
-        console.log(`✅ Rol '${requiredRole}' verificado, acceso permitido`);
-        return true;
-    }
-
-    // Verificar cualquiera de los roles
-    requireAnyRole(requiredRoles) {
-        if (!this.requireAuth()) return false;
-        
-        if (!this.hasAnyRole(requiredRoles)) {
-            console.log(`🚫 Acceso denegado: se requiere uno de los roles [${requiredRoles.join(', ')}]`);
-            alert('No tienes permisos para acceder a esta página');
-            this.redirectToDashboard();
-            return false;
-        }
-        console.log(`✅ Rol verificado en [${requiredRoles.join(', ')}], acceso permitido`);
-        return true;
     }
 }
 
-// Crear instancia global del servicio
-console.log('🏗️ Creando instancia global de AuthService...');
-const authService = new AuthService();
-
-// Función global para verificar autenticación al cargar páginas
-function checkAuthOnLoad() {
-    // Solo verificar en páginas que no sean login o registro
-    const publicPages = ['/login.html', '/register.html', '/index.html', '/'];
-    const currentPage = window.location.pathname;
-    
-    console.log('🔍 Verificando autenticación para página:', currentPage);
-    
-    if (!publicPages.some(page => currentPage.endsWith(page))) {
-        console.log('🔒 Página protegida, verificando autenticación...');
-        authService.requireAuth();
-    } else {
-        console.log('🌐 Página pública, no se requiere autenticación');
-    }
-}
-
-// Auto-verificar al cargar cualquier página
-document.addEventListener('DOMContentLoaded', checkAuthOnLoad);
-
-// Marcar que AuthService está cargado
-window.authServiceLoaded = true;
-console.log('✅ AuthService cargado completamente y disponible globalmente');
-
-// Exportar para uso en módulos (si es necesario)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AuthService;
-}
+// Crear instancia global
+window.authService = new AuthService();
+console.log('✅ AuthService inicializado globalmente');

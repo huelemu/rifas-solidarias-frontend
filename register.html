@@ -282,6 +282,8 @@
         </div>
     </div>
 
+    <!-- CONFIGURACIÓN ACTUALIZADA PARA HUELEMU -->
+    <script src="js/config.js"></script>
     <script src="js/authService.js"></script>
     <script>
         // Verificar que AuthService esté disponible
@@ -320,30 +322,53 @@
             await loadInstituciones();
         });
 
-        // Función para cargar instituciones
+        // Función para cargar instituciones (ACTUALIZADA PARA USAR authService)
         async function loadInstituciones() {
             try {
                 console.log('🏢 Cargando instituciones...');
-                const response = await fetch('http://localhost:3100/instituciones?limit=100');
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Instituciones cargadas:', data.data.length);
+                if (typeof authService !== 'undefined') {
+                    // Usar authService para cargar instituciones con URL correcta
+                    const result = await authService.loadInstituciones();
                     
-                    institucionSelect.innerHTML = '<option value="">Selecciona una institución...</option>';
-                    data.data.forEach(institucion => {
-                        const option = document.createElement('option');
-                        option.value = institucion.id;
-                        option.textContent = institucion.nombre;
-                        institucionSelect.appendChild(option);
-                    });
+                    if (result.success) {
+                        console.log('✅ Instituciones cargadas:', result.data.length);
+                        
+                        institucionSelect.innerHTML = '<option value="">Selecciona una institución...</option>';
+                        result.data.forEach(institucion => {
+                            const option = document.createElement('option');
+                            option.value = institucion.id;
+                            option.textContent = institucion.nombre;
+                            institucionSelect.appendChild(option);
+                        });
+                    } else {
+                        console.warn('⚠️ Error cargando instituciones:', result.error);
+                        institucionSelect.innerHTML = '<option value="">Error cargando instituciones</option>';
+                    }
                 } else {
-                    console.warn('⚠️ Error cargando instituciones:', response.status);
-                    institucionSelect.innerHTML = '<option value="">Error cargando instituciones</option>';
+                    // Fallback si authService no está disponible
+                    console.warn('⚠️ AuthService no disponible, usando fetch directo');
+                    const response = await fetch(`${window.APP_CONFIG ? window.APP_CONFIG.getApiUrl() : 'https://apirifas.huelemu.com.ar'}/instituciones?limit=100`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Instituciones cargadas (fallback):', data.data.length);
+                        
+                        institucionSelect.innerHTML = '<option value="">Selecciona una institución...</option>';
+                        data.data.forEach(institucion => {
+                            const option = document.createElement('option');
+                            option.value = institucion.id;
+                            option.textContent = institucion.nombre;
+                            institucionSelect.appendChild(option);
+                        });
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error cargando instituciones:', error);
                 institucionSelect.innerHTML = '<option value="">Error de conexión</option>';
+                showAlert('Error cargando instituciones. Verifica tu conexión a internet.', 'error');
             }
         }
 
@@ -435,7 +460,7 @@
 
             // Verificar que AuthService esté disponible
             if (typeof authService === 'undefined') {
-                showAlert('Error: Sistema de autenticación no disponible');
+                showAlert('Error: Sistema de autenticación no disponible. Verifica que los archivos js/config.js y js/authService.js estén cargados correctamente.');
                 return;
             }
 
@@ -477,7 +502,7 @@
                 }
             } catch (error) {
                 console.error('❌ Error de conexión:', error);
-                showAlert('Error de conexión. Verifica que el servidor esté funcionando en puerto 3100.');
+                showAlert('Error de conexión. Verifica que el servidor esté funcionando correctamente.');
             } finally {
                 setLoading(false);
             }
@@ -497,4 +522,27 @@
                 loadingSpinner.style.display = 'flex';
             } else {
                 registerBtn.disabled = false;
-                registerText.style.display
+                registerText.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Event listener para el botón de registro
+        registerBtn.addEventListener('click', handleRegister);
+
+        // Event listener para Enter en los campos del formulario
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleRegister();
+            }
+        });
+
+        // Debug: mostrar configuración actual
+        console.log('🔧 Configuración de registro:');
+        console.log('- API URL:', window.APP_CONFIG ? window.APP_CONFIG.getApiUrl() : 'Config no disponible');
+        console.log('- Entorno:', window.APP_CONFIG ? window.APP_CONFIG.ENVIRONMENT : 'No detectado');
+        console.log('- AuthService:', typeof authService !== 'undefined' ? 'Disponible' : 'No disponible');
+    </script>
+</body>
+</html>
