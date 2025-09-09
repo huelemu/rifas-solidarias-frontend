@@ -1,4 +1,4 @@
-// src/app/services/institucion.service.ts
+// src/app/services/institucion.service.ts - CORREGIDO
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -11,8 +11,9 @@ export interface Institucion {
   telefono?: string;
   email: string;
   logo_url?: string;
-  estado?: 'activa' | 'inactiva';
-  fecha_creacion?: string;
+  estado: 'activa' | 'inactiva';
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface InstitucionInput {
@@ -22,45 +23,58 @@ export interface InstitucionInput {
   telefono?: string;
   email: string;
   logo_url?: string;
+  estado?: 'activa' | 'inactiva';
 }
 
 export interface ApiResponse<T> {
-  status: string;
+  status: 'success' | 'error';
   message?: string;
   data?: T;
-  total?: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class InstitucionService {
-  private baseUrl = 'http://localhost:3100'; // Corregido: puerto 3100, sin /api
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Detectar automáticamente la URL de la API
+    this.apiUrl = this.getApiUrl();
+    console.log('🏢 InstitucionService inicializado con URL:', this.apiUrl);
+  }
 
-  // Obtener todas las instituciones
+  private getApiUrl(): string {
+    // Detectar automáticamente según el hostname
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:3100';
+    } else {
+      return 'https://apirifas.huelemu.com.ar';
+    }
+  }
+
   obtenerInstituciones(): Observable<ApiResponse<Institucion[]>> {
-    return this.http.get<ApiResponse<Institucion[]>>(`${this.baseUrl}/instituciones`);
+    console.log('📡 GET', `${this.apiUrl}/instituciones`);
+    return this.http.get<ApiResponse<Institucion[]>>(`${this.apiUrl}/instituciones`);
   }
 
-  // Obtener institución por ID
-  obtenerInstitucionPorId(id: number): Observable<ApiResponse<Institucion>> {
-    return this.http.get<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones/${id}`);
+  obtenerInstitucion(id: number): Observable<ApiResponse<Institucion>> {
+    console.log('📡 GET', `${this.apiUrl}/instituciones/${id}`);
+    return this.http.get<ApiResponse<Institucion>>(`${this.apiUrl}/instituciones/${id}`);
   }
 
-  // Crear nueva institución
   crearInstitucion(institucion: InstitucionInput): Observable<ApiResponse<Institucion>> {
-    return this.http.post<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones`, institucion);
+    console.log('📡 POST', `${this.apiUrl}/instituciones`, institucion);
+    return this.http.post<ApiResponse<Institucion>>(`${this.apiUrl}/instituciones`, institucion);
   }
 
-  // Actualizar institución
   actualizarInstitucion(id: number, institucion: Partial<Institucion>): Observable<ApiResponse<Institucion>> {
-    return this.http.put<ApiResponse<Institucion>>(`${this.baseUrl}/instituciones/${id}`, institucion);
+    console.log('📡 PUT', `${this.apiUrl}/instituciones/${id}`, institucion);
+    return this.http.put<ApiResponse<Institucion>>(`${this.apiUrl}/instituciones/${id}`, institucion);
   }
 
-  // Eliminar institución
   eliminarInstitucion(id: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/instituciones/${id}`);
+    console.log('📡 DELETE', `${this.apiUrl}/instituciones/${id}`);
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/instituciones/${id}`);
   }
 }
