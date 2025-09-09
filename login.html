@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rifas Solidarias</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            position: relative;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c53030;
+            border: 1px solid #fed7d7;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            color: #2f855a;
+            border: 1px solid #c6f6d5;
+        }
+
+        .alert .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: inherit;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .test-data {
+            background: #f7f7f7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .test-credentials {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .test-user {
+            background: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .test-user:hover {
+            background: #e3f2fd;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .test-credentials {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🎯 Rifas Solidarias</h1>
+            <p>Inicia sesión en tu cuenta</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="tu@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" placeholder="Tu contraseña" required>
+            </div>
+
+            <button class="btn-login" id="loginBtn">
+                <span id="loginText">Iniciar Sesión</span>
+                <div class="loading" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    Iniciando sesión...
+                </div>
+            </button>
+        </div>
+
+        <div class="register-link">
+            <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
+        </div>
+
+        <div class="test-data">
+            <strong>Usuarios de Prueba:</strong>
+            <div class="test-credentials">
+                <div class="test-user" onclick="fillCredentials('admin@test.com', 'admin123')">
+                    <div style="font-weight: bold;">Admin Global</div>
+                    <div>admin@test.com</div>
+                </div>
+                <div class="test-user" onclick="fillCredentials('comprador@test.com', 'comprador123')">
+                    <div style="font-weight: bold;">Comprador</div>
+                    <div>comprador@test.com</div>
+                </div>
+                <div class="test-user" onclick="fillCredentials('vendedor@test.com', 'vendedor123')">
+                    <div style="font-weight: bold;">Vendedor</div>
+                    <div>vendedor@test.com</div>
+                </div>
+                <div class="test-user" onclick="fillCredentials('admin.inst@test.com', 'admin123')">
+                    <div style="font-weight: bold;">Admin Institución</div>
+                    <div>admin.inst@test.com</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/authService.js"></script>
+    <script>
+        // Verificar que AuthService esté disponible
+        if (typeof authService === 'undefined') {
+            console.error('❌ AuthService no está disponible. Verifica que js/authService.js esté cargado.');
+        }
+
+        // Elementos del DOM
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const alertContainer = document.getElementById('alertContainer');
+
+        // Verificar si ya está logueado al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 Verificando estado de autenticación...');
+            
+            if (typeof authService !== 'undefined' && authService.isAuthenticated()) {
+                console.log('✅ Usuario ya autenticado, redirigiendo...');
+                authService.redirectToDashboard();
+                return;
+            }
+            
+            console.log('ℹ️ Usuario no autenticado, mostrando login');
+        });
+
+        // Función para llenar credenciales de prueba
+        function fillCredentials(email, password) {
+            emailInput.value = email;
+            passwordInput.value = password;
+            showAlert('Credenciales de prueba cargadas. Haz clic en "Iniciar Sesión"', 'success');
+        }
+
+        // Función para mostrar alertas
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+            `;
+            alertDiv.style.display = 'block';
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        // Función para hacer login
+        async function handleLogin() {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            console.log('🔑 Intentando login para:', email);
+
+            // Validaciones básicas
+            if (!email || !password) {
+                showAlert('Por favor completa todos los campos');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showAlert('Por favor ingresa un email válido');
+                return;
+            }
+
+            // Verificar que AuthService esté disponible
+            if (typeof authService === 'undefined') {
+                showAlert('Error: Sistema de autenticación no disponible');
+                return;
+            }
+
+            // Mostrar loading
+            setLoading(true);
+
+            try {
+                // Usar el authService para hacer login
+                const result = await authService.login(email, password);
+
+                if (result.success) {
+                    console.log('✅ Login exitoso:', result.data.user);
+                    showAlert('¡Login exitoso! Redirigiendo...', 'success');
+                    
+                    // Redirigir según el rol del usuario después de 1 segundo
+                    setTimeout(() => {
+                        authService.redirectToDashboard();
+                    }, 1000);
+
+                } else {
+                    console.error('❌ Error en login:', result.error);
+                    
+                    // Manejar diferentes tipos de errores
+                    let errorMessage = result.error;
+                    
+                    if (result.status === 423) {
+                        errorMessage = 'Usuario bloqueado temporalmente por exceso de intentos fallidos. Intenta nuevamente en 30 minutos.';
+                    } else if (result.status === 401) {
+                        errorMessage = 'Email o contraseña incorrectos. Verifica tus datos.';
+                    } else if (result.status === 500) {
+                        errorMessage = 'Error del servidor. Intenta nuevamente en unos minutos.';
+                    }
+                    
+                    showAlert(errorMessage);
+                }
+
+            } catch (error) {
+                console.error('❌ Error de conexión:', error);
+                showAlert('Error de conexión. Verifica que el servidor esté funcionando en puerto 3100.');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Función para validar email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Función para manejar el estado de loading
+        function setLoading(loading) {
+            if (loading) {
+                loginBtn.disabled = true;
+                loginText.style.display = 'none';
+                loadingSpinner.style.display = 'flex';
+            } else {
+                loginBtn.disabled = false;
+                loginText.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Event listeners
+        loginBtn.addEventListener('click', handleLogin);
+
+        // Login con Enter
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !loginBtn.disabled) {
+                handleLogin();
+            }
+        });
+
+        // Limpiar alertas al escribir
+        emailInput.addEventListener('input', () => {
+            alertContainer.innerHTML = '';
+        });
+
+        passwordInput.addEventListener('input', () => {
+            alertContainer.innerHTML = '';
+        });
+
+        // Debug info
+        console.log('🔧 Login page loaded');
+        console.log('🔧 AuthService available:', typeof authService !== 'undefined');
+    </script>
+</body>
+</html>

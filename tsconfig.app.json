@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/app-routing.module.ts_delete", "src/app/app.spec.ts_delete"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

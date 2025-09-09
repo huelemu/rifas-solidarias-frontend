@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug AuthService</title>
+</head>
+<body>
+    <h1>🔧 Debug AuthService</h1>
+    <div id="debug-info"></div>
+
+    <script>
+        console.log('🔍 Iniciando debug de AuthService...');
+        
+        // Verificar si el archivo se puede cargar
+        const debugInfo = document.getElementById('debug-info');
+        
+        function addDebugInfo(message, type = 'info') {
+            const div = document.createElement('div');
+            div.style.padding = '10px';
+            div.style.margin = '5px';
+            div.style.borderRadius = '5px';
+            div.style.backgroundColor = type === 'error' ? '#fee' : type === 'success' ? '#f0fff4' : '#f0f8ff';
+            div.textContent = message;
+            debugInfo.appendChild(div);
+        }
+
+        // Verificar ruta actual
+        addDebugInfo(`Página actual: ${window.location.pathname}`);
+        addDebugInfo(`URL completa: ${window.location.href}`);
+        
+        // Intentar cargar AuthService
+        const script = document.createElement('script');
+        script.src = 'js/authService.js';
+        script.onload = function() {
+            addDebugInfo('✅ AuthService cargado exitosamente', 'success');
+            
+            // Verificar que la variable global existe
+            if (typeof authService !== 'undefined') {
+                addDebugInfo('✅ Variable authService disponible', 'success');
+                addDebugInfo(`API URL: ${authService.API_BASE_URL}`);
+                
+                // Probar métodos básicos
+                try {
+                    const isAuth = authService.isAuthenticated();
+                    addDebugInfo(`Estado de autenticación: ${isAuth}`);
+                    
+                    const user = authService.getCurrentUser();
+                    addDebugInfo(`Usuario actual: ${user ? user.email : 'No autenticado'}`);
+                    
+                } catch (error) {
+                    addDebugInfo(`❌ Error probando métodos: ${error.message}`, 'error');
+                }
+                
+            } else {
+                addDebugInfo('❌ Variable authService NO disponible', 'error');
+            }
+        };
+        
+        script.onerror = function() {
+            addDebugInfo('❌ Error cargando js/authService.js', 'error');
+            addDebugInfo('Verifica que el archivo existe en la carpeta js/', 'error');
+            
+            // Verificar si la carpeta js existe
+            fetch('js/')
+                .then(response => {
+                    if (response.ok) {
+                        addDebugInfo('✅ Carpeta js/ existe');
+                    } else {
+                        addDebugInfo('❌ Carpeta js/ no existe', 'error');
+                    }
+                })
+                .catch(error => {
+                    addDebugInfo('❌ No se puede acceder a la carpeta js/', 'error');
+                });
+        };
+        
+        document.head.appendChild(script);
+        
+        // Verificar después de 2 segundos
+        setTimeout(() => {
+            if (typeof authService === 'undefined') {
+                addDebugInfo('❌ AuthService no se cargó después de 2 segundos', 'error');
+                addDebugInfo('Soluciones:', 'info');
+                addDebugInfo('1. Verifica que existe js/authService.js', 'info');
+                addDebugInfo('2. Verifica que el servidor web esté sirviendo archivos estáticos', 'info');
+                addDebugInfo('3. Revisa la consola del navegador para más detalles', 'info');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
