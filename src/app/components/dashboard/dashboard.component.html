@@ -1,0 +1,375 @@
+// dashboard.component.html
+<div class="dashboard-container" *ngIf="!loading">
+  <!-- Header del Dashboard -->
+  <div class="dashboard-header">
+    <div class="welcome-section">
+      <div class="user-avatar-large">
+        {{ currentUser?.nombre.charAt(0) }}{{ currentUser?.apellido.charAt(0) }}
+      </div>
+      <div class="welcome-text">
+        <h1>¡Bienvenido, {{ currentUser?.nombre }}!</h1>
+        <p>
+          {{ getRoleIcon(currentUser?.rol) }} {{ getRoleDisplayName(currentUser?.rol) }}
+          <span *ngIf="currentUser?.institucion" class="institution-badge">
+            • {{ currentUser.institucion.nombre }}
+          </span>
+        </p>
+      </div>
+    </div>
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ currentUser?.rol === 'admin_global' ? 'Todas' : 'Mi' }}</span>
+          <span class="stat-label">Institución(es)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones Rápidas por Rol -->
+  <div class="quick-actions">
+    <h2>🚀 Acciones Rápidas</h2>
+    
+    <!-- Admin Global -->
+    <div class="actions-grid" *ngIf="currentUser?.rol === 'admin_global'">
+      <div class="action-card primary" (click)="navigateToInstituciones()">
+        <div class="action-icon">🏢</div>
+        <h3>Gestionar Instituciones</h3>
+        <p>Crear, editar y administrar todas las instituciones del sistema</p>
+        <div class="action-button">Ver Instituciones</div>
+      </div>
+
+      <div class="action-card secondary" (click)="navigateToUsuarios()">
+        <div class="action-icon">👥</div>
+        <h3>Gestionar Usuarios</h3>
+        <p>Administrar todos los usuarios y sus permisos en el sistema</p>
+        <div class="action-button">Ver Usuarios</div>
+      </div>
+
+      <div class="action-card tertiary" (click)="navigateToRifas()">
+        <div class="action-icon">🎲</div>
+        <h3>Ver Todas las Rifas</h3>
+        <p>Monitor global de todas las rifas activas del sistema</p>
+        <div class="action-button">Ver Rifas</div>
+      </div>
+
+      <div class="action-card accent" (click)="navigateToReportes()">
+        <div class="action-icon">📈</div>
+        <h3>Reportes Globales</h3>
+        <p>Estadísticas y análisis completos del sistema</p>
+        <div class="action-button">Ver Reportes</div>
+      </div>
+    </div>
+
+    <!-- Admin Institución -->
+    <div class="actions-grid" *ngIf="currentUser?.rol === 'admin_institucion'">
+      <div class="action-card primary" (click)="navigateToRifas()">
+        <div class="action-icon">🎲</div>
+        <h3>Crear Nueva Rifa</h3>
+        <p>Configurar una nueva rifa para tu institución</p>
+        <div class="action-button">Nueva Rifa</div>
+      </div>
+
+      <div class="action-card secondary" (click)="navigateToRifas()">
+        <div class="action-icon">📋</div>
+        <h3>Mis Rifas</h3>
+        <p>Gestionar las rifas activas de tu institución</p>
+        <div class="action-button">Ver Rifas</div>
+      </div>
+
+      <div class="action-card tertiary" (click)="navigateToUsuarios()">
+        <div class="action-icon">👥</div>
+        <h3>Gestionar Vendedores</h3>
+        <p>Administrar el equipo de vendedores de tu institución</p>
+        <div class="action-button">Ver Vendedores</div>
+      </div>
+
+      <div class="action-card accent" (click)="navigateToReportes()">
+        <div class="action-icon">📊</div>
+        <h3>Reportes Institución</h3>
+        <p>Estadísticas y ventas de tu institución</p>
+        <div class="action-button">Ver Reportes</div>
+      </div>
+    </div>
+
+    <!-- Vendedor -->
+    <div class="actions-grid" *ngIf="currentUser?.rol === 'vendedor'">
+      <div class="action-card primary" (click)="navigateToVentas()">
+        <div class="action-icon">💰</div>
+        <h3>Vender Números</h3>
+        <p>Procesar ventas de números de rifas disponibles</p>
+        <div class="action-button">Iniciar Venta</div>
+      </div>
+
+      <div class="action-card secondary" (click)="navigateToRifas()">
+        <div class="action-icon">🎲</div>
+        <h3>Rifas Disponibles</h3>
+        <p>Ver rifas activas disponibles para la venta</p>
+        <div class="action-button">Ver Rifas</div>
+      </div>
+
+      <div class="action-card tertiary" (click)="navigateToVentas()">
+        <div class="action-icon">📋</div>
+        <h3>Mis Ventas</h3>
+        <p>Historial y estadísticas de tus ventas realizadas</p>
+        <div class="action-button">Ver Ventas</div>
+      </div>
+
+      <div class="action-card accent" (click)="navigateToReportes()">
+        <div class="action-icon">📊</div>
+        <h3>Mi Rendimiento</h3>
+        <p>Comisiones y estadísticas de vendedor</p>
+        <div class="action-button">Ver Estadísticas</div>
+      </div>
+    </div>
+
+    <!-- Comprador -->
+    <div class="actions-grid" *ngIf="currentUser?.rol === 'comprador'">
+      <div class="action-card primary" (click)="navigateToRifas()">
+        <div class="action-icon">🛒</div>
+        <h3>Comprar Números</h3>
+        <p>Explorar rifas disponibles y comprar números</p>
+        <div class="action-button">Explorar Rifas</div>
+      </div>
+
+      <div class="action-card secondary" (click)="navigateToCompras()">
+        <div class="action-icon">🎫</div>
+        <h3>Mis Números</h3>
+        <p>Ver todos los números que has comprado</p>
+        <div class="action-button">Ver Números</div>
+      </div>
+
+      <div class="action-card tertiary" (click)="navigateToCompras()">
+        <div class="action-icon">🏆</div>
+        <h3>Resultados</h3>
+        <p>Verificar resultados de sorteos realizados</p>
+        <div class="action-button">Ver Resultados</div>
+      </div>
+
+      <div class="action-card accent" (click)="navigateToCompras()">
+        <div class="action-icon">📊</div>
+        <h3>Mi Historial</h3>
+        <p>Historial completo de compras y participaciones</p>
+        <div class="action-button">Ver Historial</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Estadísticas Rápidas -->
+  <div class="stats-section">
+    <h2>📈 Estadísticas Rápidas</h2>
+    
+    <div class="stats-grid">
+      <!-- Stats para Admin Global -->
+      <ng-container *ngIf="currentUser?.rol === 'admin_global'">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🏢</span>
+            <span class="stat-title">Instituciones</span>
+          </div>
+          <div class="stat-value">{{ '12' }}</div>
+          <div class="stat-change positive">+2 este mes</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">👥</span>
+            <span class="stat-title">Usuarios Totales</span>
+          </div>
+          <div class="stat-value">{{ '847' }}</div>
+          <div class="stat-change positive">+15 esta semana</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎲</span>
+            <span class="stat-title">Rifas Activas</span>
+          </div>
+          <div class="stat-value">{{ '23' }}</div>
+          <div class="stat-change neutral">3 finalizan pronto</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">💰</span>
+            <span class="stat-title">Ingresos Totales</span>
+          </div>
+          <div class="stat-value">${{ '125,430' }}</div>
+          <div class="stat-change positive">+8.5% vs mes anterior</div>
+        </div>
+      </ng-container>
+
+      <!-- Stats para Admin Institución -->
+      <ng-container *ngIf="currentUser?.rol === 'admin_institucion'">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎲</span>
+            <span class="stat-title">Mis Rifas</span>
+          </div>
+          <div class="stat-value">{{ '5' }}</div>
+          <div class="stat-change positive">2 activas</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">👥</span>
+            <span class="stat-title">Vendedores</span>
+          </div>
+          <div class="stat-value">{{ '8' }}</div>
+          <div class="stat-change positive">6 activos</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎫</span>
+            <span class="stat-title">Números Vendidos</span>
+          </div>
+          <div class="stat-value">{{ '1,234' }}</div>
+          <div class="stat-change positive">+12% esta semana</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">💰</span>
+            <span class="stat-title">Ingresos</span>
+          </div>
+          <div class="stat-value">${{ '15,680' }}</div>
+          <div class="stat-change positive">+5.2% vs mes anterior</div>
+        </div>
+      </ng-container>
+
+      <!-- Stats para Vendedor -->
+      <ng-container *ngIf="currentUser?.rol === 'vendedor'">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎫</span>
+            <span class="stat-title">Números Vendidos</span>
+          </div>
+          <div class="stat-value">{{ '156' }}</div>
+          <div class="stat-change positive">+23 esta semana</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">💰</span>
+            <span class="stat-title">Comisiones</span>
+          </div>
+          <div class="stat-value">${{ '1,840' }}</div>
+          <div class="stat-change positive">+8.5% vs mes anterior</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-title">Ranking</span>
+          </div>
+          <div class="stat-value">#{{ '3' }}</div>
+          <div class="stat-change positive">↑1 posición</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎯</span>
+            <span class="stat-title">Meta Mensual</span>
+          </div>
+          <div class="stat-value">{{ '78%' }}</div>
+          <div class="stat-change positive">En buen camino</div>
+        </div>
+      </ng-container>
+
+      <!-- Stats para Comprador -->
+      <ng-container *ngIf="currentUser?.rol === 'comprador'">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎫</span>
+            <span class="stat-title">Números Comprados</span>
+          </div>
+          <div class="stat-value">{{ '23' }}</div>
+          <div class="stat-change neutral">En 8 rifas</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">💰</span>
+            <span class="stat-title">Total Invertido</span>
+          </div>
+          <div class="stat-value">${{ '345' }}</div>
+          <div class="stat-change neutral">Este año</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-title">Premios Ganados</span>
+          </div>
+          <div class="stat-value">{{ '2' }}</div>
+          <div class="stat-change positive">¡Felicitaciones!</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-icon">🎲</span>
+            <span class="stat-title">Rifas Activas</span>
+          </div>
+          <div class="stat-value">{{ '5' }}</div>
+          <div class="stat-change neutral">Participando</div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Sección de Actividades Recientes -->
+  <div class="recent-activity">
+    <h2>📋 Actividad Reciente</h2>
+    
+    <div class="activity-list">
+      <!-- Actividades según el rol -->
+      <div class="activity-item" *ngIf="currentUser?.rol === 'admin_global'">
+        <div class="activity-icon">🏢</div>
+        <div class="activity-content">
+          <span class="activity-text">Nueva institución "Colegio San José" registrada</span>
+          <span class="activity-time">Hace 2 horas</span>
+        </div>
+      </div>
+      
+      <div class="activity-item" *ngIf="currentUser?.rol === 'admin_institucion'">
+        <div class="activity-icon">🎲</div>
+        <div class="activity-content">
+          <span class="activity-text">Rifa "Sorteo Navideño" creada exitosamente</span>
+          <span class="activity-time">Hace 1 día</span>
+        </div>
+      </div>
+      
+      <div class="activity-item" *ngIf="currentUser?.rol === 'vendedor'">
+        <div class="activity-icon">💰</div>
+        <div class="activity-content">
+          <span class="activity-text">15 números vendidos en "Rifa Benéfica"</span>
+          <span class="activity-time">Hace 3 horas</span>
+        </div>
+      </div>
+      
+      <div class="activity-item" *ngIf="currentUser?.rol === 'comprador'">
+        <div class="activity-icon">🎫</div>
+        <div class="activity-content">
+          <span class="activity-text">Comprado número 147 en "Sorteo Navideño"</span>
+          <span class="activity-time">Hace 1 día</span>
+        </div>
+      </div>
+      
+      <div class="activity-item">
+        <div class="activity-icon">🔔</div>
+        <div class="activity-content">
+          <span class="activity-text">Sistema actualizado con nuevas funcionalidades</span>
+          <span class="activity-time">Hace 3 días</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <div class="loading-spinner"></div>
+  <p>Cargando dashboard...</p>
+</div>

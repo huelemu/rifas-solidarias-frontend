@@ -1,0 +1,87 @@
+// login.component.html
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="brand-logo">
+        🎯 <span class="brand-text">Rifas Solidarias</span>
+      </div>
+      <h2>Iniciar Sesión</h2>
+      <p>Accede a tu cuenta para continuar</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">📧 Email</label>
+        <input 
+          id="email"
+          type="email" 
+          formControlName="email"
+          class="form-input"
+          [class.error]="email?.invalid && email?.touched"
+          placeholder="Ingresa tu email"
+          autocomplete="email">
+        
+        <div class="field-error" *ngIf="email?.invalid && email?.touched">
+          <small *ngIf="email?.errors?.['required']">El email es requerido</small>
+          <small *ngIf="email?.errors?.['email']">Ingresa un email válido</small>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">🔒 Contraseña</label>
+        <div class="password-input-container">
+          <input 
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            [class.error]="password?.invalid && password?.touched"
+            placeholder="Ingresa tu contraseña"
+            autocomplete="current-password">
+          
+          <button 
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        
+        <div class="field-error" *ngIf="password?.invalid && password?.touched">
+          <small *ngIf="password?.errors?.['required']">La contraseña es requerida</small>
+          <small *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres</small>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="errorMessage">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-full"
+        [disabled]="isLoading"
+        [class.loading]="isLoading">
+        <span *ngIf="!isLoading">🚀 Iniciar Sesión</span>
+        <span *ngIf="isLoading" class="loading-text">
+          <span class="spinner"></span> Iniciando sesión...
+        </span>
+      </button>
+    </form>
+
+    <!-- Register Link -->
+    <div class="login-footer">
+      <p>
+        ¿No tienes cuenta? 
+        <button type="button" class="link-button" (click)="goToRegister()">
+          Regístrate aquí
+        </button>
+      </p>
+    </div>
+  </div>
+</div>

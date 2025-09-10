@@ -1,39 +1,113 @@
-<!-- src/app/app.component.html -->
+// app.component.html
 <div class="app-container">
   <!-- Navegación -->
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-brand">
-        <a routerLink="/" class="brand-link">
+        <a routerLink="/" class="brand-link" (click)="closeMenu()">
           🎲 Rifas Solidarias
         </a>
       </div>
       
-      <div class="nav-menu">
-        <a routerLink="/" routerLinkActive="active" class="nav-link home-link">
+      <!-- Menu hamburguesa para móvil -->
+      <button class="mobile-menu-toggle" 
+              (click)="toggleMenu()" 
+              [class.active]="isMenuOpen"
+              aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <!-- Menu principal -->
+      <div class="nav-menu" [class.active]="isMenuOpen">
+        <a routerLink="/" 
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{exact: true}"
+           class="nav-link home-link"
+           (click)="closeMenu()">
           🏠 Inicio
         </a>
-        <a routerLink="/instituciones" routerLinkActive="active" class="nav-link">
-          🏢 Instituciones
-        </a>
-        <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
-          👥 Usuarios
-        </a>
-        <a routerLink="/diagnostico" routerLinkActive="active" class="nav-link">
+        
+        <!-- Links solo para usuarios autenticados -->
+        <ng-container *ngIf="isAuthenticated">
+          <a routerLink="/instituciones" 
+             routerLinkActive="active" 
+             class="nav-link"
+             *ngIf="canAccessSection('instituciones')"
+             (click)="closeMenu()">
+            🏢 Instituciones
+          </a>
+          
+          <a routerLink="/usuarios" 
+             routerLinkActive="active" 
+             class="nav-link"
+             *ngIf="canAccessSection('usuarios')"
+             (click)="closeMenu()">
+            👥 Usuarios
+          </a>
+          
+          <a routerLink="/rifas" 
+             routerLinkActive="active" 
+             class="nav-link"
+             *ngIf="canAccessSection('rifas')"
+             (click)="closeMenu()">
+            🎲 Rifas
+          </a>
+        </ng-container>
+        
+        <!-- Links públicos -->
+        <a routerLink="/diagnostico" 
+           routerLinkActive="active" 
+           class="nav-link"
+           (click)="closeMenu()">
           🔍 Diagnóstico
-        </a>
-        <a href="#" class="nav-link disabled">
-          🎲 Rifas <span class="badge-soon">Próximamente</span>
         </a>
       </div>
       
+      <!-- Acciones de usuario -->
       <div class="nav-actions">
-        <button class="btn btn-outline" disabled>
-          👤 Login
-        </button>
+        <!-- Usuario no autenticado -->
+        <ng-container *ngIf="!isAuthenticated">
+          <button class="btn btn-outline" (click)="goToLogin()">
+            🔐 Login
+          </button>
+          <button class="btn btn-primary" (click)="goToRegister()">
+            ✨ Registro
+          </button>
+        </ng-container>
+        
+        <!-- Usuario autenticado -->
+        <ng-container *ngIf="isAuthenticated && currentUser">
+          <div class="user-menu">
+            <div class="user-info">
+              <div class="user-avatar">
+                {{ currentUser.nombre.charAt(0) }}{{ currentUser.apellido.charAt(0) }}
+              </div>
+              <div class="user-details">
+                <span class="user-name">{{ currentUser.nombre }} {{ currentUser.apellido }}</span>
+                <span class="user-role">{{ getRoleDisplayName(currentUser.rol) }}</span>
+              </div>
+            </div>
+            
+            <div class="user-actions">
+              <button class="btn btn-outline btn-sm" (click)="goToDashboard()">
+                📊 Dashboard
+              </button>
+              <button class="btn btn-danger btn-sm" (click)="logout()">
+                🚪 Salir
+              </button>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
   </nav>
+
+  <!-- Overlay para cerrar menu en móvil -->
+  <div class="mobile-overlay" 
+       *ngIf="isMenuOpen" 
+       (click)="closeMenu()"></div>
 
   <!-- Contenido principal -->
   <main class="main-content">
@@ -45,9 +119,12 @@
     <div class="footer-content">
       <p>&copy; 2025 Rifas Solidarias. Sistema de gestión para instituciones.</p>
       <div class="footer-links">
-        <a href="http://localhost:3100/api-docs" target="_blank" class="footer-link">📚 Documentación API</a>
+        <a href="http://localhost:3100/api-docs" target="_blank" class="footer-link">
+          📚 API Docs
+        </a>
         <a href="#" class="footer-link">ℹ️ Acerca de</a>
       </div>
     </div>
   </footer>
 </div>
+
