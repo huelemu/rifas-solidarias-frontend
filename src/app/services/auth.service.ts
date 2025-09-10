@@ -1,4 +1,4 @@
-// src/app/services/auth.service.ts - VERSIÓN CORREGIDA
+// src/app/services/auth.service.ts - VERSIÓN COMPLETAMENTE CORREGIDA
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
@@ -24,11 +24,14 @@ export interface LoginRequest {
   password: string;
 }
 
+// INTERFAZ CORREGIDA PARA BACKEND REAL
 export interface LoginResponse {
-  status: boolean;
+  status: string;
   data?: {
-    access_token: string;
-    refresh_token: string;
+    tokens: {
+      access_token: string;
+      refresh_token: string;
+    };
     user: User;
   };
   message?: string;
@@ -69,18 +72,30 @@ export class AuthService {
   }
 
   // ==================
-  // MÉTODOS DE AUTENTICACIÓN
+  // MÉTODOS DE AUTENTICACIÓN CORREGIDOS
   // ==================
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_BASE_URL}/auth/login`, credentials)
       .pipe(
         tap(response => {
-          if (response.status && response.data) {
-            this.setTokens(response.data.access_token, response.data.refresh_token);
-            this.setUserData(response.data.user);
-            this.updateAuthState(response.data.user);
-            console.log('✅ Login exitoso:', response.data.user.email);
+          console.log('🔍 Respuesta completa del backend:', response);
+          
+          // Backend devuelve: { status: "success", data: { tokens: {...}, user: {...} } }
+          if (response.status === 'success' && response.data) {
+            const { tokens, user } = response.data;
+            
+            if (tokens && tokens.access_token && tokens.refresh_token) {
+              this.setTokens(tokens.access_token, tokens.refresh_token);
+              this.setUserData(user);
+              this.updateAuthState(user);
+              console.log('✅ Login exitoso:', user.email);
+              console.log('✅ Token guardado:', tokens.access_token.substring(0, 20) + '...');
+            } else {
+              console.error('❌ Estructura de tokens incorrecta:', tokens);
+            }
+          } else {
+            console.error('❌ Respuesta del backend incorrecta:', response);
           }
         }),
         catchError(this.handleError)
@@ -91,11 +106,17 @@ export class AuthService {
     return this.http.post<any>(`${this.API_BASE_URL}/auth/register`, userData)
       .pipe(
         tap(response => {
-          if (response.success && response.data) {
-            this.setTokens(response.data.access_token, response.data.refresh_token);
-            this.setUserData(response.data.user);
-            this.updateAuthState(response.data.user);
-            console.log('✅ Registro exitoso:', response.data.user.email);
+          console.log('🔍 Respuesta de registro:', response);
+          
+          if (response.status === 'success' && response.data) {
+            const { tokens, user } = response.data;
+            
+            if (tokens && tokens.access_token && tokens.refresh_token) {
+              this.setTokens(tokens.access_token, tokens.refresh_token);
+              this.setUserData(user);
+              this.updateAuthState(user);
+              console.log('✅ Registro exitoso:', user.email);
+            }
           }
         }),
         catchError(this.handleError)
@@ -132,8 +153,11 @@ export class AuthService {
       refresh_token: refreshToken
     }).pipe(
       tap(response => {
-        if (response.success && response.data) {
-          this.setTokens(response.data.access_token, response.data.refresh_token);
+        console.log('🔍 Respuesta refresh token:', response);
+        
+        if (response.status === 'success' && response.data) {
+          // Para refresh, el backend devuelve solo access_token
+          this.setTokens(response.data.access_token, refreshToken);
           console.log('✅ Token renovado exitosamente');
         }
       }),
@@ -154,6 +178,7 @@ export class AuthService {
   private setTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+    console.log('✅ Tokens guardados en localStorage');
   }
 
   getAccessToken(): string | null {
@@ -231,6 +256,7 @@ export class AuthService {
       'vendedor': 2,
       'comprador': 1
     };
+
     const userLevel = roleHierarchy[user.rol] || 0;
     const requiredLevel = roleHierarchy[requiredRole] || 0;
 
@@ -283,7 +309,7 @@ export class AuthService {
       // Verificar que el token sea válido
       this.authenticatedRequest('/auth/me').subscribe(
         (response) => {
-          if (response.success && response.data) {
+          if (response.status === 'success' && response.data) {
             this.setUserData(response.data);
             this.updateAuthState(response.data);
           }
@@ -301,15 +327,16 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-redirectToDashboard(): void {
-  const user = this.getCurrentUser();
-  if (user) {
-    console.log('✅ Redirigiendo al dashboard para rol:', user.rol);
-    this.router.navigate(['/dashboard']); // ← RUTA SIMPLE QUE SÍ EXISTE
-  } else {
-    this.router.navigate(['/']);
+  redirectToDashboard(): void {
+    const user = this.getCurrentUser();
+    if (user) {
+      console.log('✅ Redirigiendo al dashboard para rol:', user.rol);
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
-}
+
   // Método para obtener instituciones (público)
   getInstituciones(): Observable<any> {
     return this.http.get(`${this.API_BASE_URL}/instituciones`)
