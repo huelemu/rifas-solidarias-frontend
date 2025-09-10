@@ -1,10 +1,13 @@
 // unauthorized.component.ts - Componente para acceso no autorizado
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-unauthorized',
+  standalone: true,
+  imports: [CommonModule],
   template: `
     <div class="unauthorized-container">
       <div class="unauthorized-card">
@@ -134,16 +137,17 @@ export class UnauthorizedComponent implements OnInit {
     this.currentUser = this.authService.getCurrentUser();
   }
 
-  getRoleDisplayName(role: string): string {
-    const roleNames = {
-      'admin_global': 'Administrador Global',
-      'admin_institucion': 'Administrador de Institución',
-      'vendedor': 'Vendedor',
-      'comprador': 'Comprador'
-    };
-    return roleNames[role] || role;
-  }
+ getRoleDisplayName(role: string): string {
+  const roleNames: { [key: string]: string } = {
+    'admin_global': 'Admin Global',
+    'admin_institucion': 'Admin Institución', 
+    'vendedor': 'Vendedor',
+    'comprador': 'Comprador'
+  };
+  return roleNames[role] || role;
+}
 
+  
   goToDashboard(): void {
     this.authService.redirectToDashboard();
   }

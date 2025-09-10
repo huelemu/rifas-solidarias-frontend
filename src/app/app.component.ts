@@ -1,11 +1,14 @@
 // app.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService, User } from './services/auth.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -76,15 +79,15 @@ export class AppComponent implements OnInit, OnDestroy {
     this.closeMenu();
   }
 
-  getRoleDisplayName(role: string): string {
-    const roleNames = {
-      'admin_global': 'Admin Global',
-      'admin_institucion': 'Admin Institución',
-      'vendedor': 'Vendedor',
-      'comprador': 'Comprador'
-    };
-    return roleNames[role] || role;
-  }
+getRoleDisplayName(role: string): string {
+  const roleNames: { [key: string]: string } = { 
+    'admin_global': 'Admin Global',
+    'admin_institucion': 'Admin Institución', 
+    'vendedor': 'Vendedor',
+    'comprador': 'Comprador'
+  };
+  return roleNames[role] || role;
+}
 
   canAccessSection(section: string): boolean {
     if (!this.isAuthenticated) return false;

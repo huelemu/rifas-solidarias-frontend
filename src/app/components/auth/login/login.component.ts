@@ -1,11 +1,14 @@
-// login.component.ts
+// src/app/components/auth/login/login.component.ts - VERSIÓN CORREGIDA
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, LoginRequest } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -44,21 +47,23 @@ export class LoginComponent implements OnInit {
       };
 
       this.authService.login(credentials).subscribe({
-        next: (response) => {
-          if (response.success) {
-            console.log('✅ Login exitoso');
-            this.authService.redirectToDashboard();
-          } else {
-            this.errorMessage = response.message || 'Error en el login';
-            this.isLoading = false;
-          }
-        },
-        error: (error) => {
-          console.error('❌ Error en login:', error);
-          this.errorMessage = error || 'Error de conexión. Intenta nuevamente.';
-          this.isLoading = false;
-        }
-      });
+      next: (response) => {
+      if (response.success) {
+      console.log('✅ Login exitoso');
+      console.log('🔄 Llamando redirectToDashboard...');
+      this.authService.redirectToDashboard();
+      console.log('✅ redirectToDashboard llamado');
+    } else {
+      this.errorMessage = response.message || 'Error en el login';
+      this.isLoading = false;
+    }
+  },
+  error: (error) => {
+    console.error('❌ Error en login:', error);
+    this.errorMessage = error || 'Error de conexión. Intenta nuevamente.';
+    this.isLoading = false;
+  }
+});
     } else {
       this.markFormGroupTouched();
     }

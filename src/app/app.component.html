@@ -1,4 +1,3 @@
-// src/app/app.component.html - VERSIÓN SIMPLIFICADA
 <!-- Reemplaza tu app.component.html actual con esto -->
 <div class="app-container">
   <!-- Navegación simple -->
@@ -26,9 +25,9 @@
       </div>
       
       <div class="nav-actions">
-        <button class="btn btn-outline" onclick="alert('Login próximamente')">
-          🔐 Login
-        </button>
+       <button class="btn btn-outline" (click)="goToLogin()">
+        🔐 Login
+      </button>
       </div>
     </div>
   </nav>

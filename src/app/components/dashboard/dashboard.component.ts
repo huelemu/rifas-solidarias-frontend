@@ -1,10 +1,13 @@
-// dashboard.component.ts
+// src/app/components/dashboard/dashboard.component.ts - VERSIÓN FINAL CORREGIDA
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -34,8 +37,20 @@ export class DashboardComponent implements OnInit {
     this.loading = false;
   }
 
-  getRoleDisplayName(role: string): string {
-    const roleNames = {
+  // Helper para verificar si currentUser existe
+  get user(): User | null {
+    return this.currentUser;
+  }
+
+  // Helper seguro para obtener el rol
+  get userRole(): string {
+    return this.currentUser?.rol || '';
+  }
+
+  getRoleDisplayName(role?: string): string {
+    if (!role) return '';
+    
+    const roleNames: { [key: string]: string } = {
       'admin_global': 'Administrador Global',
       'admin_institucion': 'Administrador de Institución',
       'vendedor': 'Vendedor',
@@ -44,8 +59,10 @@ export class DashboardComponent implements OnInit {
     return roleNames[role] || role;
   }
 
-  getRoleIcon(role: string): string {
-    const roleIcons = {
+  getRoleIcon(role?: string): string {
+    if (!role) return '👤';
+    
+    const roleIcons: { [key: string]: string } = {
       'admin_global': '👑',
       'admin_institucion': '🏢',
       'vendedor': '💼',
@@ -98,5 +115,36 @@ export class DashboardComponent implements OnInit {
 
   canViewReports(): boolean {
     return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
+  }
+
+  // Helpers para el template - ESTAS SON LAS CLAVES
+  isAdminGlobal(): boolean {
+    return this.currentUser?.rol === 'admin_global';
+  }
+
+  isAdminInstitucion(): boolean {
+    return this.currentUser?.rol === 'admin_institucion';
+  }
+
+  isVendedor(): boolean {
+    return this.currentUser?.rol === 'vendedor';
+  }
+
+  isComprador(): boolean {
+    return this.currentUser?.rol === 'comprador';
+  }
+
+  // Helper para obtener nombre completo
+  getFullName(): string {
+    if (!this.currentUser) return '';
+    return `${this.currentUser.nombre || ''} ${this.currentUser.apellido || ''}`.trim();
+  }
+
+  // Helper para obtener iniciales
+  getInitials(): string {
+    if (!this.currentUser) return '';
+    const nombre = this.currentUser.nombre || '';
+    const apellido = this.currentUser.apellido || '';
+    return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
   }
 }

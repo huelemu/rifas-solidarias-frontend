@@ -225,13 +225,12 @@ export class AuthService {
     if (!user) return false;
 
     // Jerarquía de roles
-    const roleHierarchy = {
+    const roleHierarchy: { [key: string]: number } = {
       'admin_global': 4,
       'admin_institucion': 3,
       'vendedor': 2,
       'comprador': 1
     };
-
     const userLevel = roleHierarchy[user.rol] || 0;
     const requiredLevel = roleHierarchy[requiredRole] || 0;
 
@@ -302,31 +301,15 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  redirectToDashboard(): void {
-    const user = this.getCurrentUser();
-    if (user) {
-      // Redirigir según el rol del usuario
-      switch (user.rol) {
-        case 'admin_global':
-          this.router.navigate(['/dashboard/admin']);
-          break;
-        case 'admin_institucion':
-          this.router.navigate(['/dashboard/institucion']);
-          break;
-        case 'vendedor':
-          this.router.navigate(['/dashboard/vendedor']);
-          break;
-        case 'comprador':
-          this.router.navigate(['/dashboard/comprador']);
-          break;
-        default:
-          this.router.navigate(['/dashboard']);
-      }
-    } else {
-      this.router.navigate(['/']);
-    }
+redirectToDashboard(): void {
+  const user = this.getCurrentUser();
+  if (user) {
+    console.log('✅ Redirigiendo al dashboard para rol:', user.rol);
+    this.router.navigate(['/dashboard']); // ← RUTA SIMPLE QUE SÍ EXISTE
+  } else {
+    this.router.navigate(['/']);
   }
-
+}
   // Método para obtener instituciones (público)
   getInstituciones(): Observable<any> {
     return this.http.get(`${this.API_BASE_URL}/instituciones`)

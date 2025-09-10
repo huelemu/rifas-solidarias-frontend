@@ -4,14 +4,14 @@
   <div class="dashboard-header">
     <div class="welcome-section">
       <div class="user-avatar-large">
-        {{ currentUser?.nombre.charAt(0) }}{{ currentUser?.apellido.charAt(0) }}
-      </div>
+       {{ getInitials() }}
+        /div>
       <div class="welcome-text">
-        <h1>¡Bienvenido, {{ currentUser?.nombre }}!</h1>
+        <h1>¡Bienvenido, {{ getFullName() }}!</h1>
         <p>
-          {{ getRoleIcon(currentUser?.rol) }} {{ getRoleDisplayName(currentUser?.rol) }}
+         {{ getRoleIcon(userRole) }} {{ getRoleDisplayName(userRole) }}
           <span *ngIf="currentUser?.institucion" class="institution-badge">
-            • {{ currentUser.institucion.nombre }}
+          • {{ currentUser?.institucion?.nombre }}
           </span>
         </p>
       </div>
@@ -32,7 +32,7 @@
     <h2>🚀 Acciones Rápidas</h2>
     
     <!-- Admin Global -->
-    <div class="actions-grid" *ngIf="currentUser?.rol === 'admin_global'">
+    <div class="actions-grid" *ngIf="isAdminGlobal()">
       <div class="action-card primary" (click)="navigateToInstituciones()">
         <div class="action-icon">🏢</div>
         <h3>Gestionar Instituciones</h3>
@@ -63,7 +63,7 @@
     </div>
 
     <!-- Admin Institución -->
-    <div class="actions-grid" *ngIf="currentUser?.rol === 'admin_institucion'">
+    <div class="actions-grid" *ngIf="isAdminInstitucion()">
       <div class="action-card primary" (click)="navigateToRifas()">
         <div class="action-icon">🎲</div>
         <h3>Crear Nueva Rifa</h3>
@@ -162,7 +162,7 @@
     
     <div class="stats-grid">
       <!-- Stats para Admin Global -->
-      <ng-container *ngIf="currentUser?.rol === 'admin_global'">
+      <ng-container *ngIf="isAdminGlobal()">
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-icon">🏢</span>
@@ -201,7 +201,7 @@
       </ng-container>
 
       <!-- Stats para Admin Institución -->
-      <ng-container *ngIf="currentUser?.rol === 'admin_institucion'">
+      <ng-container *ngIf="isAdminInstitucion()">
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-icon">🎲</span>
@@ -325,7 +325,7 @@
     
     <div class="activity-list">
       <!-- Actividades según el rol -->
-      <div class="activity-item" *ngIf="currentUser?.rol === 'admin_global'">
+      <div class="activity-item" *ngIf="isAdminGlobal()">
         <div class="activity-icon">🏢</div>
         <div class="activity-content">
           <span class="activity-text">Nueva institución "Colegio San José" registrada</span>
@@ -333,7 +333,7 @@
         </div>
       </div>
       
-      <div class="activity-item" *ngIf="currentUser?.rol === 'admin_institucion'">
+      <div class="activity-item" *ngIf="isAdminInstitucion()">
         <div class="activity-icon">🎲</div>
         <div class="activity-content">
           <span class="activity-text">Rifa "Sorteo Navideño" creada exitosamente</span>
