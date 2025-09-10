@@ -1,10 +1,13 @@
-// src/app/app.component.scss - VERSIÓN SIMPLIFICADA
+// app.component.scss - ESTILOS MEJORADOS PARA NAVBAR
 .app-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+// ==================
+// NAVBAR STYLES
+// ==================
 .navbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -22,7 +25,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 70px;
+  min-height: 70px;
 }
 
 .nav-brand .brand-link {
@@ -40,9 +43,39 @@
   }
 }
 
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  
+  span {
+    width: 25px;
+    height: 3px;
+    background: #333;
+    margin: 2px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+  }
+  
+  &.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  
+  &.active span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  &.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+}
+
 .nav-menu {
   display: flex;
-  gap: 10px;
+  gap: 5px;
   align-items: center;
 }
 
@@ -53,6 +86,8 @@
   font-weight: 500;
   border-radius: 8px;
   transition: all 0.3s ease;
+  position: relative;
+  font-size: 0.9rem;
 
   &:hover {
     color: #333;
@@ -64,14 +99,98 @@
     color: #667eea;
     background: rgba(102, 126, 234, 0.1);
   }
+
+  &.home-link.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
 }
 
+// ==================
+// USER MENU STYLES - MEJORADO
+// ==================
 .nav-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  min-width: 280px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.08);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #666;
+  background: rgba(102, 126, 234, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+// ==================
+// BUTTON STYLES - MEJORADO
+// ==================
 .btn {
   padding: 8px 16px;
   border-radius: 8px;
@@ -83,11 +202,25 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+
+  &:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
   }
 }
 
@@ -102,11 +235,31 @@
   }
 }
 
+.btn-danger {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+
+  &:hover {
+    background: linear-gradient(135deg, #ff5252, #d63031);
+  }
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+// ==================
+// MAIN CONTENT
+// ==================
 .main-content {
   flex: 1;
   padding: 0;
 }
 
+// ==================
+// FOOTER STYLES
+// ==================
 .footer {
   background: #2c3e50;
   color: white;
@@ -145,22 +298,118 @@
   }
 }
 
+// ==================
+// MOBILE STYLES
+// ==================
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .mobile-overlay {
+    display: block;
+  }
+
   .nav-container {
     padding: 0 15px;
-    flex-wrap: wrap;
-    height: auto;
-    padding: 15px;
   }
 
   .nav-menu {
-    flex-wrap: wrap;
-    gap: 8px;
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    width: 300px;
+    height: calc(100vh - 70px);
+    background: white;
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+    align-items: stretch;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow-y: auto;
+
+    &.active {
+      left: 0;
+    }
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-align: left;
+  }
+
+  .nav-actions {
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    margin-top: 20px;
+    align-items: stretch;
+  }
+
+  .user-menu {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    padding: 15px;
+    min-width: auto;
+    gap: 15px;
+  }
+
+  .user-info {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .user-details {
+    align-items: center;
+  }
+
+  .user-actions {
+    width: 100%;
+    justify-content: space-between;
+    
+    .btn {
+      flex: 1;
+    }
   }
 
   .footer-content {
     flex-direction: column;
     text-align: center;
     gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0 10px;
+  }
+
+  .nav-menu {
+    width: 280px;
+  }
+
+  .user-menu {
+    padding: 12px;
+  }
+
+  .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
   }
 }

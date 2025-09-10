@@ -25,7 +25,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  success: boolean;
+  status: boolean;
   data?: {
     access_token: string;
     refresh_token: string;
@@ -76,7 +76,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.API_BASE_URL}/auth/login`, credentials)
       .pipe(
         tap(response => {
-          if (response.success && response.data) {
+          if (response.status && response.data) {
             this.setTokens(response.data.access_token, response.data.refresh_token);
             this.setUserData(response.data.user);
             this.updateAuthState(response.data.user);

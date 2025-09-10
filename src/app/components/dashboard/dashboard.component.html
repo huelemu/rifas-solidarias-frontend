@@ -1,17 +1,17 @@
-// dashboard.component.html
+<!-- dashboard.component.html - VERSIÓN CORREGIDA -->
 <div class="dashboard-container" *ngIf="!loading">
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
     <div class="welcome-section">
       <div class="user-avatar-large">
-       {{ getInitials() }}
-        /div>
+        {{ getInitials() }}
+      </div>
       <div class="welcome-text">
         <h1>¡Bienvenido, {{ getFullName() }}!</h1>
         <p>
-         {{ getRoleIcon(userRole) }} {{ getRoleDisplayName(userRole) }}
+          {{ getRoleIcon(userRole) }} {{ getRoleDisplayName(userRole) }}
           <span *ngIf="currentUser?.institucion" class="institution-badge">
-          • {{ currentUser?.institucion?.nombre }}
+            • {{ currentUser?.institucion?.nombre }}
           </span>
         </p>
       </div>
@@ -20,7 +20,7 @@
       <div class="stat-card">
         <div class="stat-icon">📊</div>
         <div class="stat-info">
-          <span class="stat-number">{{ currentUser?.rol === 'admin_global' ? 'Todas' : 'Mi' }}</span>
+          <span class="stat-number">{{ isAdminGlobal() ? 'Todas' : 'Mi' }}</span>
           <span class="stat-label">Institución(es)</span>
         </div>
       </div>
@@ -94,7 +94,7 @@
     </div>
 
     <!-- Vendedor -->
-    <div class="actions-grid" *ngIf="currentUser?.rol === 'vendedor'">
+    <div class="actions-grid" *ngIf="isVendedor()">
       <div class="action-card primary" (click)="navigateToVentas()">
         <div class="action-icon">💰</div>
         <h3>Vender Números</h3>
@@ -125,7 +125,7 @@
     </div>
 
     <!-- Comprador -->
-    <div class="actions-grid" *ngIf="currentUser?.rol === 'comprador'">
+    <div class="actions-grid" *ngIf="isComprador()">
       <div class="action-card primary" (click)="navigateToRifas()">
         <div class="action-icon">🛒</div>
         <h3>Comprar Números</h3>
@@ -168,7 +168,7 @@
             <span class="stat-icon">🏢</span>
             <span class="stat-title">Instituciones</span>
           </div>
-          <div class="stat-value">{{ '12' }}</div>
+          <div class="stat-value">12</div>
           <div class="stat-change positive">+2 este mes</div>
         </div>
         
@@ -177,7 +177,7 @@
             <span class="stat-icon">👥</span>
             <span class="stat-title">Usuarios Totales</span>
           </div>
-          <div class="stat-value">{{ '847' }}</div>
+          <div class="stat-value">847</div>
           <div class="stat-change positive">+15 esta semana</div>
         </div>
         
@@ -186,7 +186,7 @@
             <span class="stat-icon">🎲</span>
             <span class="stat-title">Rifas Activas</span>
           </div>
-          <div class="stat-value">{{ '23' }}</div>
+          <div class="stat-value">23</div>
           <div class="stat-change neutral">3 finalizan pronto</div>
         </div>
         
@@ -195,7 +195,7 @@
             <span class="stat-icon">💰</span>
             <span class="stat-title">Ingresos Totales</span>
           </div>
-          <div class="stat-value">${{ '125,430' }}</div>
+          <div class="stat-value">$125,430</div>
           <div class="stat-change positive">+8.5% vs mes anterior</div>
         </div>
       </ng-container>
@@ -207,7 +207,7 @@
             <span class="stat-icon">🎲</span>
             <span class="stat-title">Mis Rifas</span>
           </div>
-          <div class="stat-value">{{ '5' }}</div>
+          <div class="stat-value">5</div>
           <div class="stat-change positive">2 activas</div>
         </div>
         
@@ -216,7 +216,7 @@
             <span class="stat-icon">👥</span>
             <span class="stat-title">Vendedores</span>
           </div>
-          <div class="stat-value">{{ '8' }}</div>
+          <div class="stat-value">8</div>
           <div class="stat-change positive">6 activos</div>
         </div>
         
@@ -225,7 +225,7 @@
             <span class="stat-icon">🎫</span>
             <span class="stat-title">Números Vendidos</span>
           </div>
-          <div class="stat-value">{{ '1,234' }}</div>
+          <div class="stat-value">1,234</div>
           <div class="stat-change positive">+12% esta semana</div>
         </div>
         
@@ -234,19 +234,19 @@
             <span class="stat-icon">💰</span>
             <span class="stat-title">Ingresos</span>
           </div>
-          <div class="stat-value">${{ '15,680' }}</div>
+          <div class="stat-value">$15,680</div>
           <div class="stat-change positive">+5.2% vs mes anterior</div>
         </div>
       </ng-container>
 
       <!-- Stats para Vendedor -->
-      <ng-container *ngIf="currentUser?.rol === 'vendedor'">
+      <ng-container *ngIf="isVendedor()">
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-icon">🎫</span>
             <span class="stat-title">Números Vendidos</span>
           </div>
-          <div class="stat-value">{{ '156' }}</div>
+          <div class="stat-value">156</div>
           <div class="stat-change positive">+23 esta semana</div>
         </div>
         
@@ -255,7 +255,7 @@
             <span class="stat-icon">💰</span>
             <span class="stat-title">Comisiones</span>
           </div>
-          <div class="stat-value">${{ '1,840' }}</div>
+          <div class="stat-value">$1,840</div>
           <div class="stat-change positive">+8.5% vs mes anterior</div>
         </div>
         
@@ -264,7 +264,7 @@
             <span class="stat-icon">🏆</span>
             <span class="stat-title">Ranking</span>
           </div>
-          <div class="stat-value">#{{ '3' }}</div>
+          <div class="stat-value">#3</div>
           <div class="stat-change positive">↑1 posición</div>
         </div>
         
@@ -273,19 +273,19 @@
             <span class="stat-icon">🎯</span>
             <span class="stat-title">Meta Mensual</span>
           </div>
-          <div class="stat-value">{{ '78%' }}</div>
+          <div class="stat-value">78%</div>
           <div class="stat-change positive">En buen camino</div>
         </div>
       </ng-container>
 
       <!-- Stats para Comprador -->
-      <ng-container *ngIf="currentUser?.rol === 'comprador'">
+      <ng-container *ngIf="isComprador()">
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-icon">🎫</span>
             <span class="stat-title">Números Comprados</span>
           </div>
-          <div class="stat-value">{{ '23' }}</div>
+          <div class="stat-value">23</div>
           <div class="stat-change neutral">En 8 rifas</div>
         </div>
         
@@ -294,7 +294,7 @@
             <span class="stat-icon">💰</span>
             <span class="stat-title">Total Invertido</span>
           </div>
-          <div class="stat-value">${{ '345' }}</div>
+          <div class="stat-value">$345</div>
           <div class="stat-change neutral">Este año</div>
         </div>
         
@@ -303,7 +303,7 @@
             <span class="stat-icon">🏆</span>
             <span class="stat-title">Premios Ganados</span>
           </div>
-          <div class="stat-value">{{ '2' }}</div>
+          <div class="stat-value">2</div>
           <div class="stat-change positive">¡Felicitaciones!</div>
         </div>
         
@@ -312,7 +312,7 @@
             <span class="stat-icon">🎲</span>
             <span class="stat-title">Rifas Activas</span>
           </div>
-          <div class="stat-value">{{ '5' }}</div>
+          <div class="stat-value">5</div>
           <div class="stat-change neutral">Participando</div>
         </div>
       </ng-container>
@@ -341,7 +341,7 @@
         </div>
       </div>
       
-      <div class="activity-item" *ngIf="currentUser?.rol === 'vendedor'">
+      <div class="activity-item" *ngIf="isVendedor()">
         <div class="activity-icon">💰</div>
         <div class="activity-content">
           <span class="activity-text">15 números vendidos en "Rifa Benéfica"</span>
@@ -349,7 +349,7 @@
         </div>
       </div>
       
-      <div class="activity-item" *ngIf="currentUser?.rol === 'comprador'">
+      <div class="activity-item" *ngIf="isComprador()">
         <div class="activity-icon">🎫</div>
         <div class="activity-content">
           <span class="activity-text">Comprado número 147 en "Sorteo Navideño"</span>

@@ -36,38 +36,51 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid && !this.isLoading) {
-      this.isLoading = true;
-      this.errorMessage = '';
+ onSubmit(): void {
+  console.log('🚀 onSubmit() ejecutado!');
+  console.log('📝 Form value:', this.loginForm.value);
+  console.log('✅ Form valid:', this.loginForm.valid);
+  console.log('⏳ Loading state:', this.isLoading);
 
-      const credentials: LoginRequest = {
-        email: this.loginForm.get('email')?.value,
-        password: this.loginForm.get('password')?.value
-      };
+  if (this.loginForm.valid && !this.isLoading) {
+    console.log('✅ Condiciones cumplidas, iniciando login...');
+    this.isLoading = true;
+    this.errorMessage = '';
 
-      this.authService.login(credentials).subscribe({
+    const credentials: LoginRequest = {
+      email: this.loginForm.get('email')?.value,
+      password: this.loginForm.get('password')?.value
+    };
+
+    console.log('📡 Enviando credenciales:', credentials);
+
+    this.authService.login(credentials).subscribe({
       next: (response) => {
-      if (response.success) {
-      console.log('✅ Login exitoso');
-      console.log('🔄 Llamando redirectToDashboard...');
-      this.authService.redirectToDashboard();
-      console.log('✅ redirectToDashboard llamado');
-    } else {
-      this.errorMessage = response.message || 'Error en el login';
-      this.isLoading = false;
-    }
-  },
-  error: (error) => {
-    console.error('❌ Error en login:', error);
-    this.errorMessage = error || 'Error de conexión. Intenta nuevamente.';
-    this.isLoading = false;
+        console.log('📥 Respuesta recibida:', response);
+        if (response.status) {
+          console.log('✅ Login exitoso');
+          console.log('🔄 Llamando redirectToDashboard...');
+          this.authService.redirectToDashboard();
+          console.log('✅ redirectToDashboard llamado');
+        } else {
+          console.log('❌ Login fallido:', response.message);
+          this.errorMessage = response.message || 'Error en el login';
+          this.isLoading = false;
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error en login:', error);
+        this.errorMessage = error || 'Error de conexión. Intenta nuevamente.';
+        this.isLoading = false;
+      }
+    });
+  } else {
+    console.log('❌ Condiciones NO cumplidas:');
+    console.log('   - Form valid:', this.loginForm.valid);
+    console.log('   - Loading:', this.isLoading);
+    this.markFormGroupTouched();
   }
-});
-    } else {
-      this.markFormGroupTouched();
-    }
-  }
+}
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;

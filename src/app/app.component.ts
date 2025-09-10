@@ -90,20 +90,20 @@ getRoleDisplayName(role: string): string {
 }
 
   canAccessSection(section: string): boolean {
-    if (!this.isAuthenticated) return false;
+  if (!this.isAuthenticated) return false;
 
-    switch (section) {
-      case 'instituciones':
-        return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-      case 'usuarios':
-        return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-      case 'rifas':
-        return true; // Todos los usuarios autenticados pueden ver rifas
-      case 'admin':
-        return this.authService.hasRole('admin_global');
-      default:
-        return true;
-    }
+  switch (section) {
+    case 'instituciones':
+      return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
+    case 'usuarios':
+      return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
+    case 'rifas':
+      return true; // Todos los usuarios autenticados pueden ver rifas
+    case 'admin':
+      return this.authService.hasRole('admin_global');
+    default:
+      return true;
   }
+}
 }
 
