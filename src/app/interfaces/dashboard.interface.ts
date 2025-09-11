@@ -1,6 +1,7 @@
 // ====================================
 // src/app/interfaces/dashboard.interface.ts
 // ====================================
+import { Rifa } from './rifa.interface';
 
 export interface DashboardStats {
   // Estadísticas generales

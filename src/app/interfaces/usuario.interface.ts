@@ -5,9 +5,11 @@
 export interface Usuario {
   id: number;
   nombre: string;
+  apellido: string;
   email: string;
   telefono?: string;
   direccion?: string;
+  dni: string;
   rol: 'admin_global' | 'admin_institucion' | 'vendedor' | 'comprador';
   estado: 'activo' | 'inactivo';
   institucion_id?: number;

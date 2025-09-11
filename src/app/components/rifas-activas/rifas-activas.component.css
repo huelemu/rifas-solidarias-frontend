@@ -1,0 +1,167 @@
+ .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 20px;
+    }
+
+    .header h1 {
+      margin: 0 0 10px 0;
+      font-size: 3em;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 1.3em;
+      opacity: 0.9;
+    }
+
+    .rifas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .rifa-card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+
+    .rifa-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .rifa-image {
+      height: 150px;
+      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .rifa-image i {
+      font-size: 3em;
+    }
+
+    .rifa-content {
+      padding: 25px;
+    }
+
+    .rifa-content h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 1.3em;
+    }
+
+    .rifa-content p {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .rifa-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 15px;
+      background: #f8f9ff;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.3em;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .stat span {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .rifa-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-ver, .btn-comprar {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .btn-ver {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-ver:hover {
+      background: #5a67d8;
+    }
+
+    .btn-comprar {
+      background: #cccccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    .no-rifas {
+      text-align: center;
+      padding: 80px 20px;
+      color: #666;
+    }
+
+    .no-rifas i {
+      font-size: 4em;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .no-rifas h3 {
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+
+    @media (max-width: 768px) {
+      .rifas-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .rifa-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 2.2em;
+      }
+    }

@@ -1,1 +1,37 @@
-<p>detalle-rifa works!</p>
+<div class="container">
+      <div class="header">
+        <button [routerLink]="['/rifas']" class="btn-back">
+          <i class="fas fa-arrow-left"></i>
+          Volver
+        </button>
+        <h1>📋 Detalle de Rifa</h1>
+      </div>
+
+      <div class="content">
+        <div class="rifa-info" *ngIf="rifaId">
+          <h2>Rifa ID: {{ rifaId }}</h2>
+          <p>Información detallada de la rifa</p>
+        </div>
+
+        <div class="placeholder">
+          <i class="fas fa-info-circle"></i>
+          <h3>Funcionalidad en desarrollo</h3>
+          <p>Aquí se mostrará toda la información detallada de la rifa:</p>
+          
+          <ul class="features-list">
+            <li>📊 Estadísticas de ventas</li>
+            <li>🎯 Descripción completa</li>
+            <li>📅 Fechas importantes</li>
+            <li>💰 Precios y premios</li>
+            <li>🎟️ Números disponibles</li>
+          </ul>
+
+          <div class="actions">
+            <button class="btn-primary" disabled>
+              <i class="fas fa-shopping-cart"></i>
+              Comprar Números (Próximamente)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

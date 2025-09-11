@@ -3,6 +3,7 @@
 // ====================================
 
 export interface Rifa {
+  numero_ganador: number;
   id: number;
   titulo: string;
   nombre?: string; // Para compatibilidad con backend
@@ -13,7 +14,7 @@ export interface Rifa {
   fecha_inicio: string;
   fecha_fin: string;
   fecha_sorteo: string;
-  estado: 'activa' | 'cerrada' | 'finalizada';
+  estado: 'cancelada' | 'borrador' | 'activa' | 'cerrada' | 'finalizada';
   institucion_id?: number;
   institucion_nombre?: string;
   creado_por?: number;

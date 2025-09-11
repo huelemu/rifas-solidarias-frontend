@@ -193,7 +193,7 @@
       </div>
 
       <!-- Formulario -->
-      <form *ngIf="modalMode !== 'view'" [formGroup]="institucionForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="institucionForm" (ngSubmit)="guardarInstitucion()">
         <div class="form-group">
           <label for="nombre">Nombre *</label>
           <input 
@@ -295,7 +295,7 @@
       <button 
         type="submit" 
         class="btn btn-primary" 
-        (click)="onSubmit()"
+        (click)="guardarInstitucion()"
         [disabled]="loading || institucionForm.invalid">
         <span *ngIf="loading">⏳</span>
         {{ modalMode === 'create' ? 'Crear Institución' : 'Actualizar Institución' }}

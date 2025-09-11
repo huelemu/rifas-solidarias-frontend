@@ -1,4 +1,4 @@
-// src/app/components/instituciones/instituciones.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -71,47 +71,50 @@ export class InstitucionesComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('❌ Error al cargar instituciones:', error);
-        this.error = 'Error al cargar las instituciones: ' + (error.message || 'Error desconocido');
+        console.error('❌ Error cargando instituciones:', error);
+        this.error = `Error al cargar instituciones: ${error.message || 'Error desconocido'}`;
         this.loading = false;
       }
     });
   }
 
-  get institucionesFiltradas(): Institucion[] {
+  // ✅ FUNCIÓN CORREGIDA - MANEJA PROPIEDADES OPCIONALES
+  get institucionesFiltradas() {
     return this.instituciones.filter(institucion => {
-      const matchesSearch = !this.searchTerm || 
-        institucion.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        institucion.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        (institucion.descripcion && institucion.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase()));
+      // Filtro por estado
+      const pasaFiltroEstado = !this.filtroEstado || institucion.estado === this.filtroEstado;
       
-      const matchesEstado = !this.filtroEstado || institucion.estado === this.filtroEstado;
+      // Filtro por búsqueda - ✅ USANDO OPTIONAL CHAINING
+      const searchLower = this.searchTerm.toLowerCase();
+      const pasaBusqueda = !this.searchTerm || 
+        institucion.nombre?.toLowerCase().includes(searchLower) ||
+        institucion.email?.toLowerCase().includes(searchLower) ||
+        institucion.descripcion?.toLowerCase().includes(searchLower) ||
+        institucion.direccion?.toLowerCase().includes(searchLower);
       
-      return matchesSearch && matchesEstado;
+      return pasaFiltroEstado && pasaBusqueda;
     });
   }
 
+  // Modal functions
   abrirModal(mode: 'create' | 'edit' | 'view', institucion?: Institucion) {
     this.modalMode = mode;
     this.selectedInstitucion = institucion || null;
     this.showModal = true;
-    this.error = '';
-    this.success = '';
-
-    if (mode === 'create') {
-      this.institucionForm.reset({
-        estado: 'activa'
-      });
-    } else if (mode === 'edit' && institucion) {
+    
+    if (mode === 'edit' && institucion) {
       this.institucionForm.patchValue({
         nombre: institucion.nombre,
         descripcion: institucion.descripcion || '',
         direccion: institucion.direccion || '',
         telefono: institucion.telefono || '',
-        email: institucion.email,
+        email: institucion.email || '',
         logo_url: institucion.logo_url || '',
-        estado: institucion.estado || 'activa'
+        estado: institucion.estado
       });
+    } else if (mode === 'create') {
+      this.institucionForm.reset();
+      this.institucionForm.patchValue({ estado: 'activa' });
     }
   }
 
@@ -123,95 +126,113 @@ export class InstitucionesComponent implements OnInit {
     this.success = '';
   }
 
-  onSubmit() {
-    if (this.institucionForm.valid) {
-      const formData = this.institucionForm.value;
-      
-      // Limpiar campos vacíos
-      Object.keys(formData).forEach(key => {
-        if (formData[key] === '' || formData[key] === null) {
-          delete formData[key];
-        }
-      });
-
-      if (this.modalMode === 'create') {
-        this.crearInstitucion(formData);
-      } else if (this.modalMode === 'edit' && this.selectedInstitucion) {
-        this.actualizarInstitucion(this.selectedInstitucion.id!, formData);
-      }
-    } else {
-      this.markFormGroupTouched();
+  guardarInstitucion() {
+    if (!this.institucionForm.valid) {
+      this.error = 'Por favor, corrige los errores en el formulario';
+      return;
     }
-  }
 
-  crearInstitucion(institucionData: InstitucionInput) {
+    const formData = this.institucionForm.value;
     this.loading = true;
-    
-    this.institucionService.crearInstitucion(institucionData).subscribe({
-      next: (response) => {
-        if (response.status === 'success') {
-          this.success = 'Institución creada exitosamente';
-          this.cargarInstituciones();
-          setTimeout(() => this.cerrarModal(), 1500);
-        }
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error al crear institución:', error);
-        this.error = error.error?.message || 'Error al crear la institución';
-        this.loading = false;
-      }
-    });
-  }
+    this.error = '';
 
-  actualizarInstitucion(id: number, institucionData: Partial<Institucion>) {
-    this.loading = true;
-    
-    this.institucionService.actualizarInstitucion(id, institucionData).subscribe({
-      next: (response) => {
-        if (response.status === 'success') {
-          this.success = 'Institución actualizada exitosamente';
-          this.cargarInstituciones();
-          setTimeout(() => this.cerrarModal(), 1500);
-        }
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error al actualizar institución:', error);
-        this.error = error.error?.message || 'Error al actualizar la institución';
-        this.loading = false;
-      }
-    });
-  }
-
-  eliminarInstitucion(institucion: Institucion) {
-    if (confirm(`¿Estás seguro de que deseas eliminar la institución ${institucion.nombre}?`)) {
-      this.institucionService.eliminarInstitucion(institucion.id!).subscribe({
+    if (this.modalMode === 'create') {
+      this.institucionService.crearInstitucion(formData).subscribe({
         next: (response) => {
+          console.log('✅ Institución creada:', response);
           if (response.status === 'success') {
-            this.success = 'Institución eliminada exitosamente';
+            this.success = 'Institución creada exitosamente';
             this.cargarInstituciones();
-            setTimeout(() => this.success = '', 3000);
+            this.cerrarModal();
+          } else {
+            this.error = response.message || 'Error al crear institución';
           }
+          this.loading = false;
         },
         error: (error) => {
-          console.error('Error al eliminar institución:', error);
-          this.error = error.error?.message || 'Error al eliminar la institución';
-          setTimeout(() => this.error = '', 5000);
+          console.error('❌ Error creando institución:', error);
+          this.error = `Error al crear institución: ${error.message || 'Error desconocido'}`;
+          this.loading = false;
+        }
+      });
+    } else if (this.modalMode === 'edit' && this.selectedInstitucion) {
+      this.institucionService.actualizarInstitucion(this.selectedInstitucion.id, formData).subscribe({
+        next: (response) => {
+          console.log('✅ Institución actualizada:', response);
+          if (response.status === 'success') {
+            this.success = 'Institución actualizada exitosamente';
+            this.cargarInstituciones();
+            this.cerrarModal();
+          } else {
+            this.error = response.message || 'Error al actualizar institución';
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Error actualizando institución:', error);
+          this.error = `Error al actualizar institución: ${error.message || 'Error desconocido'}`;
+          this.loading = false;
         }
       });
     }
   }
 
-  private markFormGroupTouched() {
-    Object.keys(this.institucionForm.controls).forEach(key => {
-      const control = this.institucionForm.get(key);
-      control?.markAsTouched();
+  // ✅ FUNCIÓN CORREGIDA PARA ELIMINAR
+  eliminarInstitucion(institucion: Institucion) {
+    const nombreInstitucion = institucion.nombre || 'esta institución';
+    if (!confirm(`¿Estás seguro de que deseas eliminar "${nombreInstitucion}"?`)) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    this.institucionService.eliminarInstitucion(institucion.id).subscribe({
+      next: (response) => {
+        console.log('✅ Institución eliminada:', response);
+        if (response.status === 'success') {
+          this.success = 'Institución eliminada exitosamente';
+          this.cargarInstituciones();
+        } else {
+          this.error = response.message || 'Error al eliminar institución';
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error eliminando institución:', error);
+        this.error = `Error al eliminar institución: ${error.message || 'Error desconocido'}`;
+        this.loading = false;
+      }
     });
   }
 
-  getEstadoLabel(estado: string): string {
-    const estadoObj = this.estados.find(e => e.value === estado);
-    return estadoObj ? estadoObj.label : estado;
+
+
+  // Utility functions
+  limpiarMensajes() {
+    this.error = '';
+    this.success = '';
   }
+
+  // ✅ HELPERS SEGUROS PARA EL TEMPLATE
+  getInstitucionEmail(institucion: Institucion): string {
+    return institucion.email || 'Sin email';
+  }
+
+  getInstitucionDescripcion(institucion: Institucion): string {
+    return institucion.descripcion || 'Sin descripción';
+  }
+
+  getInstitucionTelefono(institucion: Institucion): string {
+    return institucion.telefono || 'Sin teléfono';
+  }
+
+  getInstitucionDireccion(institucion: Institucion): string {
+    return institucion.direccion || 'Sin dirección';
+  }
+   getEstadoLabel(estado: string): string {
+    const estadoObj = this.estados.find(e => e.value === estado);
+    return estadoObj?.label || estado;
+  }
+  
 }

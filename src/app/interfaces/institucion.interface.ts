@@ -16,6 +16,7 @@ export interface Institucion {
   fecha_actualizacion?: string;
   
   // Estadísticas opcionales
+  logo_url?: string;
   total_rifas?: number;
   rifas_activas?: number;
   total_recaudado?: number;

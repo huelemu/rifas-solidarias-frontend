@@ -1,0 +1,234 @@
+<div class="rifas-container">
+      <!-- Header principal -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1>🎲 Rifas Solidarias</h1>
+          <p class="subtitle">Participa en rifas y colabora con instituciones solidarias</p>
+        </div>
+        
+        <div class="header-actions" *ngIf="puedeCrearRifas()">
+          <button 
+            routerLink="/rifas/crear" 
+            class="btn btn-primary btn-create">
+            ➕ Crear Nueva Rifa
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros y controles -->
+      <div class="filtros-section">
+        <div class="filtros-left">
+          <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="form-select">
+            <option value="">📋 Todos los estados</option>
+            <option value="activa">✅ Activas</option>
+            <option value="finalizada">🏁 Finalizadas</option>
+            <option value="borrador">📝 Borradores</option>
+          </select>
+
+          <select [(ngModel)]="filtroInstitucion" (change)="aplicarFiltros()" class="form-select">
+            <option value="">🏢 Todas las instituciones</option>
+            <option *ngFor="let inst of instituciones" [value]="inst.id">
+              {{ inst.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtros-right">
+          <div class="resultados-info">
+            <span *ngIf="rifasFiltradas.length > 0">
+              Mostrando {{ rifasFiltradas.length }} de {{ rifas.length }} rifas
+            </span>
+            <span *ngIf="rifasFiltradas.length === 0 && !cargando">
+              No se encontraron rifas
+            </span>
+          </div>
+          
+          <button (click)="cargarRifas()" class="btn btn-secondary btn-refresh" [disabled]="cargando">
+            <span *ngIf="!cargando">🔄 Actualizar</span>
+            <span *ngIf="cargando">⏳ Cargando...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Estado de carga -->
+      <div *ngIf="cargando" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando rifas... ⏳</p>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div *ngIf="error && !cargando" class="error-state">
+        <div class="error-icon">❌</div>
+        <h3>Oops! Algo salió mal</h3>
+        <p>{{ error }}</p>
+        <button (click)="cargarRifas()" class="btn btn-primary">Reintentar</button>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="!cargando && !error && rifas.length === 0" class="empty-state">
+        <div class="empty-icon">🎲</div>
+        <h3>No hay rifas disponibles</h3>
+        <p>Aún no se han creado rifas en el sistema.</p>
+        <button 
+          *ngIf="puedeCrearRifas()"
+          routerLink="/rifas/crear" 
+          class="btn btn-primary">
+          ➕ Crear la Primera Rifa
+        </button>
+      </div>
+
+      <!-- Lista de rifas -->
+      <div *ngIf="!cargando && !error && rifasFiltradas.length > 0" class="rifas-grid">
+        <div *ngFor="let rifa of rifasFiltradas" class="rifa-card" [class]="'estado-' + rifa.estado">
+          
+          <!-- Badge de estado -->
+          <div class="rifa-badge" [class]="'badge-' + rifa.estado">
+            {{ getEstadoTexto(rifa.estado) }}
+          </div>
+
+          <!-- Imagen de la rifa -->
+          <div class="rifa-imagen" *ngIf="rifa.imagen_url">
+            <img [src]="rifa.imagen_url" [alt]="rifa.titulo || rifa.nombre" />
+          </div>
+          
+          <!-- Placeholder si no hay imagen -->
+          <div class="rifa-imagen-placeholder" *ngIf="!rifa.imagen_url">
+            <div class="placeholder-icon">🎁</div>
+          </div>
+
+          <!-- Contenido de la rifa -->
+          <div class="rifa-content">
+            
+            <!-- Header con título e institución -->
+            <div class="rifa-header">
+              <h3 class="rifa-titulo">{{ rifa.titulo || rifa.nombre }}</h3>
+              <div class="rifa-institucion">
+                <span class="institucion-icon">🏢</span>
+                <span class="institucion-nombre">{{ rifa.institucion_nombre || 'Institución' }}</span>
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="rifa-descripcion" *ngIf="rifa.descripcion">
+              <p>{{ truncarTexto(rifa.descripcion, 100) }}</p>
+            </div>
+
+            <!-- Información clave -->
+            <div class="rifa-info">
+              <div class="info-item">
+                <span class="info-label">💰 Precio:</span>
+                <span class="info-valor precio">{{ formatearPrecio(rifa.precio_numero) }}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="info-label">🎯 Números:</span>
+                <span class="info-valor">{{ rifa.total_numeros || rifa.cantidad_numeros }}</span>
+              </div>
+              
+              <div class="info-item" *ngIf="rifa.numeros_vendidos !== undefined">
+                <span class="info-label">📊 Vendidos:</span>
+                <span class="info-valor vendidos">{{ rifa.numeros_vendidos || 0 }}</span>
+              </div>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="progreso-section" *ngIf="rifa.estado === 'activa'">
+              <div class="progreso-bar">
+                <div 
+                  class="progreso-fill" 
+                  [style.width.%]="getPorcentajeVendido(rifa)">
+                </div>
+              </div>
+              <div class="progreso-info">
+                <span class="progreso-texto">{{ getPorcentajeVendido(rifa) }}% vendido</span>
+                <span class="progreso-disponibles">
+                  {{ getNumerosdisponibles(rifa) }} disponibles
+                </span>
+              </div>
+            </div>
+
+            <!-- Fechas importantes -->
+            <div class="rifa-fechas">
+              <div class="fecha-item">
+                <span class="fecha-label">📅 Fin:</span>
+                <span class="fecha-valor" [class.fecha-urgente]="esFechaUrgente(rifa.fecha_fin)">
+                  {{ formatearFecha(rifa.fecha_fin) }}
+                </span>
+              </div>
+              
+              <div class="fecha-item" *ngIf="rifa.fecha_sorteo && rifa.estado !== 'borrador'">
+                <span class="fecha-label">🎰 Sorteo:</span>
+                <span class="fecha-valor">{{ formatearFecha(rifa.fecha_sorteo) }}</span>
+              </div>
+            </div>
+
+            <!-- Resultado del sorteo -->
+            <div class="resultado-sorteo" *ngIf="rifa.estado === 'finalizada' && rifa.numero_ganador">
+              <div class="numero-ganador">
+                <span class="numero">{{ rifa.numero_ganador }}</span>
+                <span class="texto">🏆 Número Ganador</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="rifa-acciones">
+            
+            <!-- Botón principal según el estado -->
+            <button 
+              *ngIf="rifa.estado === 'activa'"
+              [routerLink]="['/rifas/detalle', rifa.id]" 
+              class="btn btn-primary btn-accion-principal">
+              🛒 Ver y Comprar
+            </button>
+            
+            <button 
+              *ngIf="rifa.estado === 'finalizada'"
+              [routerLink]="['/rifas/detalle', rifa.id]" 
+              class="btn btn-secondary btn-accion-principal">
+              🏁 Ver Resultado
+            </button>
+            
+            <button 
+              *ngIf="rifa.estado === 'cerrada'"
+              [routerLink]="['/rifas/detalle', rifa.id]" 
+              class="btn btn-outline btn-accion-principal">
+              🔒 Ver Rifa Cerrada
+            </button>
+
+            <button 
+              *ngIf="rifa.estado === 'cancelada'"
+              [routerLink]="['/rifas/detalle', rifa.id]" 
+              class="btn btn-outline btn-accion-principal">
+              ❌ Ver Rifa Cancelada
+            </button>
+
+            <!-- Acciones secundarias -->
+            <div class="acciones-secundarias">
+              <button 
+                [routerLink]="['/rifas/detalle', rifa.id]" 
+                class="btn btn-sm btn-outline">
+                👁️ Detalle
+              </button>
+              
+              <button 
+                *ngIf="puedeEditarRifa(rifa)"
+                [routerLink]="['/rifas/editar', rifa.id]" 
+                class="btn btn-sm btn-outline">
+                ✏️ Editar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado de filtros sin resultados -->
+      <div *ngIf="!cargando && !error && rifas.length > 0 && rifasFiltradas.length === 0" class="no-results-state">
+        <div class="no-results-icon">🔍</div>
+        <h3>No se encontraron rifas</h3>
+        <p>Intenta ajustar los filtros o crear una nueva rifa.</p>
+        <button (click)="limpiarFiltros()" class="btn btn-secondary">
+          🔄 Limpiar Filtros
+        </button>
+      </div>
+    </div>

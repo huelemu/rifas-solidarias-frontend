@@ -1,0 +1,26 @@
+ <div class="container">
+      <div class="header">
+        <h1>🎟️ Comprar Números</h1>
+        <p>Selecciona los números que deseas comprar</p>
+      </div>
+
+      <div class="content">
+        <div class="rifa-info" *ngIf="rifaId">
+          <h3>Rifa ID: {{ rifaId }}</h3>
+          <p>Este componente está en desarrollo...</p>
+        </div>
+
+        <div class="placeholder">
+          <i class="fas fa-shopping-cart"></i>
+          <h3>Funcionalidad próximamente</h3>
+          <p>Aquí podrás seleccionar y comprar números de la rifa</p>
+          
+          <div class="actions">
+            <button [routerLink]="['/rifas']" class="btn-back">
+              <i class="fas fa-arrow-left"></i>
+              Volver a Rifas
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

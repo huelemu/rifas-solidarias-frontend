@@ -1,0 +1,160 @@
+<nav class="navbar">
+      <div class="navbar-container">
+        
+        <!-- Logo y título -->
+        <div class="navbar-brand" routerLink="/">
+          <div class="logo">🎲</div>
+          <div class="brand-text">
+            <span class="brand-title">Rifas Solidarias</span>
+            <span class="brand-subtitle">Huelemu</span>
+          </div>
+        </div>
+
+        <!-- Menú hamburguesa para móvil -->
+        <button 
+          class="mobile-menu-btn"
+          (click)="toggleMobileMenu()"
+          [class.active]="mobileMenuOpen">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <!-- Enlaces de navegación -->
+        <div class="navbar-menu" [class.active]="mobileMenuOpen">
+          
+          <!-- Enlaces principales -->
+          <div class="navbar-links">
+            
+            <!-- Inicio -->
+            <a 
+              routerLink="/" 
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: true}"
+              class="nav-link"
+              (click)="closeMobileMenu()">
+              <span class="nav-icon">🏠</span>
+              <span class="nav-text">Inicio</span>
+            </a>
+
+            <!-- Rifas (siempre visible) -->
+            <a 
+              routerLink="/rifas" 
+              routerLinkActive="active"
+              class="nav-link"
+              (click)="closeMobileMenu()">
+              <span class="nav-icon">🎲</span>
+              <span class="nav-text">Rifas</span>
+            </a>
+
+            <!-- Crear Rifa (solo si está autenticado) -->
+            <a 
+              *ngIf="isAuthenticated"
+              routerLink="/rifas/crear" 
+              routerLinkActive="active"
+              class="nav-link nav-link-create"
+              (click)="closeMobileMenu()">
+              <span class="nav-icon">➕</span>
+              <span class="nav-text">Crear Rifa</span>
+            </a>
+
+            <!-- Dashboard (solo si está autenticado) -->
+            <a 
+              *ngIf="isAuthenticated"
+              routerLink="/dashboard" 
+              routerLinkActive="active"
+              class="nav-link"
+              (click)="closeMobileMenu()">
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Dashboard</span>
+            </a>
+
+            <!-- Administración (solo para admins) -->
+            <div *ngIf="isAdmin" class="nav-dropdown">
+              <button 
+                class="nav-link dropdown-toggle"
+                (click)="toggleAdminDropdown()"
+                [class.active]="adminDropdownOpen">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Administrar</span>
+                <span class="dropdown-arrow">{{ adminDropdownOpen ? '▼' : '▶' }}</span>
+              </button>
+              
+              <div class="dropdown-menu" [class.show]="adminDropdownOpen">
+                <a 
+                  routerLink="/instituciones" 
+                  routerLinkActive="active"
+                  class="dropdown-link"
+                  (click)="closeMobileMenu()">
+                  <span class="nav-icon">🏢</span>
+                  <span class="nav-text">Instituciones</span>
+                </a>
+                
+                <a 
+                  routerLink="/usuarios" 
+                  routerLinkActive="active"
+                  class="dropdown-link"
+                  (click)="closeMobileMenu()">
+                  <span class="nav-icon">👥</span>
+                  <span class="nav-text">Usuarios</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usuario y acciones -->
+          <div class="navbar-user">
+            
+            <!-- Si está autenticado -->
+            <div *ngIf="isAuthenticated && currentUser" class="user-menu">
+              <div class="user-info" (click)="toggleUserDropdown()">
+                <div class="user-avatar">{{ getUserInitials() }}</div>
+                <div class="user-details">
+                  <span class="user-name">{{ currentUser.nombre }} {{ currentUser.apellido }}</span>
+                  <span class="user-role">{{ getRoleText(currentUser.rol) }}</span>
+                </div>
+                <span class="dropdown-arrow">{{ userDropdownOpen ? '▼' : '▶' }}</span>
+              </div>
+              
+              <div class="dropdown-menu user-dropdown" [class.show]="userDropdownOpen">
+                <div class="dropdown-header">
+                  <div class="user-email">{{ currentUser.email }}</div>
+                  <div class="user-role-info">{{ getRoleText(currentUser.rol) }}</div>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a routerLink="/dashboard" class="dropdown-link" (click)="closeMobileMenu()">
+                  <span class="nav-icon">📊</span>
+                  <span class="nav-text">Mi Dashboard</span>
+                </a>
+                
+                <a routerLink="/rifas/crear" class="dropdown-link" (click)="closeMobileMenu()">
+                  <span class="nav-icon">➕</span>
+                  <span class="nav-text">Nueva Rifa</span>
+                </a>
+                
+                <div class="dropdown-divider"></div>
+                
+                <button class="dropdown-link logout-btn" (click)="logout()">
+                  <span class="nav-icon">🚪</span>
+                  <span class="nav-text">Cerrar Sesión</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Si no está autenticado -->
+            <div *ngIf="!isAuthenticated" class="auth-buttons">
+              <a 
+                routerLink="/login" 
+                routerLinkActive="active"
+                class="nav-link login-btn"
+                (click)="closeMobileMenu()">
+                <span class="nav-icon">🔐</span>
+                <span class="nav-text">Iniciar Sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>

@@ -4,108 +4,87 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
-import { ApiService } from './api.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-// Importar interfaces desde el barrel export
-import { 
-  Rifa, 
-  NumeroRifa, 
-  CompraNumeros, 
-  CompraResponse, 
-  FiltrosRifa,
-  CrearRifaRequest,
-  ActualizarRifaRequest,
-  ApiResponse 
-} from '../interfaces';
+// Importar solo las interfaces que acabamos de crear
+import { Rifa, NumeroRifa, CompraNumeros, CompraResponse } from '../interfaces';
+
+export type { Rifa, NumeroRifa, CompraNumeros, CompraResponse };
 
 @Injectable({
   providedIn: 'root'
 })
 export class RifaService {
-  private baseUrl: string;
+  // ✅ URL DIRECTA COMO TUS OTROS SERVICIOS
+  private readonly API_BASE_URL = 'http://localhost:3100';
 
-  constructor(
-    private http: HttpClient,
-    private apiService: ApiService
-  ) {
-    this.baseUrl = this.apiService.getApiUrl();
+  constructor(private http: HttpClient) {
+    console.log('🎟️ RifaService inicializado con URL:', this.API_BASE_URL);
   }
 
-  // Obtener todas las rifas con filtros opcionales
-  obtenerRifas(filtros?: FiltrosRifa): Observable<ApiResponse<Rifa[]>> {
+  // Obtener todas las rifas
+  obtenerRifas(filtros?: any): Observable<any> {
     let params = new HttpParams();
     
-    if (filtros) {
-      Object.keys(filtros).forEach(key => {
-        const value = filtros[key as keyof FiltrosRifa];
-        if (value !== undefined && value !== null) {
-          params = params.set(key, value.toString());
-        }
-      });
+    if (filtros?.estado) {
+      params = params.set('estado', filtros.estado);
+    }
+    if (filtros?.institucion_id) {
+      params = params.set('institucion_id', filtros.institucion_id.toString());
     }
 
-    return this.http.get<ApiResponse<Rifa[]>>(`${this.baseUrl}/rifas`, { params });
+    return this.http.get<any>(`${this.API_BASE_URL}/rifas`, { params });
   }
 
   // Obtener rifa por ID
-  obtenerRifaPorId(id: number): Observable<ApiResponse<Rifa>> {
-    return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}`);
-  }
-
-  // Crear nueva rifa
-  crearRifa(rifa: CrearRifaRequest): Observable<ApiResponse<Rifa>> {
-    return this.http.post<ApiResponse<Rifa>>(`${this.baseUrl}/rifas`, rifa);
-  }
-
-  // Actualizar rifa
-  actualizarRifa(id: number, rifa: ActualizarRifaRequest): Observable<ApiResponse<Rifa>> {
-    return this.http.put<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}`, rifa);
-  }
-
-  // Eliminar rifa
-  eliminarRifa(id: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/rifas/${id}`);
+  obtenerRifaPorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.API_BASE_URL}/rifas/${id}`);
   }
 
   // Obtener números de una rifa
-  obtenerNumerosRifa(
-    id: number, 
-    estado?: 'disponible' | 'reservado' | 'vendido'
-  ): Observable<ApiResponse<NumeroRifa[]>> {
+  obtenerNumerosRifa(id: number, estado?: string): Observable<any> {
     let params = new HttpParams();
-    
     if (estado) {
       params = params.set('estado', estado);
     }
 
-    return this.http.get<ApiResponse<NumeroRifa[]>>(
-      `${this.baseUrl}/rifas/${id}/numeros`,
-      { params }
-    );
+    return this.http.get<any>(`${this.API_BASE_URL}/rifas/${id}/numeros`, { params });
   }
 
-  // Comprar números de una rifa
+  // Comprar números
   comprarNumeros(id: number, numeros: number[]): Observable<CompraResponse> {
     const compra: CompraNumeros = { numeros };
-    return this.http.post<CompraResponse>(
-      `${this.baseUrl}/rifas/${id}/comprar`,
-      compra
-    );
+    return this.http.post<CompraResponse>(`${this.API_BASE_URL}/rifas/${id}/comprar`, compra);
   }
 
-  // Obtener mis rifas (como usuario autenticado)
-  obtenerMisRifas(): Observable<ApiResponse<Rifa[]>> {
-    return this.http.get<ApiResponse<Rifa[]>>(`${this.baseUrl}/rifas/user/mis-rifas`);
+  // Obtener mis rifas
+  obtenerMisRifas(): Observable<any> {
+    return this.http.get<any>(`${this.API_BASE_URL}/rifas/user/mis-rifas`);
+  }
+
+  // Crear nueva rifa
+  crearRifa(rifa: any): Observable<any> {
+    return this.http.post<any>(`${this.API_BASE_URL}/rifas`, rifa);
+  }
+
+  // Actualizar rifa
+  actualizarRifa(id: number, rifa: any): Observable<any> {
+    return this.http.put<any>(`${this.API_BASE_URL}/rifas/${id}`, rifa);
+  }
+
+  // Eliminar rifa
+  eliminarRifa(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_BASE_URL}/rifas/${id}`);
   }
 
   // Obtener rifas por institución
-  obtenerRifasPorInstitucion(institucionId: number): Observable<ApiResponse<Rifa[]>> {
+  obtenerRifasPorInstitucion(institucionId: number): Observable<any> {
     return this.obtenerRifas({ institucion_id: institucionId });
   }
 
   // Obtener números disponibles de una rifa
-  obtenerNumerosDisponibles(id: number): Observable<ApiResponse<NumeroRifa[]>> {
+  obtenerNumerosDisponibles(id: number): Observable<any> {
     return this.obtenerNumerosRifa(id, 'disponible');
   }
 
@@ -114,7 +93,7 @@ export class RifaService {
     return this.obtenerNumerosRifa(rifaId).pipe(
       map(response => {
         if (response.success && response.data) {
-          const numeroEncontrado = response.data.find(n => n.numero === numero);
+          const numeroEncontrado = response.data.find((n: any) => n.numero === numero);
           return {
             success: true,
             disponible: numeroEncontrado ? numeroEncontrado.estado === 'disponible' : false,
@@ -128,29 +107,6 @@ export class RifaService {
           disponible: false,
           message: 'Error al verificar número'
         };
-      })
-    );
-  }
-
-  // Obtener estadísticas de una rifa
-  obtenerEstadisticasRifa(id: number): Observable<any> {
-    return this.obtenerRifaPorId(id).pipe(
-      map(response => {
-        if (response.success && response.data) {
-          const rifa = response.data;
-          return {
-            success: true,
-            data: {
-              total_numeros: rifa.total_numeros,
-              vendidos: rifa.estadisticas?.vendidos || 0,
-              disponibles: rifa.estadisticas?.disponibles || rifa.total_numeros,
-              porcentaje_vendido: rifa.porcentaje_vendido,
-              recaudado: rifa.recaudado,
-              total_potencial: rifa.total_potencial
-            }
-          };
-        }
-        return response;
       })
     );
   }

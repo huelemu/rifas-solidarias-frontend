@@ -109,8 +109,7 @@ export class UsuariosComponent implements OnInit {
     return this.usuarios.filter(usuario => {
       const matchesSearch = !this.searchTerm || 
         usuario.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        usuario.apellido.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        usuario.email.toLowerCase().includes(this.searchTerm.toLowerCase());
+        usuario.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||'';
       
       const matchesRol = !this.filtroRol || usuario.rol === this.filtroRol;
       const matchesEstado = !this.filtroEstado || usuario.estado === this.filtroEstado;

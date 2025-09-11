@@ -1,0 +1,122 @@
+<div class="crear-rifa-container">
+      <div class="header">
+        <h1>{{ esEdicion ? '✏️ Editar Rifa' : '➕ Crear Nueva Rifa' }}</h1>
+        <button type="button" (click)="volver()" class="btn btn-secondary">
+          ← Volver
+        </button>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="rifaForm" (ngSubmit)="onSubmit()" class="rifa-form">
+        
+        <!-- Información Básica -->
+        <div class="form-section">
+          <h3>📝 Información Básica</h3>
+          
+          <div class="form-group">
+            <label for="titulo">Título de la Rifa *</label>
+            <input 
+              type="text" 
+              id="titulo"
+              formControlName="titulo" 
+              class="form-control"
+              placeholder="Ej: Rifa Solidaria - Televisor 55 pulgadas"
+              [class.is-invalid]="titulo?.invalid && titulo?.touched">
+            <div *ngIf="titulo?.invalid && titulo?.touched" class="invalid-feedback">
+              <small *ngIf="titulo?.errors?.['required']">El título es obligatorio</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea 
+              id="descripcion"
+              formControlName="descripcion" 
+              class="form-control"
+              rows="4"
+              placeholder="Describe los premios, objetivo de la rifa, etc.">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Configuración de Números -->
+        <div class="form-section">
+          <h3>🎯 Configuración</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="total_numeros">Cantidad de Números *</label>
+              <input 
+                type="number" 
+                id="total_numeros"
+                formControlName="total_numeros" 
+                class="form-control"
+                min="1"
+                placeholder="100">
+            </div>
+
+            <div class="form-group">
+              <label for="precio_numero">Precio por Número *</label>
+              <input 
+                type="number" 
+                id="precio_numero"
+                formControlName="precio_numero" 
+                class="form-control"
+                min="0.01"
+                step="0.01"
+                placeholder="50.00">
+            </div>
+          </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="form-section">
+          <h3>📅 Fechas</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fecha_inicio">Fecha de Inicio *</label>
+              <input 
+                type="date" 
+                id="fecha_inicio"
+                formControlName="fecha_inicio" 
+                class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="fecha_fin">Fecha de Fin *</label>
+              <input 
+                type="date" 
+                id="fecha_fin"
+                formControlName="fecha_fin" 
+                class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            (click)="volver()" 
+            class="btn btn-secondary">
+            Cancelar
+          </button>
+          
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="rifaForm.invalid || guardando">
+            <span *ngIf="guardando">⏳ Guardando...</span>
+            <span *ngIf="!guardando">
+              {{ esEdicion ? '💾 Actualizar' : '🚀 Crear Rifa' }}
+            </span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Mensajes de estado -->
+      <div *ngIf="mensaje" class="alert" [class]="'alert-' + tipoMensaje">
+        {{ mensaje }}
+      </div>
+    </div>

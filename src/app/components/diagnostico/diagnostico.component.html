@@ -1,0 +1,161 @@
+<div class="diagnostico-container">
+      <div class="header">
+        <h2>🔍 Diagnóstico del Sistema</h2>
+        <div class="environment-info">
+          <span class="env-badge">{{ getEnvironment() }}</span>
+          <span class="backend-url">{{ getBackendUrl() }}</span>
+        </div>
+      </div>
+
+      <!-- Authentication Status -->
+      <div class="auth-section" *ngIf="authStatus">
+        <h3>🔐 Estado de Autenticación</h3>
+        <div class="auth-info" [ngClass]="authStatus.isAuthenticated ? 'authenticated' : 'not-authenticated'">
+          <div class="auth-status">
+            {{ authStatus.isAuthenticated ? '✅ Autenticado' : '❌ No autenticado' }}
+          </div>
+          <div *ngIf="authStatus.user" class="user-info">
+            <strong>Usuario:</strong> {{ authStatus.user.email }} ({{ authStatus.user.rol }})
+          </div>
+          <div *ngIf="authStatus.token" class="token-info">
+            <strong>Token:</strong> {{ authStatus.token.substring(0, 20) }}...
+          </div>
+        </div>
+      </div>
+
+      <!-- Tests Automáticos -->
+      <div class="test-section">
+        <h3>🚀 Tests Automáticos</h3>
+        <button (click)="runAllTests()" [disabled]="isRunningTests" class="btn btn-primary">
+          {{ isRunningTests ? '⏳ Ejecutando...' : '▶️ Ejecutar Todos los Tests' }}
+        </button>
+      </div>
+
+      <!-- Test 1: Backend -->
+      <div class="test-section">
+        <div class="test-header">
+          <h3>1. Test de Conexión Backend</h3>
+          <button (click)="testBackend()" class="btn btn-secondary">Probar</button>
+        </div>
+        <div *ngIf="backendResult" class="result">
+          <h4>Resultado:</h4>
+          <pre>{{ backendResult | json }}</pre>
+        </div>
+      </div>
+
+      <!-- Test 2: Instituciones -->
+      <div class="test-section">
+        <div class="test-header">
+          <h3>2. Test Endpoint Instituciones</h3>
+          <button (click)="testInstituciones()" class="btn btn-secondary">Probar</button>
+        </div>
+        <div *ngIf="institucionesResult" class="result">
+          <h4>Resultado ({{ institucionesResult.data?.length || 0 }} instituciones):</h4>
+          <pre>{{ institucionesResult | json }}</pre>
+        </div>
+        <div *ngIf="institucionesError" class="error">
+          <h4>Error:</h4>
+          <pre>{{ institucionesError | json }}</pre>
+        </div>
+      </div>
+
+      <!-- Test 3: Usuarios (con y sin auth) -->
+      <div class="test-section">
+        <div class="test-header">
+          <h3>3. Test Endpoint Usuarios</h3>
+          <div class="test-buttons">
+            <button (click)="testUsuarios()" class="btn btn-secondary">Probar sin Auth</button>
+            <button (click)="testUsuariosAuth()" 
+                    [disabled]="!authStatus?.isAuthenticated" 
+                    class="btn btn-primary">
+              Probar con Auth
+            </button>
+          </div>
+        </div>
+        <div *ngIf="usuariosResult" class="result">
+          <h4>Resultado ({{ usuariosResult.data?.length || 0 }} usuarios):</h4>
+          <pre>{{ usuariosResult | json }}</pre>
+        </div>
+        <div *ngIf="usuariosError" class="error">
+          <h4>Error:</h4>
+          <pre>{{ usuariosError | json }}</pre>
+        </div>
+      </div>
+
+      <!-- Test 4: Auth Me -->
+      <div class="test-section" *ngIf="authStatus?.isAuthenticated">
+        <div class="test-header">
+          <h3>4. Test Validación Token</h3>
+          <button (click)="testAuthMe()" class="btn btn-secondary">Validar Token</button>
+        </div>
+        <div *ngIf="authMeResult" class="result">
+          <h4>Resultado:</h4>
+          <pre>{{ authMeResult | json }}</pre>
+        </div>
+        <div *ngIf="authMeError" class="error">
+          <h4>Error:</h4>
+          <pre>{{ authMeError | json }}</pre>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="test-section">
+        <h3>⚡ Acciones Rápidas</h3>
+        <div class="quick-actions">
+          <button (click)="clearLocalStorage()" class="btn btn-warning">
+            🗑️ Limpiar Storage
+          </button>
+          <button (click)="refreshAuth()" class="btn btn-info">
+            🔄 Refrescar Auth
+          </button>
+          <a [href]="getBackendUrl() + '/api-docs'" target="_blank" class="btn btn-success">
+            📚 Ver API Docs
+          </a>
+        </div>
+      </div>
+
+      <!-- Manual Tests -->
+      <div class="test-section">
+        <h3>4. Test Manual en Navegador</h3>
+        <p>Prueba estos URLs directamente en tu navegador:</p>
+        <ul>
+          <li><a [href]="getBackendUrl()" target="_blank">{{ getBackendUrl() }}</a> - Salud del backend</li>
+          <li><a [href]="getBackendUrl() + '/test-db'" target="_blank">{{ getBackendUrl() }}/test-db</a> - Test de BD</li>
+          <li><a [href]="getBackendUrl() + '/instituciones'" target="_blank">{{ getBackendUrl() }}/instituciones</a> - Instituciones</li>
+          <li><a [href]="getBackendUrl() + '/api-docs'" target="_blank">{{ getBackendUrl() }}/api-docs</a> - Documentación</li>
+        </ul>
+      </div>
+
+      <!-- Commands -->
+      <div class="test-section">
+        <h3>5. Comandos cURL</h3>
+        <div class="commands">
+          <p><strong>1. Verificar backend:</strong></p>
+          <code>curl {{ getBackendUrl() }}</code>
+          
+          <p><strong>2. Test de base de datos:</strong></p>
+          <code>curl {{ getBackendUrl() }}/test-db</code>
+          
+          <p><strong>3. Instituciones públicas:</strong></p>
+          <code>curl {{ getBackendUrl() }}/instituciones</code>
+          
+          <p><strong>4. Usuarios (requiere auth):</strong></p>
+          <code *ngIf="authStatus?.token">curl -H "Authorization: Bearer {{ authStatus.token.substring(0, 20) }}..." {{ getBackendUrl() }}/usuarios</code>
+          <code *ngIf="!authStatus?.token">curl -H "Authorization: Bearer TU_TOKEN" {{ getBackendUrl() }}/usuarios</code>
+        </div>
+      </div>
+
+      <!-- Results Summary -->
+      <div class="test-section" *ngIf="testResults.length > 0">
+        <h3>📊 Resumen de Resultados</h3>
+        <div class="results-summary">
+          <div *ngFor="let result of testResults" 
+               class="result-item" 
+               [ngClass]="result.status">
+            <span class="result-name">{{ result.name }}</span>
+            <span class="result-status">{{ result.status }}</span>
+            <span class="result-message">{{ result.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,1 +1,45 @@
-<p>rifas-activas works!</p>
+ <div class="container">
+      <div class="header">
+        <h1>🎟️ Rifas Activas</h1>
+        <p>Descubre las rifas disponibles y participa</p>
+      </div>
+
+      <div class="rifas-grid">
+        <div class="rifa-card" *ngFor="let rifa of rifasEjemplo">
+          <div class="rifa-image">
+            <i class="fas fa-gift"></i>
+          </div>
+          
+          <div class="rifa-content">
+            <h3>{{ rifa.titulo }}</h3>
+            <p>{{ rifa.descripcion }}</p>
+            
+            <div class="rifa-stats">
+              <div class="stat">
+                <strong>\${{ rifa.precio }}</strong>
+                <span>por número</span>
+              </div>
+              <div class="stat">
+                <strong>{{ rifa.disponibles }}</strong>
+                <span>disponibles</span>
+              </div>
+            </div>
+            
+            <div class="rifa-actions">
+              <button [routerLink]="['/rifas', rifa.id]" class="btn-ver">
+                Ver Detalles
+              </button>
+              <button class="btn-comprar" disabled>
+                Comprar (Próximamente)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="rifasEjemplo.length === 0" class="no-rifas">
+        <i class="fas fa-search"></i>
+        <h3>No hay rifas activas</h3>
+        <p>Próximamente se cargarán rifas desde el servidor</p>
+      </div>
+    </div>

@@ -1,0 +1,292 @@
+.diagnostico-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+    }
+
+    .header h2 {
+      margin: 0 0 10px 0;
+    }
+
+    .environment-info {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .env-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .backend-url {
+      font-family: monospace;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .auth-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+
+    .auth-info {
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid;
+    }
+
+    .auth-info.authenticated {
+      background: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .auth-info.not-authenticated {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .auth-status {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .user-info, .token-info {
+      margin: 5px 0;
+      font-size: 0.9rem;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    .test-section h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+    }
+
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .btn-info {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .result {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 10px 0 0 0;
+      font-size: 0.875rem;
+    }
+
+    .commands {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+
+    .commands p {
+      margin: 15px 0 5px 0;
+      font-weight: bold;
+    }
+
+    code {
+      background: #e9ecef;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: block;
+      margin: 5px 0 15px 0;
+      font-family: monospace;
+      font-size: 0.875rem;
+      word-break: break-all;
+    }
+
+    ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+
+    ul li {
+      margin: 8px 0;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .results-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    .result-item.success {
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+
+    .result-item.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+    }
+
+    .result-item.testing {
+      background: #fff3cd;
+      border-color: #ffeaa7;
+    }
+
+    .result-name {
+      font-weight: bold;
+    }
+
+    .result-status {
+      text-transform: uppercase;
+      font-size: 0.875rem;
+      font-weight: bold;
+    }
+
+    .result-message {
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .diagnostico-container {
+        padding: 15px;
+      }
+
+      .test-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .quick-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .environment-info {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }

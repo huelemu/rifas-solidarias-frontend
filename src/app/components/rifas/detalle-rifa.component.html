@@ -1,0 +1,205 @@
+<div class="detalle-rifa-container">
+      <!-- Loading -->
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando rifa... ⏳</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error && !cargando" class="error">
+        <h2>❌ Error</h2>
+        <p>{{ error }}</p>
+        <button (click)="cargarRifa()" class="btn btn-primary">Reintentar</button>
+        <button (click)="volver()" class="btn btn-secondary">Volver</button>
+      </div>
+
+      <!-- Contenido principal -->
+      <div *ngIf="rifa && !cargando && !error" class="rifa-content">
+        
+        <!-- Header -->
+        <div class="rifa-header">
+          <div class="header-actions">
+            <button (click)="volver()" class="btn btn-secondary">
+              ← Volver
+            </button>
+            <div class="actions-right" *ngIf="puedeEditarRifa()">
+              <button 
+                [routerLink]="['/rifas/editar', rifa.id]" 
+                class="btn btn-outline-primary">
+                ✏️ Editar
+              </button>
+            </div>
+          </div>
+
+          <div class="rifa-title-section">
+            <h1>{{ rifa.titulo || rifa.nombre }}</h1>
+            <div class="rifa-meta">
+              <span class="institucion">🏢 {{ rifa.institucion_nombre }}</span>
+              <span class="estado" [class]="'estado-' + rifa.estado">
+                {{ getEstadoTexto(rifa.estado) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Imagen principal -->
+        <div class="rifa-imagen" *ngIf="rifa.imagen_url">
+          <img [src]="rifa.imagen_url" [alt]="rifa.titulo" />
+        </div>
+
+        <!-- Información principal -->
+        <div class="main-content">
+          
+          <!-- Columna izquierda: Info y descripción -->
+          <div class="info-column">
+            
+            <!-- Descripción -->
+            <div class="rifa-descripcion" *ngIf="rifa.descripcion">
+              <h3>📝 Descripción</h3>
+              <p>{{ rifa.descripcion }}</p>
+            </div>
+
+            <!-- Fechas importantes -->
+            <div class="fechas-info">
+              <h3>📅 Fechas Importantes</h3>
+              <div class="fecha-item">
+                <span class="fecha-label">Inicio de ventas:</span>
+                <span class="fecha-valor">{{ formatearFecha(rifa.fecha_inicio) }}</span>
+              </div>
+              <div class="fecha-item">
+                <span class="fecha-label">Fin de ventas:</span>
+                <span class="fecha-valor">{{ formatearFecha(rifa.fecha_fin) }}</span>
+              </div>
+              <div class="fecha-item" *ngIf="rifa.fecha_sorteo">
+                <span class="fecha-label">Sorteo:</span>
+                <span class="fecha-valor">{{ formatearFechaCompleta(rifa.fecha_sorteo) }}</span>
+              </div>
+            </div>
+
+            <!-- Resultado del sorteo -->
+            <div class="resultado-sorteo" *ngIf="rifa.estado === 'finalizada' && rifa.numero_ganador">
+              <h3>🏆 Resultado del Sorteo</h3>
+              <div class="numero-ganador">
+                <span class="numero">{{ rifa.numero_ganador }}</span>
+                <span class="texto">Número Ganador</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: Estadísticas y compra -->
+          <div class="stats-column">
+            
+            <!-- Estadísticas -->
+            <div class="rifa-stats">
+              <h3>📊 Estadísticas</h3>
+              
+              <div class="stat-item">
+                <span class="stat-label">Precio por número:</span>
+                <span class="stat-valor precio">{{ formatearPrecio(rifa.precio_numero) }}</span>
+              </div>
+
+              <div class="stat-item">
+                <span class="stat-label">Total de números:</span>
+                <span class="stat-valor">{{ rifa.total_numeros || rifa.cantidad_numeros }}</span>
+              </div>
+
+              <div class="stat-item">
+                <span class="stat-label">Vendidos:</span>
+                <span class="stat-valor">{{ rifa.numeros_vendidos || 0 }}</span>
+              </div>
+
+              <div class="stat-item">
+                <span class="stat-label">Disponibles:</span>
+                <span class="stat-valor disponibles">{{ rifa.numeros_disponibles || (rifa.total_numeros - (rifa.numeros_vendidos || 0)) }}</span>
+              </div>
+
+              <!-- Barra de progreso -->
+              <div class="progress-container">
+                <div class="progress-bar">
+                  <div 
+                    class="progress-fill" 
+                    [style.width.%]="getPorcentajeVendido()">
+                  </div>
+                </div>
+                <span class="progress-text">{{ getPorcentajeVendido() }}% vendido</span>
+              </div>
+
+              <div class="stat-item total">
+                <span class="stat-label">Recaudado:</span>
+                <span class="stat-valor">{{ formatearPrecio(getRecaudado()) }}</span>
+              </div>
+
+              <div class="stat-item total">
+                <span class="stat-label">Potencial total:</span>
+                <span class="stat-valor">{{ formatearPrecio(getPotencialTotal()) }}</span>
+              </div>
+            </div>
+
+            <!-- Acciones de compra -->
+            <div class="compra-section" *ngIf="rifa.estado === 'activa' && puedeComprar()">
+              <h3>🛒 Comprar Números</h3>
+              
+              <div class="compra-form">
+                <div class="cantidad-selector">
+                  <label for="cantidad">Cantidad de números:</label>
+                  <input 
+                    type="number" 
+                    id="cantidad"
+                    [(ngModel)]="cantidadAComprar" 
+                    min="1" 
+                    [max]="getMaximosNumerosDisponibles()"
+                    class="form-control">
+                </div>
+
+                <div class="total-compra" *ngIf="cantidadAComprar > 0">
+                  <strong>Total: {{ formatearPrecio(cantidadAComprar * rifa.precio_numero) }}</strong>
+                </div>
+
+                <div class="compra-actions">
+                  <button 
+                    (click)="comprarAleatorio()" 
+                    [disabled]="cantidadAComprar <= 0 || comprando"
+                    class="btn btn-primary">
+                    🎲 Compra Aleatoria
+                  </button>
+
+                  <button 
+                    (click)="toggleSelectorNumeros()" 
+                    class="btn btn-outline-primary">
+                    🎯 Elegir Números
+                  </button>
+                </div>
+
+                <div *ngIf="comprando" class="loading-compra">
+                  ⏳ Procesando compra...
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado no disponible para compra -->
+            <div class="no-compra" *ngIf="rifa.estado !== 'activa' || !puedeComprar()">
+              <div class="alert alert-info">
+                <span *ngIf="rifa.estado !== 'activa'">
+                  📊 Esta rifa no está disponible para compras
+                </span>
+                <span *ngIf="rifa.estado === 'activa' && !estaLogueado()">
+                  🔐 Inicia sesión para comprar números
+                </span>
+              </div>
+              
+              <button 
+                *ngIf="!estaLogueado()" 
+                routerLink="/login" 
+                class="btn btn-primary">
+                Iniciar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div *ngIf="mensaje" class="alert" [class]="'alert-' + tipoMensaje">
+        {{ mensaje }}
+      </div>
+    </div>
