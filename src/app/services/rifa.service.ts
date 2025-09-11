@@ -7,13 +7,15 @@ import { map } from 'rxjs/operators';
 export interface Rifa {
   id?: number;
   titulo: string;
+  nombre?: string;      
+  cantidad_numeros?: number; 
   descripcion?: string;
   precio_numero: number;
   total_numeros: number;
   fecha_inicio: string;
   fecha_fin: string;
   fecha_sorteo?: string;
-  estado: 'activa' | 'cerrada' | 'finalizada';
+  estado: 'borrador' | 'activa' | 'cerrada' | 'finalizada' | 'cancelada';  // 🔥 ampliado
   numero_ganador?: number;
   ganador_id?: number;
   institucion_id: number;
@@ -21,7 +23,7 @@ export interface Rifa {
   imagen_url?: string;
   created_at?: string;
   updated_at?: string;
-  
+
   // Campos calculados (pueden ser undefined)
   institucion_nombre?: string;
   institucion_logo?: string;

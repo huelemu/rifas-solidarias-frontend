@@ -357,4 +357,28 @@ export class AuthService {
     console.error('❌ Error en AuthService:', errorMessage);
     return throwError(errorMessage);
   };
+  
+// ✅ MÉTODO A AGREGAR EN AuthService
+isAdmin(): boolean {
+  const user = this.getCurrentUser();
+  if (!user) return false;
+  
+  return user.rol === 'admin_global' || user.rol === 'admin_institucion';
+}
+
+// ✅ MÉTODO ADICIONAL ÚTIL: Verificar si puede gestionar rifas
+canManageRifas(): boolean {
+  const user = this.getCurrentUser();
+  if (!user) return false;
+  
+  return ['admin_global', 'admin_institucion', 'vendedor'].includes(user.rol);
+}
+
+// ✅ MÉTODO ADICIONAL ÚTIL: Verificar si puede acceder a administración
+canAccessAdmin(): boolean {
+  const user = this.getCurrentUser();
+  if (!user) return false;
+  
+  return user.rol === 'admin_global' || user.rol === 'admin_institucion';
+}
 }
