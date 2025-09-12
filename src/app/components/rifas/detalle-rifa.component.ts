@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { RifaService, Rifa, NumeroRifa } from '../../services/rifa.service';
+import { RifaService, Rifa, NumeroRifa } from '../../services/rifas.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({

@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { RifaService, Rifa } from '../../services/rifa.service';
+import { RifasService, Rifa } from '../../services/rifas.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -23,7 +23,7 @@ export class CrearRifaComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private rifaService: RifaService,
+    private rifaService: RifasService,
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute
@@ -58,7 +58,7 @@ export class CrearRifaComponent implements OnInit {
   cargarRifa() {
     if (!this.rifaId) return;
 
-    this.rifaService.obtenerRifaPorId(this.rifaId).subscribe({
+    this.rifaService.obtenerRifa(this.rifaId).subscribe({
       next: (response) => {
         if (response.success) {
           this.llenarFormulario(response.data);
@@ -75,7 +75,7 @@ export class CrearRifaComponent implements OnInit {
 
   llenarFormulario(rifa: Rifa) {
     this.rifaForm.patchValue({
-      titulo: rifa.titulo,
+      titulo: rifa.nombre,
       descripcion: rifa.descripcion,
       total_numeros: rifa.total_numeros,
       precio_numero: rifa.precio_numero,
