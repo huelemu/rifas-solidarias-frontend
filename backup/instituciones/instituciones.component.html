@@ -14,7 +14,7 @@
     <button 
       *ngIf="puedeCrearInstituciones()" 
       class="btn btn-primary" 
-      (click)="abrirModal('crear')">
+      (click)="abrirModal('create')">
       <i class="fas fa-plus"></i>
       Nueva Institución
     </button>
@@ -140,7 +140,7 @@
                 <button 
                   *ngIf="puedeEditarInstitucion(institucion)"
                   class="btn btn-sm btn-outline-primary"
-                  (click)="abrirModal('editar', institucion)"
+                  (click)="abrirModal('edit', institucion)"
                   title="Editar">
                   <i class="fas fa-edit"></i>
                 </button>

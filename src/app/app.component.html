@@ -1,177 +1,89 @@
- <div class="app-container">
-      <!-- Navigation -->
-      <nav class="navbar">
-        <div class="nav-container">
-          <!-- Brand -->
-          <div class="nav-brand">
-            <a routerLink="/" class="brand-link">
-              <i class="fas fa-gift"></i>
-              <span class="brand-text">Rifas Solidarias</span>
-            </a>
+<div class="app-container">
+  <!-- Navigation Header (solo se muestra en rutas específicas) -->
+  <nav *ngIf="showNavigation" class="main-navigation">
+    <div class="nav-container">
+      <!-- Logo -->
+      <div class="nav-logo" (click)="navigateTo('/home')">
+        <span class="logo-icon">🎲</span>
+        <span class="logo-text">Rifas Solidarias</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="nav-links">
+        <a routerLink="/home" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Inicio</span>
+        </a>
+
+        <a routerLink="/diagnostico" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">🔧</span>
+          <span class="nav-text">Diagnóstico</span>
+        </a>
+
+        <!-- Links para administradores -->
+        <ng-container *ngIf="isAdmin()">
+          <a routerLink="/instituciones" routerLinkActive="active" class="nav-link">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-text">Instituciones</span>
+          </a>
+
+          <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </ng-container>
+      </div>
+
+      <!-- User Menu -->
+      <div class="nav-user">
+        <ng-container *ngIf="isAuthenticated() && currentUser; else guestMenu">
+          <!-- Usuario autenticado -->
+          <div class="user-info">
+            <span class="user-avatar">{{ getRoleIcon(currentUser.rol) }}</span>
+            <span class="user-name">{{ currentUser.nombre }}</span>
           </div>
           
-          <!-- Menu Principal -->
-          <div class="nav-menu" [class.mobile-hidden]="!showMobileMenu">
-            <!-- Rifas (Público) -->
-            <a routerLink="/rifas" 
-               routerLinkActive="active" 
-               class="nav-link">
-              <i class="fas fa-ticket-alt"></i>
-              <span>Rifas</span>
-            </a>
+          <div class="user-actions">
+            <button (click)="navigateTo('/dashboard')" class="nav-btn dashboard-btn">
+              <span class="btn-icon">📊</span>
+              <span class="btn-text">Dashboard</span>
+            </button>
             
-            <!-- Mi Cuenta (Solo autenticados) -->
-            <div *ngIf="isLoggedIn()" class="nav-dropdown">
-              <a routerLink="/mi-cuenta" 
-                 routerLinkActive="active" 
-                 class="nav-link dropdown-toggle">
-                <i class="fas fa-user"></i>
-                <span>Mi Cuenta</span>
-                <i class="fas fa-chevron-down arrow"></i>
-              </a>
-              <div class="dropdown-menu">
-                <a routerLink="/dashboard" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-tachometer-alt"></i>
-                  Dashboard
-                </a>
-                <a routerLink="/rifas/mis-rifas" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-history"></i>
-                  Mis Rifas
-                </a>
-              </div>
-            </div>
-            
-            <!-- Gestión de Rifas (Vendedores/Admins) -->
-            <div *ngIf="canManageRifas()" class="nav-dropdown">
-              <a href="#" class="nav-link dropdown-toggle">
-                <i class="fas fa-cogs"></i>
-                <span>Gestión</span>
-                <i class="fas fa-chevron-down arrow"></i>
-              </a>
-              <div class="dropdown-menu">
-                <a routerLink="/rifas/crear" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-plus"></i>
-                  Crear Rifa
-                </a>
-                <a routerLink="/rifas/gestionar" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-list"></i>
-                  Gestionar Rifas
-                </a>
-              </div>
-            </div>
-            
-            <!-- Administración (Solo admins) -->
-            <div *ngIf="isAdmin()" class="nav-dropdown">
-              <a href="#" class="nav-link dropdown-toggle">
-                <i class="fas fa-shield-alt"></i>
-                <span>Admin</span>
-                <i class="fas fa-chevron-down arrow"></i>
-              </a>
-              <div class="dropdown-menu">
-                <a routerLink="/instituciones" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-building"></i>
-                  Instituciones
-                </a>
-                <a routerLink="/usuarios" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-users"></i>
-                  Usuarios
-                </a>
-                <div class="dropdown-divider"></div>
-                <a routerLink="/diagnostico" 
-                   routerLinkActive="active" 
-                   class="dropdown-item">
-                  <i class="fas fa-bug"></i>
-                  Diagnóstico
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Actions -->
-          <div class="nav-actions">
-            <!-- Usuario no autenticado -->
-            <div *ngIf="!isLoggedIn()" class="auth-actions">
-              <a routerLink="/login" class="btn-login">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Ingresar</span>
-              </a>
-            </div>
-            
-            <!-- Usuario autenticado -->
-            <div *ngIf="isLoggedIn()" class="user-menu">
-              <div class="user-info">
-                <div class="user-avatar">
-                  <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="user-details">
-                  <span class="user-name">{{ getUserName() }}</span>
-                  <span class="user-role">{{ getUserRole() }}</span>
-                </div>
-              </div>
-              
-              <button (click)="logout()" 
-                      class="btn-logout" 
-                      title="Cerrar sesión">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="logout-text">Salir</span>
-              </button>
-            </div>
-            
-            <!-- Mobile menu toggle -->
-            <button class="mobile-menu-btn" 
-                    (click)="toggleMobileMenu()"
-                    [class.active]="showMobileMenu">
-              <span></span>
-              <span></span>
-              <span></span>
+            <button (click)="logout()" class="nav-btn logout-btn">
+              <span class="btn-icon">🚪</span>
+              <span class="btn-text">Salir</span>
             </button>
           </div>
-        </div>
-      </nav>
+        </ng-container>
 
-      <!-- Main Content -->
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
-
-      <!-- Footer -->
-      <footer class="footer">
-        <div class="footer-content">
-          <div class="footer-section">
-            <h4>Rifas Solidarias</h4>
-            <p>Plataforma para la gestión de rifas benéficas y solidarias.</p>
+        <!-- Usuario no autenticado -->
+        <ng-template #guestMenu>
+          <div class="guest-actions">
+            <button (click)="navigateTo('/login')" class="nav-btn login-btn">
+              <span class="btn-icon">🔑</span>
+              <span class="btn-text">Iniciar Sesión</span>
+            </button>
+            
+            <button (click)="navigateTo('/register')" class="nav-btn register-btn">
+              <span class="btn-icon">📝</span>
+              <span class="btn-text">Registrarse</span>
+            </button>
           </div>
-          
-          <div class="footer-section">
-            <h4>Enlaces</h4>
-            <ul>
-              <li><a routerLink="/rifas">Rifas Activas</a></li>
-              <li><a routerLink="/login" *ngIf="!isLoggedIn()">Ingresar</a></li>
-              <li><a routerLink="/dashboard" *ngIf="isLoggedIn()">Mi Cuenta</a></li>
-            </ul>
-          </div>
-          
-          <div class="footer-section">
-            <h4>Contacto</h4>
-            <p>Email: info@rifassolidarias.com</p>
-            <p>Teléfono: +54 11 1234-5678</p>
-          </div>
-        </div>
-        
-        <div class="footer-bottom">
-          <p>&copy; 2025 Rifas Solidarias. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+        </ng-template>
+      </div>
     </div>
+  </nav>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Cargando aplicación...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content" [class.with-nav]="showNavigation">
+    <router-outlet></router-outlet>
+  </main>
+</div>

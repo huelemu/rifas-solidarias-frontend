@@ -1,375 +1,132 @@
-<!-- dashboard.component.html - VERSIÓN CORREGIDA -->
-<div class="dashboard-container" *ngIf="!loading">
-  <!-- Header del Dashboard -->
-  <div class="dashboard-header">
-    <div class="welcome-section">
-      <div class="user-avatar-large">
-        {{ getInitials() }}
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🎲</span>
+        <h1>Rifas Solidarias</h1>
       </div>
-      <div class="welcome-text">
-        <h1>¡Bienvenido, {{ getFullName() }}!</h1>
-        <p>
-          {{ getRoleIcon(userRole) }} {{ getRoleDisplayName(userRole) }}
-          <span *ngIf="currentUser?.institucion" class="institution-badge">
-            • {{ currentUser?.institucion?.nombre }}
-          </span>
-        </p>
+      <div class="user-menu">
+        <span class="welcome-text">Hola, {{ currentUser?.nombre }}!</span>
+        <button (click)="logout()" class="logout-btn">
+          <span class="logout-icon">🚪</span>
+          Cerrar Sesión
+        </button>
       </div>
     </div>
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <div class="stat-info">
-          <span class="stat-number">{{ isAdminGlobal() ? 'Todas' : 'Mi' }}</span>
-          <span class="stat-label">Institución(es)</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  </header>
 
-  <!-- Acciones Rápidas por Rol -->
-  <div class="quick-actions">
-    <h2>🚀 Acciones Rápidas</h2>
-    
-    <!-- Admin Global -->
-    <div class="actions-grid" *ngIf="isAdminGlobal()">
-      <div class="action-card primary" (click)="navigateToInstituciones()">
-        <div class="action-icon">🏢</div>
-        <h3>Gestionar Instituciones</h3>
-        <p>Crear, editar y administrar todas las instituciones del sistema</p>
-        <div class="action-button">Ver Instituciones</div>
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="container">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando dashboard...</p>
       </div>
 
-      <div class="action-card secondary" (click)="navigateToUsuarios()">
-        <div class="action-icon">👥</div>
-        <h3>Gestionar Usuarios</h3>
-        <p>Administrar todos los usuarios y sus permisos en el sistema</p>
-        <div class="action-button">Ver Usuarios</div>
-      </div>
-
-      <div class="action-card tertiary" (click)="navigateToRifas()">
-        <div class="action-icon">🎲</div>
-        <h3>Ver Todas las Rifas</h3>
-        <p>Monitor global de todas las rifas activas del sistema</p>
-        <div class="action-button">Ver Rifas</div>
-      </div>
-
-      <div class="action-card accent" (click)="navigateToReportes()">
-        <div class="action-icon">📈</div>
-        <h3>Reportes Globales</h3>
-        <p>Estadísticas y análisis completos del sistema</p>
-        <div class="action-button">Ver Reportes</div>
-      </div>
-    </div>
-
-    <!-- Admin Institución -->
-    <div class="actions-grid" *ngIf="isAdminInstitucion()">
-      <div class="action-card primary" (click)="navigateToRifas()">
-        <div class="action-icon">🎲</div>
-        <h3>Crear Nueva Rifa</h3>
-        <p>Configurar una nueva rifa para tu institución</p>
-        <div class="action-button">Nueva Rifa</div>
-      </div>
-
-      <div class="action-card secondary" (click)="navigateToRifas()">
-        <div class="action-icon">📋</div>
-        <h3>Mis Rifas</h3>
-        <p>Gestionar las rifas activas de tu institución</p>
-        <div class="action-button">Ver Rifas</div>
-      </div>
-
-      <div class="action-card tertiary" (click)="navigateToUsuarios()">
-        <div class="action-icon">👥</div>
-        <h3>Gestionar Vendedores</h3>
-        <p>Administrar el equipo de vendedores de tu institución</p>
-        <div class="action-button">Ver Vendedores</div>
-      </div>
-
-      <div class="action-card accent" (click)="navigateToReportes()">
-        <div class="action-icon">📊</div>
-        <h3>Reportes Institución</h3>
-        <p>Estadísticas y ventas de tu institución</p>
-        <div class="action-button">Ver Reportes</div>
-      </div>
-    </div>
-
-    <!-- Vendedor -->
-    <div class="actions-grid" *ngIf="isVendedor()">
-      <div class="action-card primary" (click)="navigateToVentas()">
-        <div class="action-icon">💰</div>
-        <h3>Vender Números</h3>
-        <p>Procesar ventas de números de rifas disponibles</p>
-        <div class="action-button">Iniciar Venta</div>
-      </div>
-
-      <div class="action-card secondary" (click)="navigateToRifas()">
-        <div class="action-icon">🎲</div>
-        <h3>Rifas Disponibles</h3>
-        <p>Ver rifas activas disponibles para la venta</p>
-        <div class="action-button">Ver Rifas</div>
-      </div>
-
-      <div class="action-card tertiary" (click)="navigateToVentas()">
-        <div class="action-icon">📋</div>
-        <h3>Mis Ventas</h3>
-        <p>Historial y estadísticas de tus ventas realizadas</p>
-        <div class="action-button">Ver Ventas</div>
-      </div>
-
-      <div class="action-card accent" (click)="navigateToReportes()">
-        <div class="action-icon">📊</div>
-        <h3>Mi Rendimiento</h3>
-        <p>Comisiones y estadísticas de vendedor</p>
-        <div class="action-button">Ver Estadísticas</div>
-      </div>
-    </div>
-
-    <!-- Comprador -->
-    <div class="actions-grid" *ngIf="isComprador()">
-      <div class="action-card primary" (click)="navigateToRifas()">
-        <div class="action-icon">🛒</div>
-        <h3>Comprar Números</h3>
-        <p>Explorar rifas disponibles y comprar números</p>
-        <div class="action-button">Explorar Rifas</div>
-      </div>
-
-      <div class="action-card secondary" (click)="navigateToCompras()">
-        <div class="action-icon">🎫</div>
-        <h3>Mis Números</h3>
-        <p>Ver todos los números que has comprado</p>
-        <div class="action-button">Ver Números</div>
-      </div>
-
-      <div class="action-card tertiary" (click)="navigateToCompras()">
-        <div class="action-icon">🏆</div>
-        <h3>Resultados</h3>
-        <p>Verificar resultados de sorteos realizados</p>
-        <div class="action-button">Ver Resultados</div>
-      </div>
-
-      <div class="action-card accent" (click)="navigateToCompras()">
-        <div class="action-icon">📊</div>
-        <h3>Mi Historial</h3>
-        <p>Historial completo de compras y participaciones</p>
-        <div class="action-button">Ver Historial</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sección de Estadísticas Rápidas -->
-  <div class="stats-section">
-    <h2>📈 Estadísticas Rápidas</h2>
-    
-    <div class="stats-grid">
-      <!-- Stats para Admin Global -->
-      <ng-container *ngIf="isAdminGlobal()">
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🏢</span>
-            <span class="stat-title">Instituciones</span>
+      <!-- Dashboard Content -->
+      <div *ngIf="!isLoading && currentUser" class="dashboard-content">
+        <!-- User Info Card -->
+        <div class="user-info-card">
+          <div class="user-avatar">
+            {{ getRoleIcon(currentUser.rol) }}
           </div>
-          <div class="stat-value">12</div>
-          <div class="stat-change positive">+2 este mes</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">👥</span>
-            <span class="stat-title">Usuarios Totales</span>
+          <div class="user-details">
+            <h2>{{ currentUser.nombre }} {{ currentUser.apellido }}</h2>
+            <p class="user-role">{{ getRoleDisplayName(currentUser.rol) }}</p>
+            <p class="user-email">{{ currentUser.email }}</p>
+            <p *ngIf="currentUser.institucion" class="user-institution">
+              🏢 {{ currentUser.institucion.nombre }}
+            </p>
           </div>
-          <div class="stat-value">847</div>
-          <div class="stat-change positive">+15 esta semana</div>
         </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎲</span>
-            <span class="stat-title">Rifas Activas</span>
-          </div>
-          <div class="stat-value">23</div>
-          <div class="stat-change neutral">3 finalizan pronto</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">💰</span>
-            <span class="stat-title">Ingresos Totales</span>
-          </div>
-          <div class="stat-value">$125,430</div>
-          <div class="stat-change positive">+8.5% vs mes anterior</div>
-        </div>
-      </ng-container>
 
-      <!-- Stats para Admin Institución -->
-      <ng-container *ngIf="isAdminInstitucion()">
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎲</span>
-            <span class="stat-title">Mis Rifas</span>
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <h3>Acciones Rápidas</h3>
+          <div class="actions-grid">
+            <button 
+              *ngFor="let action of getQuickActions()" 
+              (click)="navigateTo(action.route)"
+              class="action-card"
+              [class]="'action-' + action.color"
+            >
+              <span class="action-icon">{{ action.icon }}</span>
+              <span class="action-label">{{ action.label }}</span>
+            </button>
           </div>
-          <div class="stat-value">5</div>
-          <div class="stat-change positive">2 activas</div>
         </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">👥</span>
-            <span class="stat-title">Vendedores</span>
-          </div>
-          <div class="stat-value">8</div>
-          <div class="stat-change positive">6 activos</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎫</span>
-            <span class="stat-title">Números Vendidos</span>
-          </div>
-          <div class="stat-value">1,234</div>
-          <div class="stat-change positive">+12% esta semana</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">💰</span>
-            <span class="stat-title">Ingresos</span>
-          </div>
-          <div class="stat-value">$15,680</div>
-          <div class="stat-change positive">+5.2% vs mes anterior</div>
-        </div>
-      </ng-container>
 
-      <!-- Stats para Vendedor -->
-      <ng-container *ngIf="isVendedor()">
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎫</span>
-            <span class="stat-title">Números Vendidos</span>
+        <!-- Stats Cards -->
+        <div class="stats-section">
+          <h3>Resumen</h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-content">
+                <h4>Sistema Activo</h4>
+                <p>Backend funcionando correctamente</p>
+                <span class="stat-value success">✅ Operativo</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">🔐</div>
+              <div class="stat-content">
+                <h4>Autenticación</h4>
+                <p>Sesión iniciada exitosamente</p>
+                <span class="stat-value info">🔑 Autenticado</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">⏰</div>
+              <div class="stat-content">
+                <h4>Última Conexión</h4>
+                <p>{{ currentUser.fecha_creacion | date:'short' }}</p>
+                <span class="stat-value">📅 Registrado</span>
+              </div>
+            </div>
           </div>
-          <div class="stat-value">156</div>
-          <div class="stat-change positive">+23 esta semana</div>
         </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">💰</span>
-            <span class="stat-title">Comisiones</span>
-          </div>
-          <div class="stat-value">$1,840</div>
-          <div class="stat-change positive">+8.5% vs mes anterior</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🏆</span>
-            <span class="stat-title">Ranking</span>
-          </div>
-          <div class="stat-value">#3</div>
-          <div class="stat-change positive">↑1 posición</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎯</span>
-            <span class="stat-title">Meta Mensual</span>
-          </div>
-          <div class="stat-value">78%</div>
-          <div class="stat-change positive">En buen camino</div>
-        </div>
-      </ng-container>
 
-      <!-- Stats para Comprador -->
-      <ng-container *ngIf="isComprador()">
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎫</span>
-            <span class="stat-title">Números Comprados</span>
+        <!-- Feature Status -->
+        <div class="features-section">
+          <h3>Estado de Funcionalidades</h3>
+          <div class="features-list">
+            <div class="feature-item completed">
+              <span class="feature-icon">✅</span>
+              <span class="feature-name">Sistema de Autenticación</span>
+              <span class="feature-status">Completado</span>
+            </div>
+            
+            <div class="feature-item completed">
+              <span class="feature-icon">✅</span>
+              <span class="feature-name">Gestión de Usuarios</span>
+              <span class="feature-status">Completado</span>
+            </div>
+            
+            <div class="feature-item completed">
+              <span class="feature-icon">✅</span>
+              <span class="feature-name">Gestión de Instituciones</span>
+              <span class="feature-status">Completado</span>
+            </div>
+            
+            <div class="feature-item pending">
+              <span class="feature-icon">🚧</span>
+              <span class="feature-name">Sistema de Rifas</span>
+              <span class="feature-status">En desarrollo</span>
+            </div>
+            
+            <div class="feature-item pending">
+              <span class="feature-icon">📋</span>
+              <span class="feature-name">Sistema de Ventas</span>
+              <span class="feature-status">Planificado</span>
+            </div>
           </div>
-          <div class="stat-value">23</div>
-          <div class="stat-change neutral">En 8 rifas</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">💰</span>
-            <span class="stat-title">Total Invertido</span>
-          </div>
-          <div class="stat-value">$345</div>
-          <div class="stat-change neutral">Este año</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🏆</span>
-            <span class="stat-title">Premios Ganados</span>
-          </div>
-          <div class="stat-value">2</div>
-          <div class="stat-change positive">¡Felicitaciones!</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-icon">🎲</span>
-            <span class="stat-title">Rifas Activas</span>
-          </div>
-          <div class="stat-value">5</div>
-          <div class="stat-change neutral">Participando</div>
-        </div>
-      </ng-container>
-    </div>
-  </div>
-
-  <!-- Sección de Actividades Recientes -->
-  <div class="recent-activity">
-    <h2>📋 Actividad Reciente</h2>
-    
-    <div class="activity-list">
-      <!-- Actividades según el rol -->
-      <div class="activity-item" *ngIf="isAdminGlobal()">
-        <div class="activity-icon">🏢</div>
-        <div class="activity-content">
-          <span class="activity-text">Nueva institución "Colegio San José" registrada</span>
-          <span class="activity-time">Hace 2 horas</span>
-        </div>
-      </div>
-      
-      <div class="activity-item" *ngIf="isAdminInstitucion()">
-        <div class="activity-icon">🎲</div>
-        <div class="activity-content">
-          <span class="activity-text">Rifa "Sorteo Navideño" creada exitosamente</span>
-          <span class="activity-time">Hace 1 día</span>
-        </div>
-      </div>
-      
-      <div class="activity-item" *ngIf="isVendedor()">
-        <div class="activity-icon">💰</div>
-        <div class="activity-content">
-          <span class="activity-text">15 números vendidos en "Rifa Benéfica"</span>
-          <span class="activity-time">Hace 3 horas</span>
-        </div>
-      </div>
-      
-      <div class="activity-item" *ngIf="isComprador()">
-        <div class="activity-icon">🎫</div>
-        <div class="activity-content">
-          <span class="activity-text">Comprado número 147 en "Sorteo Navideño"</span>
-          <span class="activity-time">Hace 1 día</span>
-        </div>
-      </div>
-      
-      <div class="activity-item">
-        <div class="activity-icon">🔔</div>
-        <div class="activity-content">
-          <span class="activity-text">Sistema actualizado con nuevas funcionalidades</span>
-          <span class="activity-time">Hace 3 días</span>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Loading State -->
-<div class="loading-container" *ngIf="loading">
-  <div class="loading-spinner"></div>
-  <p>Cargando dashboard...</p>
+  </main>
 </div>

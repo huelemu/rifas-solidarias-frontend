@@ -1,4 +1,3 @@
-// src/app/components/dashboard/dashboard.component.ts - VERSIÓN FINAL CORREGIDA
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -13,7 +12,7 @@ import { AuthService, User } from '../../services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
-  loading = true;
+  isLoading = true;
 
   constructor(
     private authService: AuthService,
@@ -24,32 +23,18 @@ export class DashboardComponent implements OnInit {
     this.loadUserData();
   }
 
-  loadUserData(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    
-    if (!this.currentUser) {
-      console.log('❌ No hay usuario autenticado');
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    console.log('✅ Usuario cargado:', this.currentUser);
-    this.loading = false;
+  private loadUserData(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.isLoading = false;
+    });
   }
 
-  // Helper para verificar si currentUser existe
-  get user(): User | null {
-    return this.currentUser;
+  logout(): void {
+    this.authService.logout();
   }
 
-  // Helper seguro para obtener el rol
-  get userRole(): string {
-    return this.currentUser?.rol || '';
-  }
-
-  getRoleDisplayName(role?: string): string {
-    if (!role) return '';
-    
+  getRoleDisplayName(role: string): string {
     const roleNames: { [key: string]: string } = {
       'admin_global': 'Administrador Global',
       'admin_institucion': 'Administrador de Institución',
@@ -59,9 +44,7 @@ export class DashboardComponent implements OnInit {
     return roleNames[role] || role;
   }
 
-  getRoleIcon(role?: string): string {
-    if (!role) return '👤';
-    
+  getRoleIcon(role: string): string {
     const roleIcons: { [key: string]: string } = {
       'admin_global': '👑',
       'admin_institucion': '🏢',
@@ -71,80 +54,52 @@ export class DashboardComponent implements OnInit {
     return roleIcons[role] || '👤';
   }
 
-  // Métodos de navegación específicos por rol
-  navigateToInstituciones(): void {
-    this.router.navigate(['/instituciones']);
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
-  navigateToUsuarios(): void {
-    this.router.navigate(['/usuarios']);
-  }
+  getQuickActions() {
+    if (!this.currentUser) return [];
 
-  navigateToRifas(): void {
-    this.router.navigate(['/rifas']);
-  }
+    const actions = [];
 
-  navigateToVentas(): void {
-    this.router.navigate(['/ventas']);
-  }
+    // Acciones comunes para todos los usuarios autenticados
+    actions.push(
+      { icon: '🏠', label: 'Inicio', route: '/home', color: 'primary' },
+      { icon: '🔧', label: 'Diagnóstico', route: '/diagnostico', color: 'info' }
+    );
 
-  navigateToCompras(): void {
-    this.router.navigate(['/compras']);
-  }
+    // Acciones específicas por rol
+    switch (this.currentUser.rol) {
+      case 'admin_global':
+        actions.push(
+          { icon: '🏢', label: 'Instituciones', route: '/instituciones', color: 'success' },
+          { icon: '👥', label: 'Usuarios', route: '/usuarios', color: 'warning' }
+        );
+        break;
+      
+      case 'admin_institucion':
+        actions.push(
+          { icon: '👥', label: 'Usuarios', route: '/usuarios', color: 'warning' },
+          { icon: '🏢', label: 'Mi Institución', route: '/instituciones', color: 'success' }
+        );
+        break;
+      
+      case 'vendedor':
+        actions.push(
+          { icon: '🎲', label: 'Mis Rifas', route: '/rifas', color: 'success' },
+          { icon: '📊', label: 'Ventas', route: '/ventas', color: 'info' }
+        );
+        break;
+      
+      case 'comprador':
+        actions.push(
+          { icon: '🎲', label: 'Rifas Disponibles', route: '/rifas', color: 'success' },
+          { icon: '🛒', label: 'Mis Compras', route: '/compras', color: 'info' }
+        );
+        break;
+    }
 
-  navigateToReportes(): void {
-    this.router.navigate(['/reportes']);
-  }
-
-  // Verificaciones de permisos
-  canManageInstituciones(): boolean {
-    return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-  }
-
-  canManageUsuarios(): boolean {
-    return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-  }
-
-  canCreateRifas(): boolean {
-    return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-  }
-
-  canSellNumbers(): boolean {
-    return this.authService.hasAnyRole(['admin_global', 'admin_institucion', 'vendedor']);
-  }
-
-  canViewReports(): boolean {
-    return this.authService.hasAnyRole(['admin_global', 'admin_institucion']);
-  }
-
-  // Helpers para el template - ESTAS SON LAS CLAVES
-  isAdminGlobal(): boolean {
-    return this.currentUser?.rol === 'admin_global';
-  }
-
-  isAdminInstitucion(): boolean {
-    return this.currentUser?.rol === 'admin_institucion';
-  }
-
-  isVendedor(): boolean {
-    return this.currentUser?.rol === 'vendedor';
-  }
-
-  isComprador(): boolean {
-    return this.currentUser?.rol === 'comprador';
-  }
-
-  // Helper para obtener nombre completo
-  getFullName(): string {
-    if (!this.currentUser) return '';
-    return `${this.currentUser.nombre || ''} ${this.currentUser.apellido || ''}`.trim();
-  }
-
-  // Helper para obtener iniciales
-  getInitials(): string {
-    if (!this.currentUser) return '';
-    const nombre = this.currentUser.nombre || '';
-    const apellido = this.currentUser.apellido || '';
-    return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+    return actions;
   }
 }

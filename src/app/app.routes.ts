@@ -1,141 +1,55 @@
-// ====================================
-// CÓDIGO COMPLETO CORREGIDO PARA app.routes.ts:
-// ====================================
-
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { LoginComponent } from './components/auth/login/login.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { DiagnosticoComponent } from './components/diagnostico/diagnostico.component';
-import { InstitucionesComponent } from './components/instituciones/instituciones.component';
-import { UsuariosComponent } from './components/usuarios/usuarios.component';
 
-// Componentes de rifas
-import { RifasActivasComponent } from './components/rifas-activas/rifas-activas.component';
-import { DetalleRifaComponent } from './components/detalle-rifa/detalle-rifa.component';
-import { ComprarNumerosComponent } from './components/comprar-numeros/comprar-numeros.component';
-import { MisRifasComponent } from './components/mis-rifas/mis-rifas.component';
-
-// Guards
+// Importar guards
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { LoginRedirectGuard } from './guards/login-redirect.guard';
 
 export const routes: Routes = [
-  // ==========================================
-  // RUTAS PÚBLICAS
-  // ==========================================
+  // Ruta raíz
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  
+// Rutas administrativas
+{ 
+  path: 'instituciones', 
+  loadComponent: () => import('./components/instituciones/instituciones.component').then(m => m.InstitucionesComponent),
+  canActivate: [AuthGuard, AdminGuard]
+},
+
+  // Rutas públicas
   { 
-    path: '', 
-    component: HomeComponent,
-    title: 'Rifas Solidarias - Inicio'
+    path: 'home', 
+    loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent)
   },
   
-  { 
-    path: 'diagnostico', 
-    component: DiagnosticoComponent,
-    title: 'Diagnóstico del Sistema'
-  },
-
-  // ==========================================
-  // AUTENTICACIÓN
-  // ==========================================
+  // Rutas de autenticación (NUEVAS)
   { 
     path: 'login', 
-    component: LoginComponent, 
-    canActivate: [LoginRedirectGuard],
-    title: 'Iniciar Sesión'
+    loadComponent: () => import('./components/auth/login/login.component').then(m => m.LoginComponent),
+    canActivate: [LoginRedirectGuard]
   },
-
-  // ==========================================
-  // RIFAS - MÓDULO PÚBLICO
-  // ==========================================
-  {
-    path: 'rifas',
-    children: [
-      {
-        path: '',
-        component: RifasActivasComponent,
-        title: 'Rifas Activas'
-      },
-      {
-        path: ':id',
-        component: DetalleRifaComponent,
-        title: 'Detalle de Rifa'
-      },
-      {
-        path: ':id/comprar',
-        component: ComprarNumerosComponent,
-        canActivate: [AuthGuard],
-        title: 'Comprar Números'
-      }
-    ]
-  },
-
-  // ==========================================
-  // ÁREA DE USUARIO AUTENTICADO
-  // ==========================================
-  {
-    path: 'mi-cuenta',
-    canActivate: [AuthGuard],
-    children: [
-      {
-        path: '',
-        component: DashboardComponent,
-        title: 'Mi Dashboard'
-      },
-      {
-        path: 'mis-rifas',
-        component: MisRifasComponent,
-        title: 'Mis Rifas'
-      }
-    ]
-  },
-
-  // ==========================================
-  // ADMINISTRACIÓN GENERAL
-  // ==========================================
-  {
-    path: 'admin',
-    canActivate: [AuthGuard, AdminGuard],
-    children: [
-      {
-        path: '',
-        component: DashboardComponent,
-        title: 'Panel Administrativo'
-      },
-      {
-        path: 'instituciones',
-        component: InstitucionesComponent,
-        title: 'Gestión de Instituciones'
-      },
-      {
-        path: 'usuarios',
-        component: UsuariosComponent,
-        title: 'Gestión de Usuarios'
-      }
-    ]
-  },
-
-  // ==========================================
-  // RUTAS DE COMPATIBILIDAD (LEGACY) - ✅ CORREGIDAS
-  // ==========================================
-  
-  // ✅ CORRECCIONES CON pathMatch
-  { path: 'dashboard', redirectTo: '/mi-cuenta', pathMatch: 'full' },
-  { path: 'instituciones', redirectTo: '/admin/instituciones', pathMatch: 'full' },
-  { path: 'usuarios', redirectTo: '/admin/usuarios', pathMatch: 'full' },
-  { path: 'admin-rifas', redirectTo: '/dashboard', pathMatch: 'full' },
-  
-  // Legacy rifa routes
-  { path: 'rifas/detalle/:id', redirectTo: '/rifas/:id', pathMatch: 'full' },
-
-  // ==========================================
-  // PÁGINA NO ENCONTRADA
-  // ==========================================
   { 
-    path: '**', 
-    redirectTo: '',
-    pathMatch: 'full'
-  }
+    path: 'register', 
+    loadComponent: () => import('./components/auth/register/register.component').then(m => m.RegisterComponent),
+    canActivate: [LoginRedirectGuard]
+  },
+  { 
+    path: 'dashboard', 
+    loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'unauthorized', 
+    loadComponent: () => import('./components/auth/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
+  },
+  
+  // Solo diagnostico si existe y funciona
+  { 
+    path: 'diagnostico', 
+    loadComponent: () => import('./components/diagnostico/diagnostico.component').then(m => m.DiagnosticoComponent),
+    canActivate: [AuthGuard]
+  },
+  
+  // Ruta comodín
+  { path: '**', redirectTo: '/home' }
 ];

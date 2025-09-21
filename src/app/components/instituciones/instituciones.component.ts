@@ -1,345 +1,321 @@
-// =====================================================
-// COMPONENTE INSTITUCIONES CORREGIDO
-// src/app/components/instituciones/instituciones.component.ts
-// =====================================================
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-
-// ✅ IMPORTS CORREGIDOS
-import { InstitucionesService, Institucion } from '../../services/instituciones.service';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 
-// =====================================================
-// INTERFACES ADICIONALES
-// =====================================================
-
-// Interface para crear/editar instituciones
-export interface InstitucionInput {
+interface Institucion {
+  id: number;
   nombre: string;
-  descripcion?: string;
+  descripcion: string;
   direccion?: string;
   telefono?: string;
   email?: string;
-  logo_url?: string;
-  cuit?: string;
-  estado?: 'activa' | 'inactiva';
+  estado: 'activa' | 'inactiva';
+  fecha_creacion: string;
 }
 
-// Interface para errores HTTP
-interface HttpError {
-  message?: string;
-  error?: any;
-  status?: number;
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
 }
-
-// =====================================================
-// COMPONENTE INSTITUCIONES
-// =====================================================
 
 @Component({
   selector: 'app-instituciones',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './instituciones.component.html',
-  styleUrls: ['./instituciones.component.css']
+  styleUrls: ['./instituciones.component.scss']
 })
-export class InstitucionesComponent implements OnInit, OnDestroy {
-  
-  // =====================================================
-  // PROPIEDADES DEL COMPONENTE
-  // =====================================================
-  
+export class InstitucionesComponent implements OnInit {
   instituciones: Institucion[] = [];
-  institucionesFiltradas: Institucion[] = [];
-  currentUser: any;
+  institucionesOriginales: Institucion[] = [];
+  isLoading = false;
+  error = '';
+  success = '';
   
-  // Estados de UI
-  loading = false;
-  error: string | null = null;
-  mostrarFormulario = false;
-  modoEdicion = false;
-  institucionSeleccionada: Institucion | null = null;
-  
-  // Filtros
+  // Búsqueda y filtros
+  searchTerm = '';
   filtroEstado = '';
-  filtroTexto = '';
   
   // Paginación
   paginaActual = 1;
-  elementosPorPagina = 10;
-  totalElementos = 0;
-  totalPaginas = 0;
+  institucionesPorPagina = 10;
+  totalPaginas = 1;
+  institucionesPaginadas: Institucion[] = [];
   
-  // Formulario
-  institucionForm!: FormGroup;
-  
-  // Estadísticas
-  estadisticas = {
-    total: 0,
-    activas: 0,
-    inactivas: 0,
-    totalUsuarios: 0
-  };
-  
-  private destroy$ = new Subject<void>();
+  // Modal
+  mostrarModal = false;
+  mostrarFormulario = false;
+  modoEdicion = false;
+  institucionForm: FormGroup;
+  institucionEditando: Institucion | null = null;
 
   constructor(
-    private institucionesService: InstitucionesService, // ✅ Nombre corregido
+    private http: HttpClient,
     private authService: AuthService,
     private fb: FormBuilder
   ) {
-    this.inicializarFormulario();
-  }
-
-  ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    this.cargarDatos();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  // =====================================================
-  // INICIALIZACIÓN
-  // =====================================================
-
-  private inicializarFormulario(): void {
     this.institucionForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
-      descripcion: [''],
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
       direccion: [''],
       telefono: [''],
       email: ['', [Validators.email]],
-      logo_url: [''],
-      cuit: [''],
-      estado: ['activa', Validators.required]
+      estado: ['activa', [Validators.required]]
     });
   }
 
-  private cargarDatos(): void {
-    this.loading = true;
-    this.error = null;
+  ngOnInit(): void {
+    this.cargarInstituciones();
+  }
 
-    this.institucionesService.listarInstituciones().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (instituciones: Institucion[]) => {
-        this.instituciones = instituciones;
-        this.aplicarFiltros();
-        this.calcularEstadisticas();
-        this.actualizarPaginacion();
-        this.loading = false;
-      },
-      error: (error: HttpError) => {
-        this.error = 'Error al cargar las instituciones';
-        this.loading = false;
-        console.error('Error:', error);
+  cargarInstituciones(): void {
+    this.isLoading = true;
+    this.error = '';
+
+    this.http.get<ApiResponse<Institucion[]>>(`${this.authService.API_BASE_URL}/instituciones`)
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.instituciones = response.data;
+            this.institucionesOriginales = [...response.data];
+            this.paginaActual = 1;
+            this.actualizarPaginacion();
+          } else {
+            this.error = response.message || 'Error al cargar instituciones';
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error:', error);
+          this.error = 'Error de conexión al cargar instituciones';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  // Búsqueda y filtros
+  onSearchChange(): void {
+    this.filtrarInstituciones();
+  }
+
+  filtrarInstituciones(): void {
+    let resultado = [...this.institucionesOriginales];
+
+    // Filtrar por búsqueda
+    if (this.searchTerm) {
+      const termino = this.searchTerm.toLowerCase();
+      resultado = resultado.filter(inst => 
+        inst.nombre.toLowerCase().includes(termino) ||
+        inst.descripcion.toLowerCase().includes(termino)
+      );
+    }
+
+    // Filtrar por estado
+    if (this.filtroEstado) {
+      resultado = resultado.filter(inst => inst.estado === this.filtroEstado);
+    }
+
+    this.instituciones = resultado;
+    this.paginaActual = 1; // Resetear a la primera página
+    this.actualizarPaginacion();
+  }
+
+  limpiarBusqueda(): void {
+    this.searchTerm = '';
+    this.filtroEstado = '';
+    this.instituciones = [...this.institucionesOriginales];
+    this.paginaActual = 1;
+    this.actualizarPaginacion();
+  }
+
+  limpiarMensajes(): void {
+    this.error = '';
+    this.success = '';
+  }
+
+  // Modal y formulario
+  abrirModal(modo: 'crear' | 'editar' = 'crear', institucion?: Institucion): void {
+    this.modoEdicion = modo === 'editar';
+    this.mostrarModal = true;
+    this.mostrarFormulario = true;
+    this.error = '';
+    this.success = '';
+
+    if (this.modoEdicion && institucion) {
+      this.institucionEditando = institucion;
+      this.institucionForm.patchValue({
+        nombre: institucion.nombre,
+        descripcion: institucion.descripcion,
+        direccion: institucion.direccion || '',
+        telefono: institucion.telefono || '',
+        email: institucion.email || '',
+        estado: institucion.estado
+      });
+    } else {
+      this.institucionEditando = null;
+      this.institucionForm.reset();
+      this.institucionForm.patchValue({ estado: 'activa' });
+    }
+  }
+
+  cerrarModal(): void {
+    this.mostrarModal = false;
+    this.mostrarFormulario = false;
+    this.modoEdicion = false;
+    this.institucionEditando = null;
+    this.institucionForm.reset();
+  }
+
+  cerrarModalConConfirmacion(): void {
+    if (this.institucionForm.dirty) {
+      if (confirm('¿Estás seguro de cerrar? Se perderán los cambios no guardados.')) {
+        this.cerrarModal();
       }
-    });
+    } else {
+      this.cerrarModal();
+    }
   }
 
-  // =====================================================
-  // GESTIÓN DE INSTITUCIONES
-  // =====================================================
+  // CRUD Operations
+  onSubmit(): void {
+    if (this.institucionForm.valid) {
+      if (this.modoEdicion) {
+        this.actualizarInstitucion();
+      } else {
+        this.crearInstitucion();
+      }
+    } else {
+      this.marcarCamposComoTocados();
+    }
+  }
 
   crearInstitucion(): void {
-    if (!this.institucionForm || !this.institucionForm.valid) {
-      this.marcarCamposComoTocados();
-      return;
-    }
+    this.isLoading = true;
+    const datosInstitucion = this.institucionForm.value;
 
-    this.loading = true;
-    const institucionData: InstitucionInput = this.institucionForm.value;
-    
-    this.institucionesService.crearInstitucion(institucionData).subscribe({
-      next: (response: any) => {
-        this.mostrarFormulario = false;
-        this.resetearFormulario();
-        this.cargarDatos();
-        this.mostrarMensaje('Institución creada exitosamente', 'success');
-      },
-      error: (error: HttpError) => {
-        this.loading = false;
-        this.mostrarMensaje('Error al crear la institución', 'error');
-        console.error('Error:', error);
-      }
-    });
-  }
-
-  editarInstitucion(institucion: Institucion): void {
-    if (!this.institucionForm) {
-      this.inicializarFormulario();
-    }
-
-    this.modoEdicion = true;
-    this.institucionSeleccionada = institucion;
-    this.mostrarFormulario = true;
-    
-    this.institucionForm.patchValue({
-      nombre: institucion.nombre,
-      descripcion: institucion.descripcion,
-      direccion: institucion.direccion,
-      telefono: institucion.telefono,
-      email: institucion.email,
-      logo_url: institucion.logo_url,
-      cuit: institucion.cuit,
-      estado: institucion.estado
-    });
+    this.http.post<ApiResponse<Institucion>>(`${this.authService.API_BASE_URL}/instituciones`, datosInstitucion)
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.success = 'Institución creada exitosamente';
+            this.cargarInstituciones();
+            this.cerrarModal();
+          } else {
+            this.error = response.message || 'Error al crear institución';
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error:', error);
+          this.error = 'Error de conexión al crear institución';
+          this.isLoading = false;
+        }
+      });
   }
 
   actualizarInstitucion(): void {
-    if (!this.institucionForm || !this.institucionSeleccionada || !this.institucionForm.valid) {
-      this.mostrarMensaje('Error: Datos incompletos', 'error');
-      return;
-    }
+    if (!this.institucionEditando) return;
 
-    this.loading = true;
-    const institucionData: InstitucionInput = this.institucionForm.value;
-    
-    this.institucionesService.actualizarInstitucion(this.institucionSeleccionada.id, institucionData).subscribe({
-      next: () => {
-        this.cancelarEdicion();
-        this.cargarDatos();
-        this.mostrarMensaje('Institución actualizada exitosamente', 'success');
-      },
-      error: (error: HttpError) => {
-        this.loading = false;
-        this.mostrarMensaje('Error al actualizar la institución', 'error');
-        console.error('Error:', error);
-      }
-    });
-  }
+    this.isLoading = true;
+    const datosInstitucion = this.institucionForm.value;
 
-  cambiarEstadoInstitucion(institucion: Institucion, nuevoEstado: 'activa' | 'inactiva'): void {
-    if (confirm(`¿Estás seguro de cambiar el estado de la institución a "${nuevoEstado}"?`)) {
-      this.institucionesService.cambiarEstado(institucion.id, nuevoEstado).subscribe({
-        next: () => {
-          this.cargarDatos();
-          this.mostrarMensaje(`Estado cambiado a ${nuevoEstado}`, 'success');
+    this.http.put<ApiResponse<Institucion>>(`${this.authService.API_BASE_URL}/instituciones/${this.institucionEditando.id}`, datosInstitucion)
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.success = 'Institución actualizada exitosamente';
+            this.cargarInstituciones();
+            this.cerrarModal();
+          } else {
+            this.error = response.message || 'Error al actualizar institución';
+          }
+          this.isLoading = false;
         },
-        error: (error: HttpError) => {
-          this.mostrarMensaje('Error al cambiar el estado', 'error');
+        error: (error) => {
           console.error('Error:', error);
+          this.error = 'Error de conexión al actualizar institución';
+          this.isLoading = false;
         }
       });
-    }
   }
 
   eliminarInstitucion(institucion: Institucion): void {
     if (confirm(`¿Estás seguro de eliminar la institución "${institucion.nombre}"?`)) {
-      this.institucionesService.eliminarInstitucion(institucion.id).subscribe({
-        next: () => {
-          this.cargarDatos();
-          this.mostrarMensaje('Institución eliminada exitosamente', 'success');
-        },
-        error: (error: HttpError) => {
-          this.mostrarMensaje('Error al eliminar la institución', 'error');
-          console.error('Error:', error);
-        }
-      });
+      this.isLoading = true;
+
+      this.http.delete<ApiResponse<any>>(`${this.authService.API_BASE_URL}/instituciones/${institucion.id}`)
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.success = 'Institución eliminada exitosamente';
+              this.cargarInstituciones();
+            } else {
+              this.error = response.message || 'Error al eliminar institución';
+            }
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error:', error);
+            this.error = 'Error de conexión al eliminar institución';
+            this.isLoading = false;
+          }
+        });
     }
   }
 
-  // =====================================================
-  // FILTROS Y BÚSQUEDA
-  // =====================================================
-
-  aplicarFiltros(): void {
-    this.institucionesFiltradas = this.instituciones.filter(institucion => {
-      const pasaEstado = !this.filtroEstado || institucion.estado === this.filtroEstado;
-      const pasaTexto = !this.filtroTexto || 
-                       institucion.nombre.toLowerCase().includes(this.filtroTexto.toLowerCase()) ||
-                       (institucion.descripcion?.toLowerCase().includes(this.filtroTexto.toLowerCase()));
-      
-      return pasaEstado && pasaTexto;
-    });
-  }
-
-  limpiarFiltros(): void {
-    this.filtroEstado = '';
-    this.filtroTexto = '';
-    this.aplicarFiltros();
-  }
-
-  // =====================================================
-  // PAGINACIÓN
-  // =====================================================
-
-  cambiarPagina(nuevaPagina: number): void {
-    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
-      this.paginaActual = nuevaPagina;
-    }
-  }
-
-  private actualizarPaginacion(): void {
-    this.totalElementos = this.institucionesFiltradas.length;
-    this.totalPaginas = Math.ceil(this.totalElementos / this.elementosPorPagina);
-  }
-
-  get institucionesPaginadas(): Institucion[] {
-    const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
-    const fin = inicio + this.elementosPorPagina;
-    return this.institucionesFiltradas.slice(inicio, fin);
-  }
-
-  get paginasArray(): number[] {
-    const paginas = [];
-    const maxPaginas = 5;
-    let inicio = Math.max(1, this.paginaActual - Math.floor(maxPaginas / 2));
-    let fin = Math.min(this.totalPaginas, inicio + maxPaginas - 1);
-    
-    if (fin - inicio < maxPaginas - 1) {
-      inicio = Math.max(1, fin - maxPaginas + 1);
-    }
-    
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
-    }
-    
-    return paginas;
-  }
-
-  // =====================================================
-  // ESTADÍSTICAS
-  // =====================================================
-
-  private calcularEstadisticas(): void {
-    this.estadisticas = {
-      total: this.instituciones.length,
-      activas: this.instituciones.filter(i => i.estado === 'activa').length,
-      inactivas: this.instituciones.filter(i => i.estado === 'inactiva').length,
-      totalUsuarios: 0 // Se calcularía con datos adicionales
-    };
-  }
-
-  // =====================================================
-  // FORMULARIO Y VALIDACIONES
-  // =====================================================
-
-  private marcarCamposComoTocados(): void {
-    if (!this.institucionForm) return;
-    
+  // Utilidades
+  marcarCamposComoTocados(): void {
     Object.keys(this.institucionForm.controls).forEach(key => {
-      this.institucionForm.get(key)?.markAsTouched();
+      const control = this.institucionForm.get(key);
+      control?.markAsTouched();
     });
   }
 
+  puedeCrearInstituciones(): boolean {
+    return this.authService.hasAnyRole(['admin_global']);
+  }
+
+  puedeEditarInstitucion(institucion: Institucion): boolean {
+    const user = this.authService.getCurrentUser();
+    if (!user) return false;
+
+    return user.rol === 'admin_global' || 
+           (user.rol === 'admin_institucion' && user.institucion_id === institucion.id);
+  }
+
+  getTituloModal(): string {
+    return this.modoEdicion ? 'Editar Institución' : 'Nueva Institución';
+  }
+
+  getBotonTexto(): string {
+    return this.modoEdicion ? 'Actualizar' : 'Crear';
+  }
+
+  // Getters para validación de formulario
+  get nombre() { return this.institucionForm.get('nombre'); }
+  get descripcion() { return this.institucionForm.get('descripcion'); }
+  get email() { return this.institucionForm.get('email'); }
+
+  // Método para obtener errores de validación
   obtenerErrorCampo(campo: string): string {
-    if (!this.institucionForm) return '';
-    
     const control = this.institucionForm.get(campo);
-    if (control?.errors && control.touched) {
-      if (control.errors['required']) return `${this.getNombreCampo(campo)} es requerido`;
-      if (control.errors['minlength']) return `${this.getNombreCampo(campo)} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`;
-      if (control.errors['email']) return 'Email inválido';
+    
+    if (control && control.errors && control.touched) {
+      if (control.errors['required']) {
+        return `${this.getNombreCampo(campo)} es requerido`;
+      }
+      if (control.errors['minlength']) {
+        const requiredLength = control.errors['minlength'].requiredLength;
+        return `${this.getNombreCampo(campo)} debe tener al menos ${requiredLength} caracteres`;
+      }
+      if (control.errors['email']) {
+        return 'Debe ser un email válido';
+      }
     }
+    
     return '';
   }
 
@@ -350,84 +326,44 @@ export class InstitucionesComponent implements OnInit, OnDestroy {
       'direccion': 'La dirección',
       'telefono': 'El teléfono',
       'email': 'El email',
-      'cuit': 'El CUIT'
+      'estado': 'El estado'
     };
-    return nombres[campo] || campo;
+    return nombres[campo] || 'Este campo';
   }
 
-  private resetearFormulario(): void {
-    if (this.institucionForm) {
-      this.institucionForm.reset();
-      this.inicializarFormulario();
+  // Métodos de paginación
+  actualizarPaginacion(): void {
+    this.totalPaginas = Math.ceil(this.instituciones.length / this.institucionesPorPagina);
+    this.paginaActual = Math.min(this.paginaActual, this.totalPaginas || 1);
+    this.cargarPaginaActual();
+  }
+
+  cargarPaginaActual(): void {
+    const inicio = (this.paginaActual - 1) * this.institucionesPorPagina;
+    const fin = inicio + this.institucionesPorPagina;
+    this.institucionesPaginadas = this.instituciones.slice(inicio, fin);
+  }
+
+  cambiarPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+      this.cargarPaginaActual();
     }
   }
 
-  cancelarEdicion(): void {
-    this.mostrarFormulario = false;
-    this.modoEdicion = false;
-    this.institucionSeleccionada = null;
-    this.resetearFormulario();
+  paginaAnterior(): void {
+    this.cambiarPagina(this.paginaActual - 1);
   }
 
-  // =====================================================
-  // UTILIDADES
-  // =====================================================
-
-  formatearFecha(fecha: string): string {
-    return new Date(fecha).toLocaleDateString('es-AR');
+  paginaSiguiente(): void {
+    this.cambiarPagina(this.paginaActual + 1);
   }
 
-  private mostrarMensaje(mensaje: string, tipo: 'success' | 'error'): void {
-    // Implementar sistema de notificaciones
-    console.log(`${tipo.toUpperCase()}: ${mensaje}`);
-  }
-
-  // =====================================================
-  // MÉTODOS DE VERIFICACIÓN DE PERMISOS
-  // =====================================================
-
-  puedeCrearInstituciones(): boolean {
-    return this.currentUser?.rol === 'admin_global';
-  }
-
-  puedeEditarInstitucion(institucion: Institucion): boolean {
-    return this.currentUser?.rol === 'admin_global';
-  }
-
-  puedeEliminarInstitucion(institucion: Institucion): boolean {
-    return this.currentUser?.rol === 'admin_global';
-  }
-
-  // =====================================================
-  // MÉTODOS PARA OBTENER CLASES CSS
-  // =====================================================
-
-  obtenerClaseEstado(estado: string): string {
-    const clases: { [key: string]: string } = {
-      'activa': 'badge-success',
-      'inactiva': 'badge-secondary'
-    };
-    return `badge ${clases[estado] || 'badge-light'}`;
-  }
-
-  // =====================================================
-  // EXPORTACIÓN
-  // =====================================================
-
-  exportarInstituciones(formato: 'csv' | 'excel' = 'csv'): void {
-    // Implementar exportación
-    console.log(`Exportando instituciones en formato ${formato}`);
-  }
-
-  // =====================================================
-  // MÉTODOS AUXILIARES
-  // =====================================================
-
-  get formularioListo(): boolean {
-    return !!this.institucionForm;
-  }
-
-  get formControls() {
-    return this.institucionForm?.controls || {};
+  getPaginasArray(): number[] {
+    const paginas: number[] = [];
+    for (let i = 1; i <= this.totalPaginas; i++) {
+      paginas.push(i);
+    }
+    return paginas;
   }
 }

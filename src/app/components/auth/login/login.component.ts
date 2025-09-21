@@ -1,9 +1,8 @@
-// src/app/components/auth/login/login.component.ts - VERSIÓN CORREGIDA
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, LoginRequest } from '../../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -36,53 +35,47 @@ export class LoginComponent implements OnInit {
     }
   }
 
- onSubmit(): void {
-  console.log('🚀 onSubmit() ejecutado!');
-  console.log('📝 Form value:', this.loginForm.value);
-  console.log('✅ Form valid:', this.loginForm.valid);
-  console.log('⏳ Loading state:', this.isLoading);
+  get email() { return this.loginForm.get('email'); }
+  get password() { return this.loginForm.get('password'); }
 
-  if (this.loginForm.valid && !this.isLoading) {
-    console.log('✅ Condiciones cumplidas, iniciando login...');
-    this.isLoading = true;
-    this.errorMessage = '';
+  onSubmit(): void {
+    if (this.loginForm.valid) {
+      this.isLoading = true;
+      this.errorMessage = '';
 
-    const credentials: LoginRequest = {
-      email: this.loginForm.get('email')?.value,
-      password: this.loginForm.get('password')?.value
-    };
+      const credentials = {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password
+      };
 
-    console.log('📡 Enviando credenciales:', credentials);
-
-    this.authService.login(credentials).subscribe({
-      next: (response) => {
-        console.log('📥 Respuesta recibida:', response);
-        if (response.status) {
-          console.log('✅ Login exitoso');
-          console.log('🔄 Llamando redirectToDashboard...');
-          this.authService.redirectToDashboard();
-          console.log('✅ redirectToDashboard llamado');
-        } else {
-          console.log('❌ Login fallido:', response.message);
-          this.errorMessage = response.message || 'Error en el login';
+      this.authService.login(credentials).subscribe({
+        next: (response) => {
+          console.log('Login exitoso:', response);
+          
+          // Verificar si había una URL guardada para redireccionar
+          const redirectUrl = localStorage.getItem('redirectUrl');
+          if (redirectUrl) {
+            localStorage.removeItem('redirectUrl');
+            this.router.navigate([redirectUrl]);
+          } else {
+            this.authService.redirectToDashboard();
+          }
+        },
+        error: (error) => {
+          console.error('Error en login:', error);
+          this.errorMessage = error || 'Error al iniciar sesión';
+          this.isLoading = false;
+        },
+        complete: () => {
           this.isLoading = false;
         }
-      },
-      error: (error) => {
-        console.error('❌ Error en login:', error);
-        this.errorMessage = error || 'Error de conexión. Intenta nuevamente.';
-        this.isLoading = false;
-      }
-    });
-  } else {
-    console.log('❌ Condiciones NO cumplidas:');
-    console.log('   - Form valid:', this.loginForm.valid);
-    console.log('   - Loading:', this.isLoading);
-    this.markFormGroupTouched();
+      });
+    } else {
+      this.markFormGroupTouched();
+    }
   }
-}
 
-  togglePasswordVisibility(): void {
+  togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
@@ -90,13 +83,14 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/register']);
   }
 
-  private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      this.loginForm.get(key)?.markAsTouched();
-    });
+  goToHome(): void {
+    this.router.navigate(['/home']);
   }
 
-  // Getters para facilitar el acceso a los campos del formulario
-  get email() { return this.loginForm.get('email'); }
-  get password() { return this.loginForm.get('password'); }
+  private markFormGroupTouched(): void {
+    Object.keys(this.loginForm.controls).forEach(key => {
+      const control = this.loginForm.get(key);
+      control?.markAsTouched();
+    });
+  }
 }
