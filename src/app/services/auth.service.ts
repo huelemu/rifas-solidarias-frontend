@@ -1,5 +1,5 @@
 // ===================================================================
-// 🔥 ANGULAR AUTH SERVICE - IMPLEMENTACIÓN COMPLETA
+// 🔧 AUTH SERVICE COMPLETO Y CORREGIDO
 // src/app/services/auth.service.ts
 // ===================================================================
 
@@ -246,23 +246,27 @@ export class AuthService {
     return new Error(errorMessage);
   }
   
-  private setAccessToken(token: string): void {
+  // ==================
+  // ✅ MÉTODOS PÚBLICOS DE TOKENS (CORREGIDOS)
+  // ==================
+  
+  public setAccessToken(token: string): void {
     localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
   }
   
-  private setRefreshToken(token: string): void {
+  public setRefreshToken(token: string): void {
     localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
   
-  private setUserData(user: User): void {
+  public setUserData(user: User): void {
     localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(user));
   }
   
-  private getAccessToken(): string | null {
+  public getAccessToken(): string | null {
     return localStorage.getItem(this.ACCESS_TOKEN_KEY);
   }
   
-  private getRefreshToken(): string | null {
+  public getRefreshToken(): string | null {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
   
@@ -379,6 +383,12 @@ export class AuthService {
     return userLevel >= requiredLevel;
   }
   
+  // ✅ MÉTODOS ADICIONALES PARA COMPATIBILIDAD
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user ? (user.rol === UserRole.ADMIN_GLOBAL || user.rol === UserRole.ADMIN_INSTITUCION) : false;
+  }
+  
   // ===================================================================
   // 🗺️ NAVEGACIÓN Y REDIRECCIÓN
   // ===================================================================
@@ -470,21 +480,17 @@ export class AuthService {
       'Authorization': token ? `Bearer ${token}` : ''
     });
   }
-}
-
-// ===================================================================
-// 🎉 EXPORT Y UTILIDADES
-// ===================================================================
-
-export { UserRole };
-
-// Función helper para uso en templates
-export function getRoleDisplayName(role: string): string {
-  const roleNames: { [key: string]: string } = {
-    [UserRole.ADMIN_GLOBAL]: 'Administrador Global',
-    [UserRole.ADMIN_INSTITUCION]: 'Administrador de Institución',
-    [UserRole.VENDEDOR]: 'Vendedor',
-    [UserRole.COMPRADOR]: 'Comprador'
-  };
-  return roleNames[role] || role;
+  
+  /**
+   * Método para obtener nombre de rol para mostrar
+   */
+  getRoleDisplayName(role: string): string {
+    const roleNames: { [key: string]: string } = {
+      [UserRole.ADMIN_GLOBAL]: 'Administrador Global',
+      [UserRole.ADMIN_INSTITUCION]: 'Administrador de Institución',
+      [UserRole.VENDEDOR]: 'Vendedor',
+      [UserRole.COMPRADOR]: 'Comprador'
+    };
+    return roleNames[role] || role;
+  }
 }

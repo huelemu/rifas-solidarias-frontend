@@ -8,8 +8,6 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-detalle-rifa',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
   templateUrl: './detalle-rifa.component.html', 
   styleUrls: ['./detalle-rifa.component.css']
 })

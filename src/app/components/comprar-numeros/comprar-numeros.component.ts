@@ -8,8 +8,6 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-comprar-numeros',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
   templateUrl: './comprar-numeros.component.html',
   styleUrls: ['./comprar-numeros.component.css' ]
 })

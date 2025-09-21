@@ -4,8 +4,6 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-unauthorized',
-  //standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="unauthorized-container">
       <div class="unauthorized-content">

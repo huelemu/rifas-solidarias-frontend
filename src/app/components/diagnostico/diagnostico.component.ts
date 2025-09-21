@@ -6,8 +6,6 @@ import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-diagnostico',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './diagnostico.component.html', 
   styleUrls: ['./diagnostico.component.css']
 })

@@ -1,13 +1,10 @@
-// ===================================================================
-// 🔧 APP MODULE - src/app/app.module.ts
-// ===================================================================
-
+// src/app/app.module.ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-
+import { CommonModule } from '@angular/common';
 
 // Routing
 import { AppRoutingModule } from './app-routing.module';
@@ -19,17 +16,16 @@ import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { UnauthorizedComponent } from './components/auth/unauthorized/unauthorized.component';
-
-// Services
+import { DiagnosticoComponent } from './components/diagnostico/diagnostico.component';
+import { RifasActivasComponent } from './components/rifas-activas/rifas-activas.component';
+import { DetalleRifaComponent } from './components/detalle-rifa/detalle-rifa.component';
+import { ComprarNumerosComponent } from './components/comprar-numeros/comprar-numeros.component';
+import { MisRifasComponent } from './components/mis-rifas/mis-rifas.component';
 import { AuthService } from './services/auth.service';
-
-// Guards
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { RoleGuard } from './guards/role.guard';
 import { LoginRedirectGuard } from './guards/login-redirect.guard';
-
-// Interceptors
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -39,10 +35,16 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     LoginComponent,
     RegisterComponent,
     DashboardComponent,
-    UnauthorizedComponent
+    UnauthorizedComponent,
+    DiagnosticoComponent,
+    RifasActivasComponent,
+    DetalleRifaComponent,
+    ComprarNumerosComponent,
+    MisRifasComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     ReactiveFormsModule,
@@ -50,16 +52,11 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     HttpClientModule
   ],
   providers: [
-    // Services
     AuthService,
-    
-    // Guards
     AuthGuard,
     AdminGuard,
     RoleGuard,
     LoginRedirectGuard,
-    
-    // HTTP Interceptors
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
