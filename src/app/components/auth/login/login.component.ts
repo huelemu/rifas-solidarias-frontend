@@ -9,9 +9,15 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService, LoginRequest } from '../../../services/auth.service';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -161,7 +167,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
   }
   
-  private clearMessages(): void {
+  clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
   }

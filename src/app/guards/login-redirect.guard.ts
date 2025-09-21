@@ -1,34 +1,17 @@
-// ===================================================================
-// 🔐 LOGIN REDIRECT GUARD - src/app/guards/login-redirect.guard.ts
-// ===================================================================
-
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class LoginRedirectGuard implements CanActivate {
+export const loginRedirectGuard = () => {
+  const authService = inject(AuthService);
   
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  canActivate(): Observable<boolean> | Promise<boolean> | boolean {
-    
-    return this.authService.isAuthenticated$.pipe(
-      map(isAuthenticated => {
-        if (isAuthenticated) {
-          console.log('👤 Usuario ya autenticado, redirigiendo al dashboard');
-          this.authService.redirectToDashboard();
-          return false;
-        }
-        return true;
-      })
-    );
-  }
-}
+  return authService.isAuthenticated$.pipe(
+    map(isAuthenticated => {
+      if (isAuthenticated) {
+        authService.redirectToDashboard();
+        return false;
+      }
+      return true;
+    })
+  );
+};

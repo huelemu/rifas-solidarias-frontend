@@ -1,21 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterModule, Router, NavigationEnd } from '@angular/router';
-import { AuthService, User } from './services/auth.service';
-import { filter } from 'rxjs/operators';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
 export class AppComponent implements OnInit {
   title = 'rifas-solidarias-frontend';
-  currentUser: User | null = null;
+  currentUser$ = this.authService.currentUser$;     // Observable<User | null>
+  isAuthenticated$ = this.authService.isAuthenticated$; // Observable<boolean>
   isLoading = true;
   showNavigation = true;
 
-  // Rutas donde no mostrar la navegación
   private hiddenNavRoutes = ['/login', '/register', '/dashboard'];
 
   constructor(
@@ -24,16 +13,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initializeApp();
     this.setupRouterEvents();
-  }
-
-  private initializeApp(): void {
-    // Suscribirse al estado del usuario
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      this.isLoading = false;
-    });
   }
 
   private setupRouterEvents(): void {
@@ -54,14 +34,6 @@ export class AppComponent implements OnInit {
 
   navigateTo(route: string): void {
     this.router.navigate([route]);
-  }
-
-  isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
-  }
-
-  isAdmin(): boolean {
-    return this.authService.isAdmin();
   }
 
   getRoleIcon(role: string): string {

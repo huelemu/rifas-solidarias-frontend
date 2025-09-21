@@ -8,6 +8,8 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-rifas-activas',
+    standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './rifas-activas.component.html',
   styleUrls: ['./rifas-activas.component.css']
 })

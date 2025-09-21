@@ -1,51 +1,29 @@
-// ===================================================================
-// 👑 ADMIN GUARD - src/app/guards/admin.guard.ts
-// ===================================================================
+// src/app/guards/admin.guard.ts
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { map } from 'rxjs/operators';
 
-import { Injectable } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs';
-import { AuthService, UserRole } from '../services/auth.service';
-import { map, tap } from 'rxjs/operators';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AdminGuard implements CanActivate {
+export const adminGuard = (p0: unknown) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
   
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
-    
-    return this.authService.isAuthenticated$.pipe(
-      map(isAuthenticated => {
-        if (!isAuthenticated) {
-          console.log('🚫 Acceso denegado - Usuario no autenticado');
-          this.router.navigate(['/login']);
-          return false;
-        }
-
-        const user = this.authService.getCurrentUser();
-        const isAdmin = user && (
-          user.rol === UserRole.ADMIN_GLOBAL || 
-          user.rol === UserRole.ADMIN_INSTITUCION
-        );
-
-        if (!isAdmin) {
-          console.log('🚫 Acceso denegado - Requiere permisos de administrador');
-          this.router.navigate(['/unauthorized']);
-          return false;
-        }
-
-        console.log('✅ Acceso autorizado para administrador');
-        return true;
-      })
-    );
-  }
-}
+  return authService.isAuthenticated$.pipe(
+    map(isAuthenticated => {
+      if (!isAuthenticated) {
+        router.navigate(['/login']);
+        return false;
+      }
+      
+      const user = authService.getCurrentUser();
+      const isAdmin = user && (user.rol === 'admin_global' || user.rol === 'admin_institucion');
+      
+      if (!isAdmin) {
+        router.navigate(['/unauthorized']);
+        return false;
+      }
+      
+      return true;
+    })
+  );
+};

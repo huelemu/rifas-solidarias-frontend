@@ -1,107 +1,55 @@
-<!-- ===================================================================
-🎨 DASHBOARD TEMPLATE - src/app/components/dashboard/dashboard.component.html
-=================================================================== -->
+<div class="dashboard-container" *ngIf="currentUser; else loadingTemplate">
 
-<div class="dashboard-container" *ngIf="currentUser">
-  <!-- Header del Dashboard -->
+  <!-- 👤 Bienvenida -->
   <div class="dashboard-header">
-    <div class="welcome-section">
-      <h1 class="welcome-title">
-        ¡Bienvenido, {{ currentUser.nombre }}! 👋
-      </h1>
-      <p class="welcome-subtitle">
-        <span class="role-badge">{{ getRoleDisplayName(currentUser.rol) }}</span>
-        <span *ngIf="currentUser.institucion_nombre" class="institution-name">
-          • {{ currentUser.institucion_nombre }}
-        </span>
-      </p>
-    </div>
-    
-    <div class="header-actions">
-      <button class="action-btn secondary" (click)="logout()">
-        👋 Cerrar Sesión
-      </button>
-    </div>
+    <h2>Bienvenido, {{ currentUser.email }}</h2>
+    <span class="role-badge">{{ getRoleDisplayName(currentUser.rol) }}</span>
   </div>
 
-  <!-- Estadísticas del Dashboard -->
-  <div class="stats-grid" *ngIf="dashboardStats.length > 0">
+  <!-- 🟢 Quick Actions -->
+  <div class="quick-actions">
     <div 
-      *ngFor="let stat of dashboardStats" 
-      class="stat-card"
-      [attr.data-color]="stat.color"
+      class="quick-action-card" 
+      *ngFor="let action of quickActions" 
+      [ngStyle]="{'border-left-color': action.color}"
+      (click)="navigateToAction(action)"
     >
+      <div class="icon">{{ action.icon }}</div>
+      <div class="content">
+        <h4>{{ action.title }}</h4>
+        <p>{{ action.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 Dashboard Stats -->
+  <div class="dashboard-stats">
+    <div class="stat-card" *ngFor="let stat of dashboardStats" [ngStyle]="{'border-top-color': stat.color}">
       <div class="stat-icon">{{ stat.icon }}</div>
-      <div class="stat-content">
-        <div class="stat-value">{{ stat.value }}</div>
-        <div class="stat-label">{{ stat.label }}</div>
+      <div class="stat-info">
+        <h3>{{ stat.value }}</h3>
+        <span>{{ stat.label }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Acciones Rápidas -->
-  <div class="quick-actions-section" *ngIf="quickActions.length > 0">
-    <h2 class="section-title">🚀 Acciones Rápidas</h2>
-    <div class="quick-actions-grid">
-      <div 
-        *ngFor="let action of quickActions"
-        class="action-card"
-        [attr.data-color]="action.color"
-        (click)="navigateToAction(action)"
-      >
-        <div class="action-icon">{{ action.icon }}</div>
-        <div class="action-content">
-          <h3 class="action-title">{{ action.title }}</h3>
-          <p class="action-description">{{ action.description }}</p>
-        </div>
-        <div class="action-arrow">→</div>
-      </div>
-    </div>
+  <!-- 🕒 Recent Activity -->
+  <div class="recent-activity">
+    <h3>Actividad Reciente</h3>
+    <ul>
+      <li *ngFor="let item of recentActivity">
+        <span class="activity-icon">{{ item.icon }}</span>
+        <span class="activity-desc">{{ item.description }}</span>
+        <span class="activity-time">{{ formatTimestamp(item.timestamp) }}</span>
+      </li>
+    </ul>
   </div>
 
-  <!-- Actividad Reciente -->
-  <div class="recent-activity-section">
-    <h2 class="section-title">📋 Actividad Reciente</h2>
-    
-    <div *ngIf="isLoading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Cargando actividad reciente...</p>
-    </div>
+  <!-- 🚪 Logout -->
+  <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
 
-    <div *ngIf="!isLoading && recentActivity.length > 0" class="activity-list">
-      <div 
-        *ngFor="let activity of recentActivity" 
-        class="activity-item"
-      >
-        <div class="activity-icon">{{ activity.icon }}</div>
-        <div class="activity-content">
-          <p class="activity-description">{{ activity.description }}</p>
-          <span class="activity-timestamp">{{ formatTimestamp(activity.timestamp) }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="!isLoading && recentActivity.length === 0" class="empty-state">
-      <div class="empty-icon">📭</div>
-      <p>No hay actividad reciente</p>
-    </div>
-  </div>
-
-  <!-- Navegación Rápida (Footer del Dashboard) -->
-  <div class="dashboard-footer">
-    <div class="footer-links">
-      <a routerLink="/" class="footer-link">🏠 Inicio</a>
-      <a routerLink="/perfil" class="footer-link">👤 Mi Perfil</a>
-      <a href="#" class="footer-link">❓ Ayuda</a>
-    </div>
-    <div class="footer-info">
-      <p>&copy; 2024 Rifas Solidarias • Sistema de Gestión</p>
-    </div>
-  </div>
 </div>
 
-<!-- Loading State para toda la página -->
-<div *ngIf="!currentUser" class="page-loading">
-  <div class="spinner large"></div>
-  <p>Cargando dashboard...</p>
-</div>
+<ng-template #loadingTemplate>
+  <div class="loading">Cargando dashboard...</div>
+</ng-template>

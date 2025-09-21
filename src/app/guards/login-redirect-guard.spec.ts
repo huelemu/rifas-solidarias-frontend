@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CanActivateFn } from '@angular/router';
 
-import { loginRedirectGuard } from './login-redirect-guard';
+import { loginRedirectGuard } from './login-redirect.guard';
 
 describe('loginRedirectGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) => 

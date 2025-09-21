@@ -8,6 +8,8 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-mis-rifas',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './mis-rifas.component.html',
   styleUrls: ['./mis-rifas.component.css']
 })

@@ -8,7 +8,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService, User, UserRole } from '../../services/auth.service';
 import { Router } from '@angular/router';
-
+import { CommonModule } from '@angular/common';
 
 interface QuickAction {
   title: string;
@@ -28,51 +28,36 @@ interface DashboardStats {
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  
-  // ==================
-  // PROPIEDADES
-  // ==================
-  
+
   currentUser: User | null = null;
   isLoading = false;
   quickActions: QuickAction[] = [];
   dashboardStats: DashboardStats[] = [];
   recentActivity: any[] = [];
-  
-  // Para cleanup de subscriptions
+
   private destroy$ = new Subject<void>();
-  
-  // ==================
-  // CONSTRUCTOR
-  // ==================
-  
+
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
-  
-  // ==================
-  // LIFECYCLE HOOKS
-  // ==================
-  
+
   ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
   }
-  
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
-  // ==================
-  // CARGA DE DATOS
-  // ==================
-  
+
   private loadUserData(): void {
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
@@ -84,92 +69,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   private loadDashboardData(): void {
     this.isLoading = true;
-    
-    // Simular carga de datos - reemplazar con llamadas reales a API
     setTimeout(() => {
       this.loadRecentActivity();
       this.isLoading = false;
     }, 1000);
   }
-  
+
   private loadRecentActivity(): void {
-    // Simular actividad reciente - reemplazar con datos reales
     this.recentActivity = [
-      {
-        id: 1,
-        type: 'login',
-        description: 'Inicio de sesión exitoso',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        icon: '🔐'
-      },
-      {
-        id: 2,
-        type: 'info',
-        description: 'Dashboard cargado correctamente',
-        timestamp: new Date(),
-        icon: '📊'
-      }
+      { id: 1, type: 'login', description: 'Inicio de sesión exitoso', timestamp: new Date(Date.now() - 30*60*1000), icon: '🔐' },
+      { id: 2, type: 'info', description: 'Dashboard cargado correctamente', timestamp: new Date(), icon: '📊' }
     ];
   }
-  
-  // ==================
-  // CONFIGURACIÓN POR ROL
-  // ==================
-  
+
   private setupDashboardByRole(role: string): void {
     switch (role) {
-      case UserRole.ADMIN_GLOBAL:
-        this.setupAdminGlobalDashboard();
-        break;
-      case UserRole.ADMIN_INSTITUCION:
-        this.setupAdminInstitucionDashboard();
-        break;
-      case UserRole.VENDEDOR:
-        this.setupVendedorDashboard();
-        break;
-      case UserRole.COMPRADOR:
-        this.setupCompradorDashboard();
-        break;
-      default:
-        this.setupDefaultDashboard();
+      case UserRole.ADMIN_GLOBAL: this.setupAdminGlobalDashboard(); break;
+      case UserRole.ADMIN_INSTITUCION: this.setupAdminInstitucionDashboard(); break;
+      case UserRole.VENDEDOR: this.setupVendedorDashboard(); break;
+      case UserRole.COMPRADOR: this.setupCompradorDashboard(); break;
+      default: this.setupDefaultDashboard();
     }
   }
-  
+
   private setupAdminGlobalDashboard(): void {
     this.quickActions = [
-      {
-        title: 'Gestionar Instituciones',
-        description: 'Crear, editar y administrar instituciones',
-        icon: '🏢',
-        route: '/admin/instituciones',
-        color: 'blue'
-      },
-      {
-        title: 'Gestionar Usuarios',
-        description: 'Administrar usuarios del sistema',
-        icon: '👥',
-        route: '/admin/usuarios',
-        color: 'green'
-      },
-      {
-        title: 'Ver Todas las Rifas',
-        description: 'Supervisar todas las rifas activas',
-        icon: '🎯',
-        route: '/admin/rifas',
-        color: 'purple'
-      },
-      {
-        title: 'Reportes Globales',
-        description: 'Estadísticas y reportes del sistema',
-        icon: '📊',
-        route: '/admin/reportes',
-        color: 'orange'
-      }
+      { title: 'Gestionar Instituciones', description: 'Crear, editar y administrar instituciones', icon: '🏢', route: '/admin/instituciones', color: 'blue' },
+      { title: 'Gestionar Usuarios', description: 'Administrar usuarios del sistema', icon: '👥', route: '/admin/usuarios', color: 'green' },
+      { title: 'Ver Todas las Rifas', description: 'Supervisar todas las rifas activas', icon: '🎯', route: '/admin/rifas', color: 'purple' },
+      { title: 'Reportes Globales', description: 'Estadísticas y reportes del sistema', icon: '📊', route: '/admin/reportes', color: 'orange' }
     ];
-    
+
     this.dashboardStats = [
       { label: 'Total Instituciones', value: 15, icon: '🏢', color: 'blue' },
       { label: 'Total Usuarios', value: 247, icon: '👥', color: 'green' },
@@ -177,39 +110,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
       { label: 'Ventas del Mes', value: '$45,230', icon: '💰', color: 'orange' }
     ];
   }
-  
+
   private setupAdminInstitucionDashboard(): void {
     this.quickActions = [
-      {
-        title: 'Crear Nueva Rifa',
-        description: 'Configurar una nueva rifa para tu institución',
-        icon: '🎯',
-        route: '/rifas/crear',
-        color: 'blue'
-      },
-      {
-        title: 'Gestionar Rifas',
-        description: 'Ver y administrar rifas de tu institución',
-        icon: '📋',
-        route: '/rifas/gestionar',
-        color: 'green'
-      },
-      {
-        title: 'Gestionar Vendedores',
-        description: 'Administrar vendedores de tu institución',
-        icon: '👨‍💼',
-        route: '/vendedores',
-        color: 'purple'
-      },
-      {
-        title: 'Reportes',
-        description: 'Estadísticas de tu institución',
-        icon: '📊',
-        route: '/reportes',
-        color: 'orange'
-      }
+      { title: 'Crear Nueva Rifa', description: 'Configurar una nueva rifa para tu institución', icon: '🎯', route: '/rifas/crear', color: 'blue' },
+      { title: 'Gestionar Rifas', description: 'Ver y administrar rifas de tu institución', icon: '📋', route: '/rifas/gestionar', color: 'green' },
+      { title: 'Gestionar Vendedores', description: 'Administrar vendedores de tu institución', icon: '👨‍💼', route: '/vendedores', color: 'purple' },
+      { title: 'Reportes', description: 'Estadísticas de tu institución', icon: '📊', route: '/reportes', color: 'orange' }
     ];
-    
+
     this.dashboardStats = [
       { label: 'Rifas Activas', value: 3, icon: '🎯', color: 'blue' },
       { label: 'Vendedores', value: 12, icon: '👨‍💼', color: 'green' },
@@ -217,39 +126,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
       { label: 'Ingresos del Mes', value: '$12,850', icon: '💰', color: 'orange' }
     ];
   }
-  
+
   private setupVendedorDashboard(): void {
     this.quickActions = [
-      {
-        title: 'Vender Números',
-        description: 'Vender números de las rifas disponibles',
-        icon: '🎫',
-        route: '/vender',
-        color: 'blue'
-      },
-      {
-        title: 'Mis Ventas',
-        description: 'Ver historial de ventas realizadas',
-        icon: '📈',
-        route: '/mis-ventas',
-        color: 'green'
-      },
-      {
-        title: 'Rifas Disponibles',
-        description: 'Ver rifas disponibles para venta',
-        icon: '🎯',
-        route: '/rifas',
-        color: 'purple'
-      },
-      {
-        title: 'Mi Comisión',
-        description: 'Ver comisiones ganadas',
-        icon: '💰',
-        route: '/comisiones',
-        color: 'orange'
-      }
+      { title: 'Vender Números', description: 'Vender números de las rifas disponibles', icon: '🎫', route: '/vender', color: 'blue' },
+      { title: 'Mis Ventas', description: 'Ver historial de ventas realizadas', icon: '📈', route: '/mis-ventas', color: 'green' },
+      { title: 'Rifas Disponibles', description: 'Ver rifas disponibles para venta', icon: '🎯', route: '/rifas', color: 'purple' },
+      { title: 'Mi Comisión', description: 'Ver comisiones ganadas', icon: '💰', route: '/comisiones', color: 'orange' }
     ];
-    
+
     this.dashboardStats = [
       { label: 'Números Vendidos Hoy', value: 23, icon: '🎫', color: 'blue' },
       { label: 'Ventas del Mes', value: 145, icon: '📈', color: 'green' },
@@ -257,39 +142,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
       { label: 'Rifas Disponibles', value: 5, icon: '🎯', color: 'orange' }
     ];
   }
-  
+
   private setupCompradorDashboard(): void {
     this.quickActions = [
-      {
-        title: 'Comprar Números',
-        description: 'Explorar y comprar números de rifas',
-        icon: '🛒',
-        route: '/rifas',
-        color: 'blue'
-      },
-      {
-        title: 'Mis Números',
-        description: 'Ver números que has comprado',
-        icon: '🎫',
-        route: '/mis-numeros',
-        color: 'green'
-      },
-      {
-        title: 'Resultados',
-        description: 'Ver resultados de sorteos',
-        icon: '🏆',
-        route: '/resultados',
-        color: 'purple'
-      },
-      {
-        title: 'Mi Perfil',
-        description: 'Actualizar información personal',
-        icon: '👤',
-        route: '/perfil',
-        color: 'orange'
-      }
+      { title: 'Comprar Números', description: 'Explorar y comprar números de rifas', icon: '🛒', route: '/rifas', color: 'blue' },
+      { title: 'Mis Números', description: 'Ver números que has comprado', icon: '🎫', route: '/mis-numeros', color: 'green' },
+      { title: 'Resultados', description: 'Ver resultados de sorteos', icon: '🏆', route: '/resultados', color: 'purple' },
+      { title: 'Mi Perfil', description: 'Actualizar información personal', icon: '👤', route: '/perfil', color: 'orange' }
     ];
-    
+
     this.dashboardStats = [
       { label: 'Números Comprados', value: 12, icon: '🎫', color: 'blue' },
       { label: 'Rifas Participando', value: 3, icon: '🎯', color: 'green' },
@@ -297,46 +158,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
       { label: 'Total Invertido', value: '$240', icon: '💰', color: 'orange' }
     ];
   }
-  
+
   private setupDefaultDashboard(): void {
     this.quickActions = [
-      {
-        title: 'Ver Rifas',
-        description: 'Explorar rifas disponibles',
-        icon: '🎯',
-        route: '/rifas',
-        color: 'blue'
-      },
-      {
-        title: 'Mi Perfil',
-        description: 'Actualizar información personal',
-        icon: '👤',
-        route: '/perfil',
-        color: 'green'
-      }
+      { title: 'Ver Rifas', description: 'Explorar rifas disponibles', icon: '🎯', route: '/rifas', color: 'blue' },
+      { title: 'Mi Perfil', description: 'Actualizar información personal', icon: '👤', route: '/perfil', color: 'green' }
     ];
-    
+
     this.dashboardStats = [
       { label: 'Rifas Disponibles', value: 8, icon: '🎯', color: 'blue' },
       { label: 'Usuarios Registrados', value: 247, icon: '👥', color: 'green' }
     ];
   }
-  
-  // ==================
-  // MÉTODOS DE NAVEGACIÓN
-  // ==================
-  
+
   navigateToAction(action: QuickAction): void {
-    if (action.route) {
-      this.router.navigate([action.route]);
-    } else if (action.action) {
-      action.action();
-    }
+    if (action.route) this.router.navigate([action.route]);
+    else if (action.action) action.action();
   }
-  
-  // ==================
-  // MÉTODOS DE UI
-  // ==================
 
   getRoleDisplayName(role: string): string {
     const roleNames: { [key: string]: string } = {
@@ -347,26 +185,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
     return roleNames[role] || role;
   }
-  
+
   formatTimestamp(timestamp: Date): string {
     const now = new Date();
     const diffMs = now.getTime() - timestamp.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return 'Hace un momento';
     if (diffMins < 60) return `Hace ${diffMins} minutos`;
     if (diffMins < 1440) return `Hace ${Math.floor(diffMins / 60)} horas`;
     return `Hace ${Math.floor(diffMins / 1440)} días`;
   }
-  
+
   logout(): void {
-    this.authService.logout().subscribe({
-      next: () => {
-        console.log('👋 Sesión cerrada desde dashboard');
-      },
-      error: (error) => {
-        console.error('Error cerrando sesión:', error);
-      }
-    });
+    // 🚪 Logout directo sin Observable
+    this.authService.logout();
+    console.log('👋 Sesión cerrada desde dashboard');
   }
 }
