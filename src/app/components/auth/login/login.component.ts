@@ -48,21 +48,29 @@ export class LoginComponent implements OnInit {
         password: this.loginForm.value.password
       };
 
+      console.log('🔑 Enviando credenciales:', credentials);
+
       this.authService.login(credentials).subscribe({
         next: (response) => {
-          console.log('Login exitoso:', response);
+          console.log('✅ Login exitoso:', response);
+          console.log('👤 Usuario logueado:', this.authService.getCurrentUser());
+          console.log('🔐 Token guardado:', this.authService.getAccessToken());
           
           // Verificar si había una URL guardada para redireccionar
           const redirectUrl = localStorage.getItem('redirectUrl');
+          console.log('🔄 URL de redirección guardada:', redirectUrl);
+          
           if (redirectUrl) {
             localStorage.removeItem('redirectUrl');
+            console.log('➡️ Redirigiendo a URL guardada:', redirectUrl);
             this.router.navigate([redirectUrl]);
           } else {
+            console.log('➡️ Redirigiendo al dashboard...');
             this.authService.redirectToDashboard();
           }
         },
         error: (error) => {
-          console.error('Error en login:', error);
+          console.error('❌ Error en login:', error);
           this.errorMessage = error || 'Error al iniciar sesión';
           this.isLoading = false;
         },

@@ -109,8 +109,16 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Date.now() / 1000;
-      return payload.exp < currentTime;
+      const isExpired = payload.exp < currentTime;
+      
+      console.log('⏰ Verificando expiración del token:');
+      console.log('  - Token expira en:', new Date(payload.exp * 1000));
+      console.log('  - Hora actual:', new Date());
+      console.log('  - ¿Está expirado?', isExpired);
+      
+      return isExpired;
     } catch (error) {
+      console.log('❌ Error parseando token:', error);
       return true;
     }
   }
@@ -188,17 +196,27 @@ export class AuthService {
     const token = this.getAccessToken();
     const user = this.getCurrentUser();
     
+    console.log('🔐 Verificando autenticación...');
+    console.log('📝 Token encontrado:', token ? 'SÍ' : 'NO');
+    console.log('👤 Usuario encontrado:', user ? 'SÍ' : 'NO');
+    
     if (!token || !user) {
+      console.log('❌ No hay token o usuario');
       return false;
     }
 
     if (this.isTokenExpired(token)) {
+      console.log('⏰ Token expirado, intentando refresh...');
       this.refreshToken().subscribe({
-        error: () => this.logout()
+        error: () => {
+          console.log('❌ Refresh falló, cerrando sesión');
+          this.logout();
+        }
       });
       return false;
     }
 
+    console.log('✅ Usuario autenticado correctamente');
     return true;
   }
 
@@ -272,10 +290,19 @@ export class AuthService {
 
   redirectToDashboard(): void {
     const user = this.getCurrentUser();
+    console.log('🏠 redirectToDashboard() llamado');
+    console.log('👤 Usuario actual:', user);
+    
     if (user) {
-      this.router.navigate(['/dashboard']);
+      console.log('➡️ Navegando a /dashboard...');
+      this.router.navigate(['/dashboard']).then(success => {
+        console.log('✅ Navegación a dashboard:', success ? 'EXITOSA' : 'FALLÓ');
+      });
     } else {
-      this.router.navigate(['/home']);
+      console.log('➡️ No hay usuario, navegando a /home...');
+      this.router.navigate(['/home']).then(success => {
+        console.log('✅ Navegación a home:', success ? 'EXITOSA' : 'FALLÓ');
+      });
     }
   }
 

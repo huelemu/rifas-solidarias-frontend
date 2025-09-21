@@ -10,11 +10,11 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   
 // Rutas administrativas
-{ 
-  path: 'instituciones', 
-  loadComponent: () => import('./components/instituciones/instituciones.component').then(m => m.InstitucionesComponent),
-  canActivate: [AuthGuard, AdminGuard]
-},
+//{ 
+//  path: 'instituciones', 
+//  loadComponent: () => import('./components/instituciones/instituciones.component').then(m => m.InstitucionesComponent),
+//  canActivate: [AuthGuard]  // Sin AdminGuard por ahora
+//},
 
   // Rutas públicas
   { 
