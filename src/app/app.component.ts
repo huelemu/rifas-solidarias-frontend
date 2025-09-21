@@ -1,48 +1,23 @@
-export class AppComponent implements OnInit {
+// src/app/app.component.ts - STANDALONE
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: `
+    <div class="app-container">
+      <router-outlet></router-outlet>
+    </div>
+  `,
+  styles: [`
+    .app-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  `]
+})
+export class AppComponent {
   title = 'rifas-solidarias-frontend';
-  currentUser$ = this.authService.currentUser$;     // Observable<User | null>
-  isAuthenticated$ = this.authService.isAuthenticated$; // Observable<boolean>
-  isLoading = true;
-  showNavigation = true;
-
-  private hiddenNavRoutes = ['/login', '/register', '/dashboard'];
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  ngOnInit(): void {
-    this.setupRouterEvents();
-  }
-
-  private setupRouterEvents(): void {
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        this.updateNavigationVisibility(event.url);
-      });
-  }
-
-  private updateNavigationVisibility(url: string): void {
-    this.showNavigation = !this.hiddenNavRoutes.some(route => url.startsWith(route));
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
-
-  navigateTo(route: string): void {
-    this.router.navigate([route]);
-  }
-
-  getRoleIcon(role: string): string {
-    const roleIcons: { [key: string]: string } = {
-      'admin_global': '👑',
-      'admin_institucion': '🏢',
-      'vendedor': '💼',
-      'comprador': '🛒'
-    };
-    return roleIcons[role] || '👤';
-  }
 }

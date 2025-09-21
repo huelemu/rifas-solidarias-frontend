@@ -1,211 +1,264 @@
-// ===================================================================
-// 🚪 ANGULAR LOGIN COMPONENT - IMPLEMENTACIÓN COMPLETA
-// src/app/components/auth/login/login.component.ts
-// ===================================================================
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
-import { AuthService, LoginRequest } from '../../../services/auth.service';
+// src/app/components/login/login.component.ts - STANDALONE
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  imports: [CommonModule, ReactiveFormsModule],
+  template: `
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <h2>🎯 Rifas Solidarias</h2>
+          <p>Inicia sesión en tu cuenta</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              placeholder="tu@email.com">
+            <div class="error-message" 
+                 *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              Email válido es requerido
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input 
+              type="password" 
+              id="password"
+              formControlName="password"
+              [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              placeholder="••••••••">
+            <div class="error-message" 
+                 *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              Contraseña es requerida (mínimo 6 caracteres)
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="login-btn"
+            [disabled]="loginForm.invalid || isLoading">
+            <span *ngIf="!isLoading">Iniciar Sesión</span>
+            <span *ngIf="isLoading" class="loading">🔄 Iniciando...</span>
+          </button>
+
+          <!-- Error Message -->
+          <div class="error-alert" *ngIf="error">
+            ❌ {{ error }}
+          </div>
+
+          <!-- Register Link -->
+          <div class="register-link">
+            <p>¿No tienes cuenta? 
+              <a (click)="goToRegister()" class="link">Regístrate aquí</a>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-header h2 {
+      color: #333;
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    .login-header p {
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e1e1e1;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group input.error {
+      border-color: #e74c3c;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .login-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .error-alert {
+      background: #ffeaea;
+      color: #e74c3c;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .register-link {
+      text-align: center;
+    }
+
+    .register-link p {
+      color: #666;
+      margin: 0;
+    }
+
+    .link {
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  `]
 })
-export class LoginComponent implements OnInit, OnDestroy {
-  
-  // ==================
-  // PROPIEDADES
-  // ==================
-  
-  loginForm!: FormGroup;
+export class LoginComponent {
+  loginForm: FormGroup;
   isLoading = false;
-  showPassword = false;
-  errorMessage = '';
-  successMessage = '';
-  
-  // Para cleanup de subscriptions
-  private destroy$ = new Subject<void>();
-  
-  // Credenciales de prueba
-  testCredentials = [
-    { role: 'Admin Global', email: 'admin@test.com', password: 'admin123' },
-    { role: 'Admin Institución', email: 'admin.inst@test.com', password: 'admin123' },
-    { role: 'Vendedor', email: 'vendedor@test.com', password: 'vendedor123' },
-    { role: 'Comprador', email: 'comprador@test.com', password: 'comprador123' }
-  ];
-  
-  // ==================
-  // CONSTRUCTOR
-  // ==================
-  
+  error = '';
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
-    this.createForm();
-  }
-  
-  // ==================
-  // LIFECYCLE HOOKS
-  // ==================
-  
-  ngOnInit(): void {
-    // Verificar si ya está autenticado
-    if (this.authService.isAuthenticated()) {
-      console.log('👤 Usuario ya autenticado, redirigiendo...');
-      this.authService.redirectToDashboard();
-    }
-    
-    // Limpiar mensajes al cambiar el formulario
-    this.loginForm.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.clearMessages();
-      });
-  }
-  
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-  
-  // ==================
-  // CONFIGURACIÓN DEL FORMULARIO
-  // ==================
-  
-  private createForm(): void {
     this.loginForm = this.fb.group({
-      email: ['', [
-        Validators.required,
-        Validators.email
-      ]],
-      password: ['', [
-        Validators.required,
-        Validators.minLength(6)
-      ]]
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    // Verificar si ya está logueado
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+    }
   }
-  
-  // ==================
-  // MÉTODOS DE LOGIN
-  // ==================
-  
-  onSubmit(): void {
+
+  async onLogin() {
     if (this.loginForm.invalid) {
       this.markFormGroupTouched();
       return;
     }
-    
-    this.performLogin();
-  }
-  
-  private performLogin(): void {
-    const credentials: LoginRequest = this.loginForm.value;
-    
-    console.log('🔑 Iniciando login para:', credentials.email);
+
     this.isLoading = true;
-    this.clearMessages();
-    
-    this.authService.login(credentials)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.isLoading = false)
-      )
-      .subscribe({
-        next: (response) => {
-          console.log('✅ Login exitoso:', response.data.user);
-          this.successMessage = '¡Login exitoso! Redirigiendo...';
-          
-          // Redirigir después de 1 segundo
-          setTimeout(() => {
-            this.authService.redirectToDashboard();
-          }, 1000);
-        },
-        error: (error) => {
-          console.error('❌ Error en login:', error);
-          this.handleLoginError(error);
-        }
-      });
-  }
-  
-  private handleLoginError(error: any): void {
-    if (error.message) {
-      this.errorMessage = error.message;
-    } else if (error.status === 401) {
-      this.errorMessage = 'Email o contraseña incorrectos';
-    } else if (error.status === 423) {
-      this.errorMessage = 'Usuario bloqueado temporalmente. Intenta en 30 minutos.';
-    } else if (error.status === 0) {
-      this.errorMessage = 'No se puede conectar con el servidor. Verifica que esté ejecutándose.';
-    } else {
-      this.errorMessage = 'Error inesperado. Intenta nuevamente.';
+    this.error = '';
+
+    try {
+      const formValue = this.loginForm.value;
+      const result = await this.authService.login(formValue.email, formValue.password);
+      
+      if (result.success) {
+        console.log('✅ Login exitoso');
+        this.router.navigate(['/dashboard']);
+      } else {
+        this.error = result.message || 'Error al iniciar sesión';
+      }
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      this.error = error.message || 'Error de conexión';
+    } finally {
+      this.isLoading = false;
     }
   }
-  
-  // ==================
-  // MÉTODOS DE UI
-  // ==================
-  
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
-  }
-  
-  fillTestCredentials(email: string, password: string): void {
-    this.loginForm.patchValue({ email, password });
-    this.successMessage = 'Credenciales de prueba cargadas. Haz clic en "Iniciar Sesión"';
-    this.errorMessage = '';
-  }
-  
-  clearMessages(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-  
-  private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      this.loginForm.get(key)?.markAsTouched();
-    });
-  }
-  
-  // ==================
-  // GETTERS PARA TEMPLATE
-  // ==================
-  
-  get email() { return this.loginForm.get('email'); }
-  get password() { return this.loginForm.get('password'); }
-  
-  get isEmailInvalid() {
-    return this.email?.invalid && this.email?.touched;
-  }
-  
-  get isPasswordInvalid() {
-    return this.password?.invalid && this.password?.touched;
-  }
-  
-  get canSubmit() {
-    return this.loginForm.valid && !this.isLoading;
-  }
-  
-  // ==================
-  // NAVEGACIÓN
-  // ==================
-  
-  goToRegister(): void {
+
+  goToRegister() {
     this.router.navigate(['/register']);
   }
-  
-  goToHome(): void {
-    this.router.navigate(['/']);
+
+  private markFormGroupTouched() {
+    Object.keys(this.loginForm.controls).forEach(field => {
+      const control = this.loginForm.get(field);
+      control?.markAsTouched({ onlySelf: true });
+    });
   }
 }

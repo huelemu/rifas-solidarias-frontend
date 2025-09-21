@@ -1,117 +1,61 @@
-// ===================================================================
-// 🎨 TEMPLATE HTML - src/app/components/auth/login/login.component.html
-// ===================================================================
-
-/*
 <div class="login-container">
-  <div class="login-card">
-    <!-- Header -->
-    <div class="login-header">
-      <div class="logo">
-        <h1>🎯 Rifas Solidarias</h1>
-        <p>Sistema de Autenticación</p>
-      </div>
-    </div>
-
-    <!-- Alerts -->
-    <div class="alert-container">
-      <div *ngIf="errorMessage" class="alert alert-error" [@slideIn]>
-        {{ errorMessage }}
-        <button class="close-btn" (click)="clearMessages()">×</button>
-      </div>
-      
-      <div *ngIf="successMessage" class="alert alert-success" [@slideIn]>
-        {{ successMessage }}
-        <button class="close-btn" (click)="clearMessages()">×</button>
-      </div>
-    </div>
-
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="form-control"
-          [class.invalid]="isEmailInvalid"
-          placeholder="tu@email.com"
-          autocomplete="email"
-        >
-        <div *ngIf="isEmailInvalid" class="error-message">
-          <span *ngIf="email?.errors?.['required']">El email es requerido</span>
-          <span *ngIf="email?.errors?.['email']">El email debe ser válido</span>
+      <div class="login-card">
+        <div class="login-header">
+          <h2>🎯 Rifas Solidarias</h2>
+          <p>Inicia sesión en tu cuenta</p>
         </div>
-      </div>
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <div class="password-container">
-          <input
-            id="password"
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            class="form-control"
-            [class.invalid]="isPasswordInvalid"
-            placeholder="Tu contraseña"
-            autocomplete="current-password"
-          >
-          <button
-            type="button"
-            class="password-toggle"
-            (click)="togglePassword()"
-            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-          >
-            {{ showPassword ? '🙈' : '👁️' }}
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              placeholder="tu@email.com">
+            <div class="error-message" 
+                 *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              Email válido es requerido
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input 
+              type="password" 
+              id="password"
+              formControlName="password"
+              [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              placeholder="••••••••">
+            <div class="error-message" 
+                 *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              Contraseña es requerida (mínimo 6 caracteres)
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="login-btn"
+            [disabled]="loginForm.invalid || isLoading">
+            <span *ngIf="!isLoading">Iniciar Sesión</span>
+            <span *ngIf="isLoading" class="loading">🔄 Iniciando...</span>
           </button>
-        </div>
-        <div *ngIf="isPasswordInvalid" class="error-message">
-          <span *ngIf="password?.errors?.['required']">La contraseña es requerida</span>
-          <span *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres</span>
-        </div>
-      </div>
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        class="submit-btn"
-        [disabled]="!canSubmit"
-        [class.loading]="isLoading"
-      >
-        <span *ngIf="!isLoading">🔑 Iniciar Sesión</span>
-        <span *ngIf="isLoading" class="loading-content">
-          <span class="spinner"></span>
-          Verificando...
-        </span>
-      </button>
-    </form>
+          <!-- Error Message -->
+          <div class="error-alert" *ngIf="error">
+            ❌ {{ error }}
+          </div>
 
-    <!-- Navigation Links -->
-    <div class="form-footer">
-      <p>¿No tienes cuenta? 
-        <a (click)="goToRegister()" class="link">Regístrate aquí</a>
-      </p>
-      <p>
-        <a (click)="goToHome()" class="link">← Volver al inicio</a>
-      </p>
-    </div>
-
-    <!-- Test Credentials -->
-    <div class="test-credentials">
-      <h3>👨‍💻 Usuarios de Prueba:</h3>
-      <div class="test-users">
-        <div 
-          *ngFor="let user of testCredentials"
-          class="test-user"
-          (click)="fillTestCredentials(user.email, user.password)"
-        >
-          <div class="user-role">{{ user.role }}</div>
-          <div class="user-email">{{ user.email }}</div>
-        </div>
+          <!-- Register Link -->
+          <div class="register-link">
+            <p>¿No tienes cuenta? 
+              <a (click)="goToRegister()" class="link">Regístrate aquí</a>
+            </p>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
-</div>

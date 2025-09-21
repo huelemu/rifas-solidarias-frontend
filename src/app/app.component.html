@@ -13,10 +13,10 @@
       </div>
       
       <div class="nav-right">
-        <div class="user-info" *ngIf="currentUser$ | async as user">
-          <span class="user-name">{{ user.nombre }} {{ user.apellido }}</span>
-          <span class="user-role">{{ getRoleDisplayName(user.rol) }}</span>
-        </div>
+      <div class="user-info" *ngIf="currentUser$ | async as user; else notLoggedIn">
+        <span class="user-name">{{ user!.nombre }} {{ user!.apellido }}</span>
+        <span class="user-role">{{ getRoleDisplayName(user!.rol) }}</span>
+      </div>
         
         <button class="logout-btn" (click)="logout()">
           👋 Cerrar Sesión
