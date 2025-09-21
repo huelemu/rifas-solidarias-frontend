@@ -1,11 +1,18 @@
+// ===================================================================
+// 👑 ADMIN GUARD - src/app/guards/admin.guard.ts
+// ===================================================================
+
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { Observable } from 'rxjs';
+import { AuthService, UserRole } from '../services/auth.service';
+import { map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminGuard implements CanActivate {
+  
   constructor(
     private authService: AuthService,
     private router: Router
@@ -14,17 +21,31 @@ export class AdminGuard implements CanActivate {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login']);
-      return false;
-    }
+  ): Observable<boolean> | Promise<boolean> | boolean {
+    
+    return this.authService.isAuthenticated$.pipe(
+      map(isAuthenticated => {
+        if (!isAuthenticated) {
+          console.log('🚫 Acceso denegado - Usuario no autenticado');
+          this.router.navigate(['/login']);
+          return false;
+        }
 
-    if (this.authService.isAdmin()) {
-      return true;
-    }
+        const user = this.authService.getCurrentUser();
+        const isAdmin = user && (
+          user.rol === UserRole.ADMIN_GLOBAL || 
+          user.rol === UserRole.ADMIN_INSTITUCION
+        );
 
-    this.router.navigate(['/unauthorized']);
-    return false;
+        if (!isAdmin) {
+          console.log('🚫 Acceso denegado - Requiere permisos de administrador');
+          this.router.navigate(['/unauthorized']);
+          return false;
+        }
+
+        console.log('✅ Acceso autorizado para administrador');
+        return true;
+      })
+    );
   }
 }

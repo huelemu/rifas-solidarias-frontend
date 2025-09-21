@@ -13,7 +13,7 @@ interface Institucion {
 
 @Component({
   selector: 'app-register',
-  standalone: true,
+  //standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']

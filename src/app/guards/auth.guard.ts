@@ -1,11 +1,18 @@
+// ===================================================================
+// 🛡️ AUTH GUARD - src/app/guards/auth.guard.ts
+// ===================================================================
+
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+  
   constructor(
     private authService: AuthService,
     private router: Router
@@ -14,13 +21,18 @@ export class AuthGuard implements CanActivate {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean {
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
-
-    localStorage.setItem('redirectUrl', state.url);
-    this.router.navigate(['/login']);
-    return false;
+  ): Observable<boolean> | Promise<boolean> | boolean {
+    
+    return this.authService.isAuthenticated$.pipe(
+      tap(isAuthenticated => {
+        if (!isAuthenticated) {
+          console.log('🚫 Acceso denegado - Usuario no autenticado');
+          console.log('🚪 Redirigiendo al login...');
+          this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+        } else {
+          console.log('✅ Acceso autorizado para usuario autenticado');
+        }
+      })
+    );
   }
 }

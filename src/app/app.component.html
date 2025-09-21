@@ -1,89 +1,37 @@
+// ===================================================================
+// 🎨 APP COMPONENT HTML - src/app/app.component.html
+// ===================================================================
+
 <div class="app-container">
-  <!-- Navigation Header (solo se muestra en rutas específicas) -->
-  <nav *ngIf="showNavigation" class="main-navigation">
-    <div class="nav-container">
-      <!-- Logo -->
-      <div class="nav-logo" (click)="navigateTo('/home')">
-        <span class="logo-icon">🎲</span>
-        <span class="logo-text">Rifas Solidarias</span>
-      </div>
-
-      <!-- Navigation Links -->
-      <div class="nav-links">
-        <a routerLink="/home" routerLinkActive="active" class="nav-link">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-text">Inicio</span>
+  <!-- Navigation Bar -->
+  <nav class="navbar" *ngIf="isAuthenticated$ | async">
+    <div class="nav-content">
+      <div class="nav-left">
+        <a routerLink="/" class="logo">
+          🎯 Rifas Solidarias
         </a>
-
-        <a routerLink="/diagnostico" routerLinkActive="active" class="nav-link">
-          <span class="nav-icon">🔧</span>
-          <span class="nav-text">Diagnóstico</span>
-        </a>
-
-        <!-- Links para administradores -->
-        <ng-container *ngIf="isAdmin()">
-          <a routerLink="/instituciones" routerLinkActive="active" class="nav-link">
-            <span class="nav-icon">🏢</span>
-            <span class="nav-text">Instituciones</span>
-          </a>
-
-          <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
-            <span class="nav-icon">👥</span>
-            <span class="nav-text">Usuarios</span>
-          </a>
-        </ng-container>
       </div>
-
-      <!-- User Menu -->
-      <div class="nav-user">
-        <ng-container *ngIf="isAuthenticated() && currentUser; else guestMenu">
-          <!-- Usuario autenticado -->
-          <div class="user-info">
-            <span class="user-avatar">{{ getRoleIcon(currentUser.rol) }}</span>
-            <span class="user-name">{{ currentUser.nombre }}</span>
-          </div>
-          
-          <div class="user-actions">
-            <button (click)="navigateTo('/dashboard')" class="nav-btn dashboard-btn">
-              <span class="btn-icon">📊</span>
-              <span class="btn-text">Dashboard</span>
-            </button>
-            
-            <button (click)="logout()" class="nav-btn logout-btn">
-              <span class="btn-icon">🚪</span>
-              <span class="btn-text">Salir</span>
-            </button>
-          </div>
-        </ng-container>
-
-        <!-- Usuario no autenticado -->
-        <ng-template #guestMenu>
-          <div class="guest-actions">
-            <button (click)="navigateTo('/login')" class="nav-btn login-btn">
-              <span class="btn-icon">🔑</span>
-              <span class="btn-text">Iniciar Sesión</span>
-            </button>
-            
-            <button (click)="navigateTo('/register')" class="nav-btn register-btn">
-              <span class="btn-icon">📝</span>
-              <span class="btn-text">Registrarse</span>
-            </button>
-          </div>
-        </ng-template>
+      
+      <div class="nav-right">
+        <div class="user-info" *ngIf="currentUser$ | async as user">
+          <span class="user-name">{{ user.nombre }} {{ user.apellido }}</span>
+          <span class="user-role">{{ getRoleDisplayName(user.rol) }}</span>
+        </div>
+        
+        <button class="logout-btn" (click)="logout()">
+          👋 Cerrar Sesión
+        </button>
       </div>
     </div>
   </nav>
 
-  <!-- Loading Overlay -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="loading-content">
-      <div class="spinner"></div>
-      <p>Cargando aplicación...</p>
-    </div>
-  </div>
-
   <!-- Main Content -->
-  <main class="main-content" [class.with-nav]="showNavigation">
+  <main class="main-content" [class.with-navbar]="isAuthenticated$ | async">
     <router-outlet></router-outlet>
   </main>
+
+  <!-- Footer -->
+  <footer class="footer" *ngIf="!(isAuthenticated$ | async)">
+    <p>&copy; 2024 Rifas Solidarias. Todos los derechos reservados.</p>
+  </footer>
 </div>
