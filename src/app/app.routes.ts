@@ -27,6 +27,10 @@ export const routes: Routes = [
     path: 'usuarios', 
     loadComponent: () => import('./components/usuarios/usuarios.component').then(m => m.UsuariosComponent)
   },
+    {
+    path: 'rifas',
+    loadChildren: () => import('./features/rifas/rifas.routes').then(m => m.RIFAS_ROUTES)
+  }
   { 
     path: '**', 
     redirectTo: '/login' 

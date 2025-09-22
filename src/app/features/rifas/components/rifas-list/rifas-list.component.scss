@@ -1,0 +1,186 @@
+.rifas-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rifas-header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #1f2937;
+  }
+
+  .subtitle {
+    color: #6b7280;
+    font-size: 1.1rem;
+  }
+}
+
+.rifas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.rifa-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.rifa-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+    color: #1f2937;
+    flex: 1;
+    margin-right: 12px;
+  }
+}
+
+.estado-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.estado-activa {
+    background: #d1fae5;
+    color: #065f46;
+  }
+}
+
+.rifa-description {
+  color: #6b7280;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.rifa-info {
+  margin-bottom: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  .label {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .value {
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.progress-section {
+  margin-bottom: 24px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #10b981, #059669);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.rifa-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+
+  &.btn-primary {
+    background: #4f46e5;
+    color: white;
+
+    &:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid #d1d5db;
+    color: #374151;
+
+    &:hover {
+      border-color: #9ca3af;
+      background: #f9fafb;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 24px;
+  }
+
+  h3 {
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: #6b7280;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .rifas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-actions {
+    flex-direction: column;
+  }
+}

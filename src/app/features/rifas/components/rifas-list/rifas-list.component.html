@@ -1,0 +1,71 @@
+<div class="rifas-container">
+  <div class="rifas-header">
+    <h1>🎲 Rifas Solidarias</h1>
+    <p class="subtitle">Participa en rifas solidarias y ayuda a causas benéficas</p>
+  </div>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading && rifas.length === 0" class="empty-state">
+    <div class="empty-icon">🎲</div>
+    <h3>No hay rifas activas</h3>
+    <p>Pronto tendremos nuevas rifas solidarias disponibles.</p>
+  </div>
+
+  <div class="rifas-grid" *ngIf="!loading && rifas.length > 0">
+    <div *ngFor="let rifa of rifas" class="rifa-card">
+      
+      <div class="rifa-header-card">
+        <h3>{{ rifa.titulo }}</h3>
+        <span class="estado-badge" [class]="'estado-' + rifa.estado">
+          {{ rifa.estado }}
+        </span>
+      </div>
+      
+      <p class="rifa-description">{{ rifa.descripcion }}</p>
+      
+      <div class="rifa-info">
+        <div class="info-row">
+          <span class="label">💰 Precio por número:</span>
+          <span class="value">${{ rifa.precio_boleto }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">🎟️ Disponibles:</span>
+          <span class="value">{{ rifa.numeros_totales - rifa.numeros_vendidos }} / {{ rifa.numeros_totales }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">🏢 Institución:</span>
+          <span class="value">{{ rifa.institucion_nombre }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">📅 Sorteo:</span>
+          <span class="value">{{ rifa.fecha_sorteo | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+      
+      <div class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" 
+               [style.width.%]="getProgressPercentage(rifa)">
+          </div>
+        </div>
+        <span class="progress-text">
+          {{ getProgressPercentage(rifa).toFixed(1) }}% vendido
+        </span>
+      </div>
+      
+      <div class="rifa-actions">
+        <button class="btn btn-outline" [routerLink]="[rifa.id]">
+          📋 Ver Detalle
+        </button>
+        <button class="btn btn-primary" [routerLink]="[rifa.id, 'comprar']">
+          🛒 Comprar
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>
