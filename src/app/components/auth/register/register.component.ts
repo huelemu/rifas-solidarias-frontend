@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AuthService, UserRole, RegisterRequest, ApiResponse } from '../../../services/auth.service';
+import { AuthService, UserRole, UserRoleType, RegisterRequest, ApiResponse } from '../../../services/auth.service';
+
 
 
 interface Institucion {

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Rifas Solidarias - Sistema Completo</title>
+    <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 🔐 PÁGINA DE LOGIN -->
+        <div id="loginPage" class="page active">
+            <h1>🎯 Rifas Solidarias</h1>
+            <p class="subtitle">Inicia sesión en tu cuenta</p>
+            
+            <div id="loginAlert" class="alert alert-error" style="display: none;"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required placeholder="tu@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="btn" id="loginBtn">
+                    <span id="loginText">Iniciar Sesión</span>
+                    <span id="loginLoading" class="loading">🔄 Iniciando...</span>
+                </button>
+            </form>
+            
+            <div style="text-align: center;">
+                <a class="link" onclick="showPage('registerPage')">¿No tienes cuenta? Regístrate aquí</a>
+            </div>
+        </div>
+
+        <!-- 📝 PÁGINA DE REGISTRO -->
+        <div id="registerPage" class="page">
+            <h1>📝 Crear Cuenta</h1>
+            <p class="subtitle">Únete a Rifas Solidarias</p>
+            
+            <div id="registerAlert" class="alert alert-error" style="display: none;"></div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerNombre">Nombre</label>
+                    <input type="text" id="registerNombre" required placeholder="Tu nombre">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerApellido">Apellido</label>
+                    <input type="text" id="registerApellido" required placeholder="Tu apellido">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required placeholder="tu@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Contraseña</label>
+                    <input type="password" id="registerPassword" required placeholder="••••••••">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerRol">Rol</label>
+                    <select id="registerRol" required>
+                        <option value="">Selecciona tu rol</option>
+                        <option value="comprador">Comprador</option>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="admin_institucion">Admin de Institución</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" id="registerBtn">
+                    <span id="registerText">Crear Cuenta</span>
+                    <span id="registerLoading" class="loading">🔄 Creando...</span>
+                </button>
+            </form>
+            
+            <div style="text-align: center;">
+                <a class="link" onclick="showPage('loginPage')">¿Ya tienes cuenta? Inicia sesión</a>
+            </div>
+        </div>
+
+        <!-- 🏠 PÁGINA DE DASHBOARD -->
+        <div id="dashboardPage" class="page">
+            <h1>🏠 Dashboard</h1>
+            <p class="subtitle">¡Bienvenido!</p>
+            
+            <div id="userInfo" class="user-info">
+                <strong id="userName"></strong><br>
+                <small id="userRole"></small>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card" onclick="alert('Función en desarrollo')">
+                    <h3>🎫 Mis Rifas</h3>
+                    <p>Ver rifas disponibles</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="alert('Función en desarrollo')">
+                    <h3>💰 Mis Compras</h3>
+                    <p>Historial de compras</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="alert('Función en desarrollo')">
+                    <h3>📊 Estadísticas</h3>
+                    <p>Ver reportes</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="alert('Función en desarrollo')">
+                    <h3>⚙️ Configuración</h3>
+                    <p>Ajustar perfil</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="logout()" style="margin-top: 20px;">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 🔧 CONFIGURACIÓN
+        const API_URL = 'http://localhost:3100';
+        let currentUser = null;
+
+        // 🔄 FUNCIONES DE NAVEGACIÓN
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function showAlert(message, type = 'error', elementId = '') {
+            const alertElement = document.getElementById(elementId || 'loginAlert');
+            alertElement.textContent = message;
+            alertElement.className = `alert alert-${type}`;
+            alertElement.style.display = 'block';
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function setLoading(isLoading, buttonId, textId, loadingId) {
+            const button = document.getElementById(buttonId);
+            const text = document.getElementById(textId);
+            const loading = document.getElementById(loadingId);
+            
+            button.disabled = isLoading;
+            text.style.display = isLoading ? 'none' : 'block';
+            loading.style.display = isLoading ? 'block' : 'none';
+        }
+
+        // 🔐 FUNCIONES DE AUTENTICACIÓN
+        async function login(email, password) {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    localStorage.setItem('access_token', data.data.access_token);
+                    localStorage.setItem('refresh_token', data.data.refresh_token);
+                    currentUser = data.data.user;
+                    showDashboard();
+                    return { success: true };
+                } else {
+                    return { success: false, message: data.message || 'Error en el login' };
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return { success: false, message: 'Error de conexión' };
+            }
+        }
+
+        async function register(userData) {
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    localStorage.setItem('access_token', data.data.access_token);
+                    localStorage.setItem('refresh_token', data.data.refresh_token);
+                    currentUser = data.data.user;
+                    showDashboard();
+                    return { success: true };
+                } else {
+                    return { success: false, message: data.message || 'Error en el registro' };
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return { success: false, message: 'Error de conexión' };
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            currentUser = null;
+            showPage('loginPage');
+        }
+
+        function showDashboard() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = `${currentUser.nombre} ${currentUser.apellido}`;
+                document.getElementById('userRole').textContent = `Rol: ${currentUser.rol}`;
+                showPage('dashboardPage');
+            }
+        }
+
+        // 📋 EVENT LISTENERS
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            setLoading(true, 'loginBtn', 'loginText', 'loginLoading');
+            
+            const result = await login(email, password);
+            
+            if (result.success) {
+                showAlert('¡Login exitoso!', 'success', 'loginAlert');
+            } else {
+                showAlert(result.message, 'error', 'loginAlert');
+            }
+            
+            setLoading(false, 'loginBtn', 'loginText', 'loginLoading');
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userData = {
+                nombre: document.getElementById('registerNombre').value,
+                apellido: document.getElementById('registerApellido').value,
+                email: document.getElementById('registerEmail').value,
+                password: document.getElementById('registerPassword').value,
+                rol: document.getElementById('registerRol').value
+            };
+            
+            setLoading(true, 'registerBtn', 'registerText', 'registerLoading');
+            
+            const result = await register(userData);
+            
+            if (result.success) {
+                showAlert('¡Registro exitoso!', 'success', 'registerAlert');
+            } else {
+                showAlert(result.message, 'error', 'registerAlert');
+            }
+            
+            setLoading(false, 'registerBtn', 'registerText', 'registerLoading');
+        });
+
+        // 🔄 VERIFICAR SI YA ESTÁ LOGUEADO
+        window.addEventListener('load', async () => {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                try {
+                    const response = await fetch(`${API_URL}/auth/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            currentUser = data.data;
+                            showDashboard();
+                        }
+                    }
+                } catch (error) {
+                    console.log('Token inválido, redirigiendo a login');
+                }
+            }
+        });
+
+        console.log('🎯 Sistema de Rifas Solidarias iniciado');
+        console.log('📡 API URL:', API_URL);
+    </script>
+</body>
+</html>

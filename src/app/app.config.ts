@@ -1,12 +1,12 @@
-// src/app/app.config.ts - CONFIGURACIÓN LIMPIA
+// src/app/app.config.ts - CONFIGURACIÓN PARA STANDALONE
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient()
+    provideHttpClient(withInterceptorsFromDi())
   ]
 };

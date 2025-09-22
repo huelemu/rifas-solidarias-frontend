@@ -1,4 +1,4 @@
-// src/app/components/login/login.component.ts - STANDALONE
+// src/app/components/auth/login/login.component.ts - CORREGIDO
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -224,7 +224,7 @@ export class LoginComponent {
     }
   }
 
-  async onLogin() {
+  onLogin() {
     if (this.loginForm.invalid) {
       this.markFormGroupTouched();
       return;
@@ -233,22 +233,25 @@ export class LoginComponent {
     this.isLoading = true;
     this.error = '';
 
-    try {
-      const formValue = this.loginForm.value;
-      const result = await this.authService.login(formValue.email, formValue.password);
-      
-      if (result.success) {
-        console.log('✅ Login exitoso');
-        this.router.navigate(['/dashboard']);
-      } else {
-        this.error = result.message || 'Error al iniciar sesión';
+    const formValue = this.loginForm.value;
+    
+    // CORREGIDO: Suscribirse al Observable
+    this.authService.login(formValue.email, formValue.password).subscribe({
+      next: (result) => {
+        if (result.success) {
+          console.log('✅ Login exitoso');
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.error = result.message || 'Error al iniciar sesión';
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error en login:', error);
+        this.error = error.message || 'Error de conexión';
+        this.isLoading = false;
       }
-    } catch (error: any) {
-      console.error('❌ Error en login:', error);
-      this.error = error.message || 'Error de conexión';
-    } finally {
-      this.isLoading = false;
-    }
+    });
   }
 
   goToRegister() {

@@ -49,6 +49,26 @@ interface HttpError {
   styleUrls: ['./instituciones.component.css']
 })
 export class InstitucionesComponent implements OnInit, OnDestroy {
+getBotonTexto() {
+throw new Error('Method not implemented.');
+}
+getTituloModal() {
+throw new Error('Method not implemented.');
+}
+cerrarModalConConfirmacion() {
+throw new Error('Method not implemented.');
+}
+limpiarBusqueda() {
+throw new Error('Method not implemented.');
+}
+onSearchChange() {
+throw new Error('Method not implemented.');
+}
+searchTerm: any;
+limpiarMensajes() {
+throw new Error('Method not implemented.');
+}
+success: any;
 abrirModal(arg0: string) {
 throw new Error('Method not implemented.');
 }

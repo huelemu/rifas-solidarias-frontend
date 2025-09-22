@@ -1,4 +1,4 @@
-// src/app/app.routes.ts - RUTAS BÁSICAS
+// src/app/app.routes.ts - RUTAS SIMPLES SIN GUARDS
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
@@ -18,6 +18,14 @@ export const routes: Routes = [
   { 
     path: 'dashboard', 
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+  },
+  { 
+    path: 'instituciones', 
+    loadComponent: () => import('./components/instituciones/instituciones.component').then(m => m.InstitucionesComponent)
+  },
+  { 
+    path: 'usuarios', 
+    loadComponent: () => import('./components/usuarios/usuarios.component').then(m => m.UsuariosComponent)
   },
   { 
     path: '**', 
