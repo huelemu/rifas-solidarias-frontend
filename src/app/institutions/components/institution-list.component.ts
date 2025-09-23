@@ -585,6 +585,64 @@ export class InstitutionListComponent implements OnInit {
   }
 
   /**
+   * Obtiene la clase CSS para el tipo de institución
+   */
+  getTypeClass(tipo: string): string {
+    switch (tipo) {
+      case 'club': return 'type-club';
+      case 'fundacion': return 'type-fundacion';
+      case 'ong': return 'type-ong';
+      case 'cooperativa': return 'type-cooperativa';
+      case 'escuela': return 'type-escuela';
+      default: return 'type-otro';
+    }
+  }
+
+  /**
+   * Obtiene la etiqueta legible para el tipo
+   */
+  getTypeLabel(tipo: string): string {
+    switch (tipo) {
+      case 'club': return 'Club';
+      case 'fundacion': return 'Fundación';
+      case 'ong': return 'ONG';
+      case 'cooperativa': return 'Cooperativa';
+      case 'escuela': return 'Escuela';
+      default: return 'Otro';
+    }
+  }
+
+  /**
+   * Obtiene la etiqueta legible para el estado
+   */
+  getStatusLabel(estado: string): string {
+    switch (estado) {
+      case 'activa': return 'ACT';
+      case 'inactiva': return 'INA';
+      case 'suspendida': return 'SUS';
+      default: return 'N/A';
+    }
+  }
+
+  /**
+   * Formatea una fecha para mostrar
+   */
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric'
+      });
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  /**
    * Navega de vuelta al dashboard
    */
   goBack(): void {
