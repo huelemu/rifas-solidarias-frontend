@@ -1,4 +1,4 @@
-// src/app/dashboard/dashboard.component.ts
+// src/app/dashboard/dashboard.component.ts - ESTILOS ARREGLADOS
 
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -71,6 +71,7 @@ import { AuthService } from '../auth/services/auth.service';
           <div class="action-section">
             <h3>📱 Módulos del Sistema</h3>
             <div class="actions-grid">
+              
               <!-- MÓDULO DE USUARIOS - YA DISPONIBLE -->
               <div class="action-card">
                 <div class="card-header">
@@ -93,21 +94,25 @@ import { AuthService } from '../auth/services/auth.service';
                 </button>
               </div>
 
-              <!-- MÓDULO DE INSTITUCIONES -->
+              <!-- MÓDULO DE INSTITUCIONES - ¡AHORA DISPONIBLE! -->
               <div class="action-card">
                 <div class="card-header">
                   <h4>🏢 Instituciones</h4>
-                  <span class="status-badge upcoming">Próximamente</span>
+                  <span class="status-badge ready">✅ Disponible</span>
                 </div>
                 <p>Gestionar instituciones participantes</p>
                 <ul class="feature-list">
-                  <li>🔄 Crear instituciones</li>
-                  <li>🔄 Asignar administradores</li>
-                  <li>🔄 Configurar permisos</li>
-                  <li>🔄 Ver estadísticas</li>
+                  <li>✅ Crear instituciones</li>
+                  <li>✅ Asignar administradores</li>
+                  <li>✅ Configurar permisos</li>
+                  <li>✅ Ver estadísticas</li>
                 </ul>
-                <button class="action-button" disabled>
-                  🏗️ Implementar Módulo
+                <button 
+                  (click)="goToInstitutions()" 
+                  class="action-button ready"
+                  [disabled]="!canManageInstitutions()"
+                >
+                  {{ canManageInstitutions() ? '🏢 Gestionar Instituciones' : '🔒 Sin permisos' }}
                 </button>
               </div>
 
@@ -125,7 +130,25 @@ import { AuthService } from '../auth/services/auth.service';
                   <li>🏆 Realizar sorteos</li>
                 </ul>
                 <button class="action-button featured" disabled>
-                  🚀 Implementar Core
+                  🚀 Próximamente
+                </button>
+              </div>
+
+              <!-- MÓDULO DE REPORTES -->
+              <div class="action-card">
+                <div class="card-header">
+                  <h4>📊 Reportes</h4>
+                  <span class="status-badge planned">Futuro</span>
+                </div>
+                <p>Análisis y estadísticas del sistema</p>
+                <ul class="feature-list">
+                  <li>🔄 Dashboard de ventas</li>
+                  <li>🔄 Reportes por institución</li>
+                  <li>🔄 Análisis de performance</li>
+                  <li>🔄 Exportación de datos</li>
+                </ul>
+                <button class="action-button" disabled>
+                  📈 En desarrollo
                 </button>
               </div>
             </div>
@@ -155,7 +178,7 @@ import { AuthService } from '../auth/services/auth.service';
               </div>
               <div class="tech-item">
                 <label>Módulos:</label>
-                <span class="tech-value">Login ✅, Usuarios ✅, Dashboard ✅</span>
+                <span class="tech-value">Login ✅, Usuarios ✅, Instituciones ✅, Dashboard ✅</span>
               </div>
               <div class="tech-item">
                 <label>Permisos:</label>
@@ -163,6 +186,26 @@ import { AuthService } from '../auth/services/auth.service';
                   {{ canManageUsers() ? 'Admin ✅' : 'Usuario estándar' }}
                 </span>
               </div>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas -->
+          <div class="quick-actions">
+            <h3>⚡ Acciones Rápidas</h3>
+            <div class="quick-buttons">
+              @if (canManageUsers()) {
+                <button (click)="goToUsers()" class="quick-btn">
+                  👥 Ver Usuarios
+                </button>
+              }
+              @if (canManageInstitutions()) {
+                <button (click)="goToInstitutions()" class="quick-btn">
+                  🏢 Ver Instituciones
+                </button>
+              }
+              <button (click)="goToDiagnostic()" class="quick-btn">
+                🔧 Diagnóstico
+              </button>
             </div>
           </div>
         </div>
@@ -271,129 +314,154 @@ import { AuthService } from '../auth/services/auth.service';
     }
 
     .status-indicator {
-      width: 8px;
-      height: 8px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background-color: currentColor;
+      animation: pulse 2s infinite;
     }
 
-    .user-details, .action-section, .tech-info {
-      margin-bottom: 2.5rem;
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
 
-    .user-details h3, .action-section h3, .tech-info h3 {
+    .user-details {
+      margin-bottom: 2rem;
+    }
+
+    .user-details h3,
+    .action-section h3,
+    .tech-info h3,
+    .quick-actions h3 {
       color: #333;
       margin: 0 0 1rem 0;
       font-size: 1.2rem;
       font-weight: 600;
     }
 
-    .info-grid, .tech-grid {
+    .info-grid,
+    .tech-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
+      margin-bottom: 1rem;
     }
 
-    .info-item, .tech-item {
+    .info-item,
+    .tech-item {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
     }
 
-    .info-item label, .tech-item label {
-      font-weight: 500;
-      color: #555;
+    .info-item label,
+    .tech-item label {
+      font-weight: 600;
+      color: #666;
       font-size: 0.9rem;
     }
 
-    .info-item span, .tech-item span {
+    .info-item span,
+    .tech-item span {
       color: #333;
+      font-size: 0.95rem;
     }
 
     .tech-value {
       font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      background-color: #f8f9fa;
+      background: #f8f9fa;
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
+      font-size: 0.85rem !important;
     }
 
     .tech-value.success {
-      background-color: #d4edda;
+      background: #d4edda;
       color: #155724;
     }
 
     .tech-value.error {
-      background-color: #f8d7da;
+      background: #f8d7da;
       color: #721c24;
     }
 
     .role-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .role-admin {
-      background-color: #e3f2fd;
-      color: #1565c0;
+    .role-badge.role-admin {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
     }
 
-    .role-vendedor {
-      background-color: #f3e5f5;
-      color: #7b1fa2;
+    .role-badge.role-vendedor {
+      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+      color: white;
     }
 
-    .role-comprador {
-      background-color: #e8f5e8;
-      color: #2e7d32;
+    .role-badge.role-comprador {
+      background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+      color: white;
     }
 
+    .action-section {
+      margin-bottom: 2rem;
+    }
+
+    /* GRID UNIFORME - IGUAL TAMAÑO PARA TODAS LAS TARJETAS */
     .actions-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
     }
 
     .action-card {
-      background: #f8f9fa;
+      background: #fff;
       border: 1px solid #e9ecef;
       border-radius: 8px;
-      padding: 1.5rem;
+      padding: 1.25rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .action-card.featured {
-      background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
-      border-color: #ffcdd2;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px; /* ALTURA MÍNIMA FIJA */
     }
 
     .action-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-card.featured {
+      border-left: 4px solid #ff6b6b;
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(238, 90, 36, 0.05) 100%);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
     }
 
-    .action-card h4 {
-      color: #333;
+    .card-header h4 {
       margin: 0;
-      font-size: 1.1rem;
+      color: #333;
+      font-size: 1rem;
       font-weight: 600;
     }
 
     .status-badge {
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
+      padding: 0.2rem 0.6rem;
+      border-radius: 10px;
       font-size: 0.7rem;
       font-weight: 500;
       text-transform: uppercase;
@@ -401,62 +469,67 @@ import { AuthService } from '../auth/services/auth.service';
     }
 
     .status-badge.ready {
-      background-color: #d4edda;
+      background: #d4edda;
       color: #155724;
     }
 
     .status-badge.upcoming {
-      background-color: #e3f2fd;
-      color: #1565c0;
+      background: #fff3cd;
+      color: #856404;
     }
 
     .status-badge.planned {
-      background-color: #fff3e0;
-      color: #ef6c00;
+      background: #d1ecf1;
+      color: #0c5460;
     }
 
     .action-card p {
       color: #666;
-      margin: 0 0 1rem 0;
+      margin: 0 0 0.75rem 0;
+      line-height: 1.4;
       font-size: 0.9rem;
     }
 
     .feature-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 1.5rem 0;
+      margin: 0 0 1rem 0;
+      flex: 1; /* EMPUJA EL BOTÓN HACIA ABAJO */
     }
 
     .feature-list li {
-      padding: 0.25rem 0;
+      padding: 0.2rem 0;
+      color: #666;
       font-size: 0.85rem;
-      color: #555;
     }
 
     .action-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: transform 0.2s;
       width: 100%;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
       font-family: inherit;
+      margin-top: auto; /* SE ALINEA EN LA PARTE INFERIOR */
     }
 
     .action-button.ready {
       background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
     }
 
     .action-button.ready:hover:not(:disabled) {
       background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
 
     .action-button.featured {
       background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
     }
 
     .action-button:hover:not(:disabled) {
@@ -467,6 +540,39 @@ import { AuthService } from '../auth/services/auth.service';
       background: #ccc;
       cursor: not-allowed;
       transform: none;
+    }
+
+    .tech-info {
+      margin-bottom: 2rem;
+    }
+
+    .quick-actions {
+      border-top: 1px solid #e9ecef;
+      padding-top: 2rem;
+    }
+
+    .quick-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .quick-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
     @media (max-width: 768px) {
@@ -494,6 +600,10 @@ import { AuthService } from '../auth/services/auth.service';
         align-items: flex-start;
         gap: 0.5rem;
       }
+
+      .quick-buttons {
+        flex-direction: column;
+      }
     }
   `]
 })
@@ -501,51 +611,33 @@ export class DashboardComponent implements OnInit {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   
-  // Signal para el estado de conexión
   readonly isConnected = signal(true);
 
   ngOnInit(): void {
-    // Verificar conexión al cargar
     this.checkConnection();
   }
 
-  /**
-   * Verifica la conexión con el backend
-   */
   private checkConnection(): void {
-    // Si tenemos un usuario autenticado, asumimos que la conexión funciona
     this.isConnected.set(this.authService.isAuthenticated());
   }
 
-  /**
-   * Obtiene la URL del backend
-   */
   getBackendUrl(): string {
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3100';  // Sin /api
+      return 'http://localhost:3100';
     } else {
-      return 'https://apirifas.huelemu.com.ar';  // Sin /api
+      return 'https://apirifas.huelemu.com.ar';
     }
   }
 
-  /**
-   * Obtiene la clase CSS para el estado de conexión
-   */
   getConnectionStatusClass(): string {
     return this.isConnected() ? 'connected' : 'disconnected';
   }
 
-  /**
-   * Obtiene el texto del estado de conexión
-   */
   getConnectionStatusText(): string {
     return this.isConnected() ? 'Conectado al backend' : 'Desconectado del backend';
   }
 
-  /**
-   * Obtiene la clase CSS según el rol del usuario
-   */
   getRoleClass(): string {
     const role = this.authService.userRole();
     switch (role) {
@@ -561,9 +653,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  /**
-   * Obtiene la etiqueta legible del rol
-   */
   getRoleLabel(): string {
     const role = this.authService.userRole();
     switch (role) {
@@ -580,23 +669,27 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  /**
-   * Verifica si puede gestionar usuarios
-   */
   canManageUsers(): boolean {
     return this.authService.isAdmin();
   }
 
-  /**
-   * Navega a gestión de usuarios
-   */
+  canManageInstitutions(): boolean {
+    const role = this.authService.userRole();
+    return role === 'admin_global' || role === 'admin_institucion';
+  }
+
   goToUsers(): void {
     this.router.navigate(['/usuarios']);
   }
 
-  /**
-   * Cierra la sesión del usuario
-   */
+  goToInstitutions(): void {
+    this.router.navigate(['/instituciones']);
+  }
+
+  goToDiagnostic(): void {
+    this.router.navigate(['/diagnostico']);
+  }
+
   logout(): void {
     this.authService.logout();
   }
