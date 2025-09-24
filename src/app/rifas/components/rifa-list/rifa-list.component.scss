@@ -1,0 +1,728 @@
+// src/app/rifas/components/rifa-list/rifa-list.component.scss
+
+.rifa-list-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  
+  // =====================================================
+  // HEADER
+  // =====================================================
+  
+  .page-header {
+    margin-bottom: 2rem;
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      
+      h1 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 600;
+      }
+      
+      .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+    }
+  }
+  
+  // =====================================================
+  // FILTROS
+  // =====================================================
+  
+  .filters-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        
+        label {
+          font-weight: 500;
+          color: #495057;
+          font-size: 0.9rem;
+        }
+        
+        .form-control {
+          padding: 0.75rem;
+          border: 1px solid #ced4da;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          transition: all 0.2s ease;
+          
+          &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+          }
+        }
+      }
+    }
+    
+    .stats-summary {
+      display: flex;
+      gap: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #dee2e6;
+      flex-wrap: wrap;
+      
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        .stat-label {
+          font-size: 0.9rem;
+          color: #6c757d;
+        }
+        
+        .stat-value {
+          font-weight: 600;
+          font-size: 1rem;
+          
+          &.active {
+            color: #28a745;
+          }
+          
+          &.finished {
+            color: #17a2b8;
+          }
+        }
+      }
+    }
+  }
+  
+  // =====================================================
+  // ESTADOS DE CARGA Y ERROR
+  // =====================================================
+  
+  .loading-container {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+  }
+  
+  .error-container {
+    text-align: center;
+    padding: 3rem 2rem;
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      
+      .error-icon {
+        font-size: 1.2rem;
+      }
+    }
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+    
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    h3 {
+      color: #495057;
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+  }
+  
+  // =====================================================
+  // GRID DE RIFAS
+  // =====================================================
+  
+  .rifas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  // =====================================================
+  // TARJETAS DE RIFAS
+  // =====================================================
+  
+  .rifa-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+    
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    // Estados específicos
+    &.card-borrador {
+      border-left: 4px solid #6c757d;
+    }
+    
+    &.card-activa {
+      border-left: 4px solid #28a745;
+    }
+    
+    &.card-cerrada {
+      border-left: 4px solid #ffc107;
+    }
+    
+    &.card-finalizada {
+      border-left: 4px solid #17a2b8;
+    }
+    
+    &.card-cancelada {
+      border-left: 4px solid #dc3545;
+      opacity: 0.8;
+    }
+    
+    .card-header {
+      padding: 1.25rem;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      
+      .rifa-title {
+        flex: 1;
+        
+        h3 {
+          margin: 0 0 0.5rem 0;
+          color: #2c3e50;
+          font-size: 1.25rem;
+          font-weight: 600;
+          line-height: 1.3;
+        }
+        
+        .rifa-meta {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          
+          .rifa-id {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 500;
+          }
+          
+          .rifa-institucion {
+            font-size: 0.85rem;
+            color: #495057;
+            font-weight: 500;
+          }
+        }
+      }
+      
+      .rifa-status {
+        .status-badge {
+          padding: 0.4rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          
+          &.status-draft {
+            background: #6c757d;
+            color: white;
+          }
+          
+          &.status-active {
+            background: #28a745;
+            color: white;
+          }
+          
+          &.status-closed {
+            background: #ffc107;
+            color: #212529;
+          }
+          
+          &.status-finished {
+            background: #17a2b8;
+            color: white;
+          }
+          
+          &.status-cancelled {
+            background: #dc3545;
+            color: white;
+          }
+        }
+      }
+    }
+    
+    .card-body {
+      padding: 1.25rem;
+      
+      .rifa-descripcion {
+        margin: 0 0 1rem 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      .rifa-stats {
+        margin-bottom: 1rem;
+        
+        .stat-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.75rem;
+          
+          .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            
+            .stat-label {
+              font-size: 0.8rem;
+              color: #6c757d;
+              margin-bottom: 0.25rem;
+            }
+            
+            .stat-value {
+              font-size: 1rem;
+              font-weight: 600;
+              color: #495057;
+              
+              &.success {
+                color: #28a745;
+              }
+            }
+          }
+        }
+        
+        .progress-section {
+          margin: 1rem 0;
+          
+          .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            
+            .progress-label {
+              font-size: 0.85rem;
+              color: #6c757d;
+            }
+            
+            .progress-value {
+              font-size: 0.9rem;
+              font-weight: 600;
+              color: #495057;
+            }
+          }
+          
+          .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            
+            .progress-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #28a745, #20c997);
+              transition: width 0.3s ease;
+            }
+          }
+        }
+        
+        .recaudacion {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+          margin-top: 1rem;
+          
+          .recaudacion-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+          }
+          
+          .recaudacion-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #28a745;
+          }
+        }
+      }
+      
+      .rifa-dates {
+        margin-bottom: 1rem;
+        
+        .date-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #f1f3f4;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          .date-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+          }
+          
+          .date-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #495057;
+          }
+        }
+      }
+      
+      .dias-restantes {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #e3f2fd;
+        border-radius: 8px;
+        
+        .dias-label {
+          font-size: 0.9rem;
+          color: #1976d2;
+        }
+        
+        .dias-value {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #1976d2;
+        }
+        
+        .dias-vencida {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #dc3545;
+        }
+      }
+    }
+    
+    .card-actions {
+      padding: 1rem 1.25rem;
+      background: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      
+      .dropdown {
+        position: relative;
+        
+        .dropdown-toggle {
+          position: relative;
+          
+          &:after {
+            content: '▼';
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+          }
+        }
+        
+        .dropdown-menu {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          background: white;
+          border: 1px solid #dee2e6;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          min-width: 150px;
+          z-index: 1000;
+          display: none;
+          
+          &.show {
+            display: block;
+          }
+          
+          .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border: none;
+            background: none;
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            
+            &:hover {
+              background: #f8f9fa;
+            }
+            
+            &.danger {
+              color: #dc3545;
+              
+              &:hover {
+                background: #f8d7da;
+              }
+            }
+          }
+          
+          .dropdown-divider {
+            height: 1px;
+            background: #dee2e6;
+            margin: 0.5rem 0;
+          }
+        }
+      }
+    }
+  }
+  
+  // =====================================================
+  // PAGINACIÓN
+  // =====================================================
+  
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    
+    .pagination-info {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+  }
+  
+  // =====================================================
+  // BOTONES
+  // =====================================================
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .btn-icon {
+      font-size: 0.9rem;
+    }
+    
+    &.btn-primary {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+      
+      &:hover:not(:disabled) {
+        background: #0056b3;
+        border-color: #0056b3;
+      }
+    }
+    
+    &.btn-secondary {
+      background: #6c757d;
+      color: white;
+      border-color: #6c757d;
+      
+      &:hover:not(:disabled) {
+        background: #545b62;
+        border-color: #545b62;
+      }
+    }
+    
+    &.btn-success {
+      background: #28a745;
+      color: white;
+      border-color: #28a745;
+      
+      &:hover:not(:disabled) {
+        background: #1e7e34;
+        border-color: #1e7e34;
+      }
+    }
+    
+    &.btn-warning {
+      background: #ffc107;
+      color: #212529;
+      border-color: #ffc107;
+      
+      &:hover:not(:disabled) {
+        background: #e0a800;
+        border-color: #e0a800;
+      }
+    }
+    
+    &.btn-outline {
+      background: white;
+      color: #6c757d;
+      border-color: #ced4da;
+      
+      &:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+      }
+    }
+  }
+  
+  // =====================================================
+  // ANIMACIONES
+  // =====================================================
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  // =====================================================
+  // RESPONSIVE
+  // =====================================================
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    
+    .page-header .header-content {
+      flex-direction: column;
+      align-items: stretch;
+      
+      h1 {
+        font-size: 1.5rem;
+        text-align: center;
+      }
+      
+      .header-actions {
+        justify-content: center;
+      }
+    }
+    
+    .filters-section .filters-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .rifas-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .rifa-card .card-actions {
+      .btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+    
+    .pagination-container {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.5rem;
+    
+    .rifa-card {
+      .card-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+        
+        .rifa-title h3 {
+          font-size: 1.1rem;
+        }
+      }
+      
+      .card-body {
+        padding: 1rem;
+      }
+      
+      .card-actions {
+        padding: 0.75rem 1rem;
+        flex-direction: column;
+        
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}

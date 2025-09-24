@@ -1,0 +1,375 @@
+<div class="rifa-list-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1>🎫 Gestión de Rifas</h1>
+          <div class="header-actions">
+            @if (canCreateRifa()) {
+              <button 
+                class="btn btn-primary"
+                (click)="crearRifa()">
+                <span class="btn-icon">➕</span>
+                Nueva Rifa
+              </button>
+            }
+            <button 
+              class="btn btn-secondary"
+              (click)="recargarRifas()">
+              <span class="btn-icon">🔄</span>
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filters-section">
+        <div class="filters-grid">
+          <!-- Búsqueda -->
+          <div class="filter-item">
+            <label for="search">🔍 Buscar:</label>
+            <input
+              id="search"
+              type="text"
+              [(ngModel)]="currentFilters().search"
+              (input)="onFilterChange()"
+              placeholder="Nombre de rifa..."
+              class="form-control">
+          </div>
+
+          <!-- Estado -->
+          <div class="filter-item">
+            <label for="estado">📊 Estado:</label>
+            <select
+              id="estado"
+              [(ngModel)]="currentFilters().estado"
+              (change)="onFilterChange()"
+              class="form-control">
+              <option value="todas">Todas</option>
+              @for (estado of rifaEstados; track estado.value) {
+                <option [value]="estado.value">
+                  {{ estado.icon }} {{ estado.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- Ordenar por -->
+          <div class="filter-item">
+            <label for="ordenar">📋 Ordenar por:</label>
+            <select
+              id="ordenar"
+              [(ngModel)]="currentFilters().ordenar_por"
+              (change)="onFilterChange()"
+              class="form-control">
+              <option value="fecha_creacion">Fecha Creación</option>
+              <option value="nombre">Nombre</option>
+              <option value="fecha_inicio">Fecha Inicio</option>
+              <option value="fecha_fin">Fecha Fin</option>
+              <option value="estado">Estado</option>
+              <option value="porcentaje_vendido">% Vendido</option>
+            </select>
+          </div>
+
+          <!-- Dirección -->
+          <div class="filter-item">
+            <label for="direccion">🔄 Dirección:</label>
+            <select
+              id="direccion"
+              [(ngModel)]="currentFilters().direccion_orden"
+              (change)="onFilterChange()"
+              class="form-control">
+              <option value="desc">Descendente</option>
+              <option value="asc">Ascendente</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="stats-summary">
+          <div class="stat-item">
+            <span class="stat-label">Total:</span>
+            <span class="stat-value">{{ rifas().length }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Activas:</span>
+            <span class="stat-value active">{{ getActivasCount() }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Finalizadas:</span>
+            <span class="stat-value finished">{{ getFinalizadasCount() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Cargando rifas...</p>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="error-container">
+          <div class="error-message">
+            <span class="error-icon">❌</span>
+            {{ error() }}
+          </div>
+          <button 
+            class="btn btn-primary"
+            (click)="recargarRifas()">
+            Reintentar
+          </button>
+        </div>
+      }
+
+      <!-- Lista de rifas -->
+      @if (!loading() && !error()) {
+        <div class="rifas-grid">
+          @if (rifas().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">🎫</div>
+              <h3>No hay rifas disponibles</h3>
+              <p>
+                @if (canCreateRifa()) {
+                  ¡Crea tu primera rifa para comenzar!
+                } @else {
+                  No tienes rifas asignadas en este momento.
+                }
+              </p>
+              @if (canCreateRifa()) {
+                <button 
+                  class="btn btn-primary"
+                  (click)="crearRifa()">
+                  <span class="btn-icon">➕</span>
+                  Crear Primera Rifa
+                </button>
+              }
+            </div>
+          } @else {
+            @for (rifa of rifas(); track rifa.id) {
+              <div class="rifa-card" [class]="getCardClass(rifa)">
+                <!-- Header de la card -->
+                <div class="card-header">
+                  <div class="rifa-title">
+                    <h3>{{ rifa.nombre }}</h3>
+                    <div class="rifa-meta">
+                      <span class="rifa-id">#{{ rifa.id }}</span>
+                      <span class="rifa-institucion">{{ rifa.institucion_nombre }}</span>
+                    </div>
+                  </div>
+                  <div class="rifa-status">
+                    <span 
+                      class="status-badge"
+                      [class]="getEstadoClass(rifa.estado)"
+                      [title]="getEstadoConfig(rifa.estado).label">
+                      {{ getEstadoConfig(rifa.estado).icon }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Información principal -->
+                <div class="card-body">
+                  @if (rifa.descripcion) {
+                    <p class="rifa-descripcion">{{ rifa.descripcion }}</p>
+                  }
+
+                  <!-- Estadísticas -->
+                  <div class="rifa-stats">
+                    <div class="stat-row">
+                      <div class="stat">
+                        <span class="stat-label">Números:</span>
+                        <span class="stat-value">{{ rifa.cantidad_numeros | number }}</span>
+                      </div>
+                      <div class="stat">
+                        <span class="stat-label">Precio:</span>
+                        <span class="stat-value">{{ formatPrice(rifa.precio_numero) }}</span>
+                      </div>
+                    </div>
+                    
+                    @if (rifa.numeros_vendidos !== undefined) {
+                      <div class="stat-row">
+                        <div class="stat">
+                          <span class="stat-label">Vendidos:</span>
+                          <span class="stat-value success">{{ rifa.numeros_vendidos | number }}</span>
+                        </div>
+                        <div class="stat">
+                          <span class="stat-label">Disponibles:</span>
+                          <span class="stat-value">{{ (rifa.cantidad_numeros - (rifa.numeros_vendidos || 0)) | number }}</span>
+                        </div>
+                      </div>
+                    }
+
+                    @if (rifa.porcentaje_vendido !== undefined) {
+                      <div class="progress-section">
+                        <div class="progress-header">
+                          <span class="progress-label">Progreso de ventas:</span>
+                          <span class="progress-value">{{ rifa.porcentaje_vendido | number:'1.1-1' }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                          <div 
+                            class="progress-fill"
+                            [style.width.%]="rifa.porcentaje_vendido">
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (rifa.total_recaudado) {
+                      <div class="recaudacion">
+                        <span class="recaudacion-label">💰 Recaudado:</span>
+                        <span class="recaudacion-value">{{ formatPrice(rifa.total_recaudado) }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Fechas -->
+                  <div class="rifa-dates">
+                    <div class="date-item">
+                      <span class="date-label">📅 Inicio:</span>
+                      <span class="date-value">{{ formatDate(rifa.fecha_inicio) }}</span>
+                    </div>
+                    <div class="date-item">
+                      <span class="date-label">🏁 Fin:</span>
+                      <span class="date-value">{{ formatDate(rifa.fecha_fin) }}</span>
+                    </div>
+                    @if (rifa.fecha_sorteo) {
+                      <div class="date-item">
+                        <span class="date-label">🎲 Sorteo:</span>
+                        <span class="date-value">{{ formatDate(rifa.fecha_sorteo) }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Días restantes -->
+                  @if (rifa.estado === 'activa') {
+                    <div class="dias-restantes">
+                      @if (getDiasRestantes(rifa.fecha_fin) > 0) {
+                        <span class="dias-label">⏰ Quedan:</span>
+                        <span class="dias-value">{{ getDiasRestantes(rifa.fecha_fin) }} días</span>
+                      } @else {
+                        <span class="dias-vencida">🔴 Vencida</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Acciones -->
+                <div class="card-actions">
+                  <button 
+                    class="btn btn-outline"
+                    (click)="verDetalle(rifa.id)"
+                    title="Ver detalles">
+                    <span class="btn-icon">👁️</span>
+                    Ver
+                  </button>
+
+                  @if (canManageRifa(rifa)) {
+                    <button 
+                      class="btn btn-outline"
+                      (click)="editarRifa(rifa.id)"
+                      title="Editar rifa">
+                      <span class="btn-icon">✏️</span>
+                      Editar
+                    </button>
+
+                    <button 
+                      class="btn btn-outline"
+                      (click)="verNumeros(rifa.id)"
+                      title="Gestionar números">
+                      <span class="btn-icon">🔢</span>
+                      Números
+                    </button>
+
+                    @if (rifa.estado === 'borrador') {
+                      <button 
+                        class="btn btn-success"
+                        (click)="activarRifa(rifa.id)"
+                        title="Activar rifa">
+                        <span class="btn-icon">🟢</span>
+                        Activar
+                      </button>
+                    }
+
+                    @if (rifa.estado === 'activa') {
+                      <button 
+                        class="btn btn-warning"
+                        (click)="pausarRifa(rifa.id)"
+                        title="Pausar rifa">
+                        <span class="btn-icon">⏸️</span>
+                        Pausar
+                      </button>
+                    }
+
+                    <div class="dropdown">
+                      <button class="btn btn-outline dropdown-toggle">
+                        <span class="btn-icon">⚙️</span>
+                        Más
+                      </button>
+                      <div class="dropdown-menu">
+                        <button 
+                          class="dropdown-item"
+                          (click)="duplicarRifa(rifa.id)">
+                          📋 Duplicar
+                        </button>
+                        <button 
+                          class="dropdown-item"
+                          (click)="exportarRifa(rifa.id)">
+                          📊 Exportar
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        @if (rifa.estado !== 'finalizada') {
+                          <button 
+                            class="dropdown-item danger"
+                            (click)="eliminarRifa(rifa.id)">
+                            🗑️ Eliminar
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Paginación -->
+        @if (pagination() && pagination().totalPages > 1) {
+          <div class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ (pagination().page - 1) * pagination().limit + 1 }} - 
+              {{ Math.min(pagination().page * pagination().limit, pagination().total) }} 
+              de {{ pagination().total }} rifas
+            </div>
+            
+            <div class="pagination-controls">
+              <button 
+                class="btn btn-outline"
+                [disabled]="pagination().page <= 1"
+                (click)="cambiarPagina(pagination().page - 1)">
+                ← Anterior
+              </button>
+              
+              @for (pageNum of getPaginationPages(); track pageNum) {
+                <button 
+                  class="btn"
+                  [class]="pageNum === pagination().page ? 'btn-primary' : 'btn-outline'"
+                  (click)="cambiarPagina(pageNum)">
+                  {{ pageNum }}
+                </button>
+              }
+              
+              <button 
+                class="btn btn-outline"
+                [disabled]="pagination().page >= pagination().totalPages"
+                (click)="cambiarPagina(pagination().page + 1)">
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>

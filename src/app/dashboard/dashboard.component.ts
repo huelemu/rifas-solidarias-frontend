@@ -1,4 +1,4 @@
-// src/app/dashboard/dashboard.component.ts - ESTILOS ARREGLADOS
+// src/app/dashboard/dashboard.component.ts - VERSIÓN COMPLETA CON RIFAS HABILITADO
 
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -60,95 +60,125 @@ import { AuthService } from '../auth/services/auth.service';
                   <label>Institución:</label>
                   <span>{{ authService.currentUser()?.institucion?.nombre }}</span>
                 </div>
-                <div class="info-item">
-                  <label>ID Institución:</label>
-                  <span>{{ authService.currentUser()?.institucion_id }}</span>
-                </div>
               }
             </div>
           </div>
 
-          <div class="action-section">
-            <h3>📱 Módulos del Sistema</h3>
+          <!-- MÓDULOS PRINCIPALES -->
+          <div class="modules-section">
+            <h3>📋 Módulos del Sistema</h3>
             <div class="actions-grid">
               
-              <!-- MÓDULO DE USUARIOS - YA DISPONIBLE -->
+              <!-- MÓDULO DE GESTIÓN DE USUARIOS -->
               <div class="action-card">
                 <div class="card-header">
                   <h4>👥 Gestión de Usuarios</h4>
-                  <span class="status-badge ready">✅ Disponible</span>
+                  <span class="status-badge active">Activo</span>
                 </div>
                 <p>Administrar usuarios del sistema</p>
                 <ul class="feature-list">
-                  <li>✅ Ver lista de usuarios</li>
-                  <li>✅ Filtrar y buscar</li>
-                  <li>✅ Activar/desactivar</li>
-                  <li>✅ Gestionar permisos</li>
+                  <li>✅ CRUD completo de usuarios</li>
+                  <li>✅ Asignación de roles</li>
+                  <li>✅ Filtros y búsquedas</li>
+                  <li>✅ Validaciones completas</li>
                 </ul>
                 <button 
                   (click)="goToUsers()" 
-                  class="action-button ready"
+                  class="action-button"
                   [disabled]="!canManageUsers()"
+                  [title]="!canManageUsers() ? 'No tienes permisos para gestionar usuarios' : ''"
                 >
                   {{ canManageUsers() ? '👥 Gestionar Usuarios' : '🔒 Sin permisos' }}
                 </button>
               </div>
 
-              <!-- MÓDULO DE INSTITUCIONES - ¡AHORA DISPONIBLE! -->
+              <!-- MÓDULO DE GESTIÓN DE INSTITUCIONES -->
               <div class="action-card">
                 <div class="card-header">
-                  <h4>🏢 Instituciones</h4>
-                  <span class="status-badge ready">✅ Disponible</span>
+                  <h4>🏢 Gestión de Instituciones</h4>
+                  <span class="status-badge active">Activo</span>
                 </div>
-                <p>Gestionar instituciones participantes</p>
+                <p>Administrar instituciones participantes</p>
                 <ul class="feature-list">
-                  <li>✅ Crear instituciones</li>
-                  <li>✅ Asignar administradores</li>
-                  <li>✅ Configurar permisos</li>
-                  <li>✅ Ver estadísticas</li>
+                  <li>✅ CRUD de instituciones</li>
+                  <li>✅ Configuración de parámetros</li>
+                  <li>✅ Gestión de participaciones</li>
+                  <li>✅ Reportes institucionales</li>
                 </ul>
                 <button 
                   (click)="goToInstitutions()" 
-                  class="action-button ready"
+                  class="action-button"
                   [disabled]="!canManageInstitutions()"
+                  [title]="!canManageInstitutions() ? 'No tienes permisos para gestionar instituciones' : ''"
                 >
                   {{ canManageInstitutions() ? '🏢 Gestionar Instituciones' : '🔒 Sin permisos' }}
                 </button>
               </div>
 
-              <!-- MÓDULO DE RIFAS - CORE DEL NEGOCIO -->
+              <!-- MÓDULO DE RIFAS - CORE DEL NEGOCIO - ¡AHORA HABILITADO! -->
               <div class="action-card featured">
                 <div class="card-header">
                   <h4>🎫 Sistema de Rifas</h4>
-                  <span class="status-badge planned">Planificado</span>
+                  <span class="status-badge active">¡ACTIVO!</span>
                 </div>
                 <p>Crear y gestionar rifas solidarias</p>
                 <ul class="feature-list">
-                  <li>🎯 Crear rifas</li>
-                  <li>🎫 Vender números</li>
-                  <li>💰 Procesar pagos</li>
-                  <li>🏆 Realizar sorteos</li>
+                  <li>✅ Crear y editar rifas</li>
+                  <li>✅ Gestión de números</li>
+                  <li>✅ Sistema de ventas</li>
+                  <li>✅ Reportes y estadísticas</li>
                 </ul>
-                <button class="action-button featured" disabled>
-                  🚀 Próximamente
-                </button>
+                <div class="button-group">
+                  <button (click)="goToRifasList()" class="action-button featured">
+                    📋 Ver Rifas
+                  </button>
+                  <button 
+                    (click)="goToCreateRifa()" 
+                    class="action-button secondary"
+                    [disabled]="!canCreateRifas()"
+                    [title]="!canCreateRifas() ? 'No tienes permisos para crear rifas' : ''"
+                  >
+                    ➕ Crear Rifa
+                  </button>
+                  <button (click)="goToPublicRifas()" class="action-button outline">
+                    🌐 Rifas Públicas
+                  </button>
+                </div>
               </div>
 
               <!-- MÓDULO DE REPORTES -->
               <div class="action-card">
                 <div class="card-header">
-                  <h4>📊 Reportes</h4>
-                  <span class="status-badge planned">Futuro</span>
+                  <h4>📊 Reportes y Estadísticas</h4>
+                  <span class="status-badge active">Activo</span>
                 </div>
                 <p>Análisis y estadísticas del sistema</p>
                 <ul class="feature-list">
-                  <li>🔄 Dashboard de ventas</li>
-                  <li>🔄 Reportes por institución</li>
-                  <li>🔄 Análisis de performance</li>
-                  <li>🔄 Exportación de datos</li>
+                  <li>✅ Dashboard de ventas</li>
+                  <li>✅ Reportes por institución</li>
+                  <li>✅ Análisis de rendimiento</li>
+                  <li>✅ Exportación de datos</li>
                 </ul>
-                <button class="action-button" disabled>
-                  📈 En desarrollo
+                <button (click)="goToReports()" class="action-button">
+                  📈 Ver Reportes
+                </button>
+              </div>
+
+              <!-- MÓDULO DE DIAGNÓSTICO -->
+              <div class="action-card">
+                <div class="card-header">
+                  <h4>🔧 Diagnóstico del Sistema</h4>
+                  <span class="status-badge active">Activo</span>
+                </div>
+                <p>Testing y debugging del sistema</p>
+                <ul class="feature-list">
+                  <li>✅ Estado de conexiones</li>
+                  <li>✅ Tests de endpoints</li>
+                  <li>✅ Logs del sistema</li>
+                  <li>✅ Métricas de rendimiento</li>
+                </ul>
+                <button (click)="goToDiagnostic()" class="action-button">
+                  🔧 Diagnóstico
                 </button>
               </div>
             </div>
@@ -178,7 +208,7 @@ import { AuthService } from '../auth/services/auth.service';
               </div>
               <div class="tech-item">
                 <label>Módulos:</label>
-                <span class="tech-value">Login ✅, Usuarios ✅, Instituciones ✅, Dashboard ✅</span>
+                <span class="tech-value">Login ✅, Usuarios ✅, Instituciones ✅, Rifas ✅, Dashboard ✅</span>
               </div>
               <div class="tech-item">
                 <label>Permisos:</label>
@@ -201,6 +231,14 @@ import { AuthService } from '../auth/services/auth.service';
               @if (canManageInstitutions()) {
                 <button (click)="goToInstitutions()" class="quick-btn">
                   🏢 Ver Instituciones
+                </button>
+              }
+              <button (click)="goToRifasList()" class="quick-btn primary">
+                🎫 Ver Rifas
+              </button>
+              @if (canCreateRifas()) {
+                <button (click)="goToCreateRifa()" class="quick-btn success">
+                  ➕ Crear Rifa
                 </button>
               }
               <button (click)="goToDiagnostic()" class="quick-btn">
@@ -275,19 +313,20 @@ import { AuthService } from '../auth/services/auth.service';
       background: white;
       border-radius: 12px;
       padding: 2rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
     }
 
     .welcome-card h2 {
-      color: #333;
       margin: 0 0 0.5rem 0;
-      font-size: 1.8rem;
-      font-weight: 600;
+      color: #333;
+      font-size: 1.5rem;
     }
 
-    .welcome-card > p {
-      color: #666;
+    .welcome-card p {
       margin: 0 0 1.5rem 0;
+      color: #666;
+      font-size: 1.1rem;
     }
 
     .connection-status {
@@ -295,9 +334,8 @@ import { AuthService } from '../auth/services/auth.service';
       align-items: center;
       gap: 0.5rem;
       padding: 0.75rem 1rem;
-      border-radius: 6px;
-      margin-bottom: 2rem;
-      font-size: 0.9rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
       font-weight: 500;
     }
 
@@ -314,11 +352,19 @@ import { AuthService } from '../auth/services/auth.service';
     }
 
     .status-indicator {
-      width: 12px;
-      height: 12px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background-color: currentColor;
+      display: inline-block;
+    }
+
+    .connected .status-indicator {
+      background-color: #28a745;
       animation: pulse 2s infinite;
+    }
+
+    .disconnected .status-indicator {
+      background-color: #dc3545;
     }
 
     @keyframes pulse {
@@ -331,213 +377,204 @@ import { AuthService } from '../auth/services/auth.service';
       margin-bottom: 2rem;
     }
 
-    .user-details h3,
-    .action-section h3,
-    .tech-info h3,
-    .quick-actions h3 {
-      color: #333;
+    .user-details h3 {
       margin: 0 0 1rem 0;
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .info-grid,
-    .tech-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .info-item,
-    .tech-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .info-item label,
-    .tech-item label {
-      font-weight: 600;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .info-item span,
-    .tech-item span {
       color: #333;
-      font-size: 0.95rem;
     }
 
-    .tech-value {
-      font-family: 'Courier New', monospace;
-      background: #f8f9fa;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.85rem !important;
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
     }
 
-    .tech-value.success {
-      background: #d4edda;
-      color: #155724;
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
     }
 
-    .tech-value.error {
-      background: #f8d7da;
-      color: #721c24;
+    .info-item label {
+      font-weight: 600;
+      color: #333;
+      min-width: 120px;
+    }
+
+    .info-item span {
+      color: #666;
+      flex: 1;
     }
 
     .role-badge {
-      display: inline-block;
       padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.85rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
       font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    .role-badge.role-admin {
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    .role-badge.admin_global {
+      background-color: #ff6b6b;
       color: white;
     }
 
-    .role-badge.role-vendedor {
-      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    .role-badge.admin_institucion {
+      background-color: #4ecdc4;
       color: white;
     }
 
-    .role-badge.role-comprador {
-      background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+    .role-badge.vendedor {
+      background-color: #45b7d1;
       color: white;
     }
 
-    .action-section {
+    .role-badge.comprador {
+      background-color: #96ceb4;
+      color: white;
+    }
+
+    .modules-section {
       margin-bottom: 2rem;
     }
 
-    /* GRID UNIFORME - IGUAL TAMAÑO PARA TODAS LAS TARJETAS */
+    .modules-section h3 {
+      margin: 0 0 1.5rem 0;
+      color: #333;
+      font-size: 1.3rem;
+    }
+
     .actions-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
     }
 
     .action-card {
-      background: #fff;
+      background: white;
       border: 1px solid #e9ecef;
-      border-radius: 8px;
-      padding: 1.25rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      flex-direction: column;
-      min-height: 200px; /* ALTURA MÍNIMA FIJA */
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .action-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     }
 
     .action-card.featured {
-      border-left: 4px solid #ff6b6b;
-      background: linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(238, 90, 36, 0.05) 100%);
+      border: 2px solid #667eea;
+      background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+    }
+
+    .action-card.featured:hover {
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
     }
 
     .card-header h4 {
       margin: 0;
       color: #333;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 1.1rem;
     }
 
     .status-badge {
-      padding: 0.2rem 0.6rem;
-      border-radius: 10px;
-      font-size: 0.7rem;
-      font-weight: 500;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    .status-badge.ready {
-      background: #d4edda;
+    .status-badge.active {
+      background-color: #d4edda;
       color: #155724;
     }
 
-    .status-badge.upcoming {
-      background: #fff3cd;
+    .status-badge.planned {
+      background-color: #fff3cd;
       color: #856404;
     }
 
-    .status-badge.planned {
-      background: #d1ecf1;
+    .status-badge.development {
+      background-color: #d1ecf1;
       color: #0c5460;
-    }
-
-    .action-card p {
-      color: #666;
-      margin: 0 0 0.75rem 0;
-      line-height: 1.4;
-      font-size: 0.9rem;
     }
 
     .feature-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 1rem 0;
-      flex: 1; /* EMPUJA EL BOTÓN HACIA ABAJO */
+      margin: 0 0 1.5rem 0;
     }
 
     .feature-list li {
-      padding: 0.2rem 0;
+      padding: 0.25rem 0;
       color: #666;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .action-button {
-      width: 100%;
-      padding: 0.6rem 1rem;
+      padding: 0.75rem 1.5rem;
       border: none;
       border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       font-family: inherit;
-      margin-top: auto; /* SE ALINEA EN LA PARTE INFERIOR */
+      flex: 1;
+      min-width: 120px;
     }
 
-    .action-button.ready {
-      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    .action-button:not(:disabled) {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
 
-    .action-button.ready:hover:not(:disabled) {
-      background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
-
-    .action-button.featured {
+    .action-button.featured:not(:disabled) {
       background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
       color: white;
+      font-weight: 600;
+    }
+
+    .action-button.secondary:not(:disabled) {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      color: white;
+    }
+
+    .action-button.outline:not(:disabled) {
+      background: transparent;
+      color: #667eea;
+      border: 2px solid #667eea;
     }
 
     .action-button:hover:not(:disabled) {
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .action-button.featured:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
     }
 
     .action-button:disabled {
-      background: #ccc;
+      background: #e9ecef;
+      color: #6c757d;
       cursor: not-allowed;
       transform: none;
     }
@@ -546,9 +583,56 @@ import { AuthService } from '../auth/services/auth.service';
       margin-bottom: 2rem;
     }
 
+    .tech-info h3 {
+      margin: 0 0 1rem 0;
+      color: #333;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .tech-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f1f1f1;
+    }
+
+    .tech-item label {
+      font-weight: 600;
+      color: #333;
+      min-width: 120px;
+    }
+
+    .tech-value {
+      color: #666;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+
+    .tech-value.success {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .tech-value.error {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
     .quick-actions {
       border-top: 1px solid #e9ecef;
       padding-top: 2rem;
+    }
+
+    .quick-actions h3 {
+      margin: 0 0 1rem 0;
+      color: #333;
     }
 
     .quick-buttons {
@@ -559,8 +643,6 @@ import { AuthService } from '../auth/services/auth.service';
 
     .quick-btn {
       padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
       border: none;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -570,9 +652,30 @@ import { AuthService } from '../auth/services/auth.service';
       font-family: inherit;
     }
 
+    .quick-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .quick-btn.primary {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .quick-btn.success {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    }
+
     .quick-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .quick-btn.primary:hover {
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+
+    .quick-btn.success:hover {
+      box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
     }
 
     @media (max-width: 768px) {
@@ -603,6 +706,14 @@ import { AuthService } from '../auth/services/auth.service';
 
       .quick-buttons {
         flex-direction: column;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .action-button {
+        min-width: auto;
       }
     }
   `]
@@ -635,62 +746,81 @@ export class DashboardComponent implements OnInit {
   }
 
   getConnectionStatusText(): string {
-    return this.isConnected() ? 'Conectado al backend' : 'Desconectado del backend';
+    return this.isConnected() ? 
+      '✅ Conectado al sistema' : 
+      '❌ Sin conexión - Verificar servidor';
   }
 
   getRoleClass(): string {
-    const role = this.authService.userRole();
-    switch (role) {
-      case 'admin_global':
-      case 'admin_institucion':
-        return 'role-admin';
-      case 'vendedor':
-        return 'role-vendedor';
-      case 'comprador':
-        return 'role-comprador';
-      default:
-        return '';
-    }
+    const role = this.authService.currentUser()?.role;
+    return role || 'comprador';
   }
 
   getRoleLabel(): string {
-    const role = this.authService.userRole();
-    switch (role) {
-      case 'admin_global':
-        return 'Administrador Global';
-      case 'admin_institucion':
-        return 'Administrador de Institución';
-      case 'vendedor':
-        return 'Vendedor';
-      case 'comprador':
-        return 'Comprador';
-      default:
-        return 'Sin rol';
-    }
+    const role = this.authService.currentUser()?.role;
+    const roleLabels = {
+      'admin_global': '👑 Administrador Global',
+      'admin_institucion': '🏛️ Admin Institución',
+      'vendedor': '💼 Vendedor',
+      'comprador': '🛒 Comprador'
+    };
+    return roleLabels[role as keyof typeof roleLabels] || '👤 Usuario';
   }
 
+  // MÉTODOS DE PERMISOS
   canManageUsers(): boolean {
-    return this.authService.isAdmin();
-  }
-
-  canManageInstitutions(): boolean {
-    const role = this.authService.userRole();
+    const role = this.authService.currentUser()?.role;
     return role === 'admin_global' || role === 'admin_institucion';
   }
 
+  canManageInstitutions(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'admin_global';
+  }
+
+  canCreateRifas(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'admin_global' || role === 'admin_institucion';
+  }
+
+  // MÉTODOS DE NAVEGACIÓN
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
   goToUsers(): void {
-    this.router.navigate(['/usuarios']);
+    if (this.canManageUsers()) {
+      this.router.navigate(['/usuarios']);
+    }
   }
 
   goToInstitutions(): void {
-    this.router.navigate(['/instituciones']);
+    if (this.canManageInstitutions()) {
+      this.router.navigate(['/instituciones']);
+    }
+  }
+
+  // NUEVOS MÉTODOS DE NAVEGACIÓN PARA RIFAS
+  goToRifasList(): void {
+    this.router.navigate(['/rifas']);
+  }
+
+  goToCreateRifa(): void {
+    if (this.canCreateRifas()) {
+      this.router.navigate(['/rifas/crear']);
+    }
+  }
+
+  goToPublicRifas(): void {
+    this.router.navigate(['/rifas/publicas']);
+  }
+
+  goToReports(): void {
+    this.router.navigate(['/reportes']);
   }
 
   goToDiagnostic(): void {
     this.router.navigate(['/diagnostico']);
-  }
-
-  logout(): void {
-    this.authService.logout();
   }
 }
