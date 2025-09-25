@@ -1,14 +1,14 @@
-// src/app/rifas/components/crear-rifa/crear-rifa.component.ts - CORREGIDO
+// src/app/rifas/components/crear-rifa/crear-rifa.component.ts
 
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { RifasService } from '../../services/rifas.service';
 import {
   CreateRifaRequest,
-  RifaValidator,
   RIFA_CONFIG,
   RifaUtils
 } from '../../models/rifa.models';
@@ -16,9 +16,9 @@ import {
 @Component({
   selector: 'app-crear-rifa',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './crear-rifa.component.html',
-  styleUrls: ['./crear-rifa.component.scss']
+  styleUrls: ['./crear-rifa.component.scss', '../../styles/rifas-global.scss']
 })
 export class CrearRifaComponent implements OnInit {
   // Servicios
@@ -30,12 +30,49 @@ export class CrearRifaComponent implements OnInit {
   // Signals para estado del componente
   readonly submitting = signal<boolean>(false);
   readonly error = signal<string | null>(null);
+  readonly success = signal<string | null>(null);
 
   // Constantes
   readonly RIFA_CONFIG = RIFA_CONFIG;
 
   // Formulario reactivo
   rifaForm: FormGroup;
+
+  // =====================================================
+  // Gestión de instituciones
+  // =====================================================
+
+  instituciones = signal<any[]>([
+    { id: 1, nombre: 'Escuela N°1', tipo: 'educación' },
+    { id: 2, nombre: 'Hospital Central', tipo: 'salud' },
+    { id: 3, nombre: 'Club Social', tipo: 'deporte' }
+  ]);
+
+  private readonly _institucionesParticipantes = signal<any[]>([]);
+  selectedInstitucionId: number | null = null;
+
+  institucionesParticipantes() {
+    return this._institucionesParticipantes();
+  }
+
+  getAvailableInstituciones() {
+    const seleccionadas = this._institucionesParticipantes().map(i => i.id);
+    return this.instituciones().filter(i => !seleccionadas.includes(i.id));
+  }
+
+  addInstitucion() {
+    if (this.selectedInstitucionId) {
+      const inst = this.instituciones().find(i => i.id === Number(this.selectedInstitucionId));
+      if (inst) {
+        this._institucionesParticipantes.update(arr => [...arr, inst]);
+        this.selectedInstitucionId = null;
+      }
+    }
+  }
+
+  removeInstitucion(id: number) {
+    this._institucionesParticipantes.update(arr => arr.filter(i => i.id !== id));
+  }
 
   constructor() {
     this.rifaForm = this.createForm();
@@ -57,39 +94,36 @@ export class CrearRifaComponent implements OnInit {
     const hoy = new Date();
     const manana = new Date(hoy);
     manana.setDate(hoy.getDate() + 1);
-    
+
     const finDefault = new Date(hoy);
     finDefault.setDate(hoy.getDate() + 30);
 
     return this.fb.group({
       // Información básica
-      nombre: ['', [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(100)
-      ]],
+      nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       descripcion: [''],
-      
+
       // Configuración de números
-      cantidad_numeros: [1000, [
-        Validators.required,
-        Validators.min(RIFA_CONFIG.MIN_NUMEROS),
-        Validators.max(RIFA_CONFIG.MAX_NUMEROS)
-      ]],
-      precio_numero: [100, [
-        Validators.required,
-        Validators.min(RIFA_CONFIG.MIN_PRECIO),
-        Validators.max(RIFA_CONFIG.MAX_PRECIO)
-      ]],
-      
+      cantidad_numeros: [1000, [Validators.required, Validators.min(RIFA_CONFIG.MIN_NUMEROS), Validators.max(RIFA_CONFIG.MAX_NUMEROS)]],
+      precio_numero: [100, [Validators.required, Validators.min(RIFA_CONFIG.MIN_PRECIO), Validators.max(RIFA_CONFIG.MAX_PRECIO)]],
+
       // Fechas
       fecha_inicio: [this.formatDateForInput(manana), Validators.required],
       fecha_fin: [this.formatDateForInput(finDefault), Validators.required],
       fecha_sorteo: [''],
-      
-      // Configuración adicional
+      fecha_limite_participacion: [''],
+
+      // Instituciones
+      institucion_promotora_id: [null, Validators.required],
+      comision_promotora: [0],
+      max_instituciones_participantes: [null],
+      numeros_por_institucion: [null],
+
+      // Configuración avanzada
+      requiere_aprobacion: [false],
       imagen_url: [''],
-      reglas_adicionales: ['']
+      bases_condiciones: [''],
+      observaciones: ['']
     }, {
       validators: [this.dateRangeValidator, this.sorteoDateValidator]
     });
@@ -102,32 +136,26 @@ export class CrearRifaComponent implements OnInit {
   private dateRangeValidator = (form: AbstractControl) => {
     const fechaInicio = form.get('fecha_inicio')?.value;
     const fechaFin = form.get('fecha_fin')?.value;
-    
     if (fechaInicio && fechaFin) {
       const inicio = new Date(fechaInicio);
       const fin = new Date(fechaFin);
-      
       if (fin <= inicio) {
         return { dateRange: 'La fecha de fin debe ser posterior al inicio' };
       }
     }
-    
     return null;
   }
 
   private sorteoDateValidator = (form: AbstractControl) => {
     const fechaFin = form.get('fecha_fin')?.value;
     const fechaSorteo = form.get('fecha_sorteo')?.value;
-    
     if (fechaFin && fechaSorteo) {
       const fin = new Date(fechaFin);
       const sorteo = new Date(fechaSorteo);
-      
       if (sorteo < fin) {
         return { sorteoDate: 'La fecha de sorteo debe ser posterior al fin de la rifa' };
       }
     }
-    
     return null;
   }
 
@@ -137,7 +165,7 @@ export class CrearRifaComponent implements OnInit {
 
   onSubmit(): void {
     if (this.rifaForm.valid && !this.submitting()) {
-      this.crearRifa(false); // false = no es borrador
+      this.crearRifa(false);
     } else {
       this.markAllFieldsAsTouched();
     }
@@ -145,7 +173,7 @@ export class CrearRifaComponent implements OnInit {
 
   guardarBorrador(): void {
     if (this.rifaForm.valid && !this.submitting()) {
-      this.crearRifa(true); // true = guardar como borrador
+      this.crearRifa(true);
     } else {
       this.markAllFieldsAsTouched();
     }
@@ -154,20 +182,28 @@ export class CrearRifaComponent implements OnInit {
   private crearRifa(esBorrador: boolean): void {
     this.submitting.set(true);
     this.error.set(null);
+    this.success.set(null);
 
     const formData = this.rifaForm.value;
-    
-    // Construir request
+
     const rifaData: CreateRifaRequest = {
       nombre: formData.nombre.trim(),
-      descripcion: formData.descripcion?.trim() || undefined,
+      descripcion: formData.descripcion?.trim() || null,
+      institucion_promotora_id: formData.institucion_promotora_id,
       cantidad_numeros: Number(formData.cantidad_numeros),
       precio_numero: Number(formData.precio_numero),
       fecha_inicio: formData.fecha_inicio,
       fecha_fin: formData.fecha_fin,
-      fecha_sorteo: formData.fecha_sorteo || undefined,
-      imagen_url: formData.imagen_url?.trim() || undefined,
-      reglas_adicionales: formData.reglas_adicionales?.trim() || undefined
+      fecha_sorteo: formData.fecha_sorteo || null,
+      fecha_limite_participacion: formData.fecha_limite_participacion || null,
+      comision_promotora: formData.comision_promotora || null,
+      max_instituciones_participantes: formData.max_instituciones_participantes || null,
+      numeros_por_institucion: formData.numeros_por_institucion || null,
+      requiere_aprobacion: formData.requiere_aprobacion,
+      imagen_url: formData.imagen_url?.trim() || null,
+      bases_condiciones: formData.bases_condiciones?.trim() || null,
+      observaciones: formData.observaciones?.trim() || null,
+      borrador: esBorrador
     };
 
     console.log('🎫 Creando rifa:', rifaData);
@@ -176,11 +212,12 @@ export class CrearRifaComponent implements OnInit {
       next: (rifa) => {
         if (rifa) {
           console.log('✅ Rifa creada exitosamente:', rifa);
+          this.success.set('Rifa creada exitosamente');
           this.router.navigate(['/rifas', rifa.id]);
         } else {
           this.error.set('Error al crear la rifa');
-          this.submitting.set(false);
         }
+        this.submitting.set(false);
       },
       error: (error) => {
         console.error('❌ Error al crear rifa:', error);
@@ -191,40 +228,32 @@ export class CrearRifaComponent implements OnInit {
   }
 
   // =====================================================
+  // MÉTODOS AUXILIARES PARA EL HTML
+  // =====================================================
+
+  successMessage() { return this.success(); }
+  errorMessage() { return this.error(); }
+  isSubmitting() { return this.submitting(); }
+  saveDraft() { this.guardarBorrador(); }
+  goBack() { this.volver(); }
+
+  getTotalPotencial(): number {
+    return this.calcularRecaudacionMaxima();
+  }
+
+  getComisionPromotora(): number {
+    const total = this.calcularRecaudacionMaxima();
+    const porcentaje = this.getFieldValue('comision_promotora') || 0;
+    return total * (porcentaje / 100);
+  }
+
+  // =====================================================
   // MÉTODOS DE VALIDACIÓN Y UTILIDAD
   // =====================================================
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.rifaForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  getFieldErrors(fieldName: string): string[] {
-    const field = this.rifaForm.get(fieldName);
-    const errors: string[] = [];
-    
-    if (field && field.errors) {
-      // Errores de validación estándar
-      if (field.errors['required']) errors.push('Este campo es requerido');
-      if (field.errors['minlength']) errors.push(`Mínimo ${field.errors['minlength'].requiredLength} caracteres`);
-      if (field.errors['maxlength']) errors.push(`Máximo ${field.errors['maxlength'].requiredLength} caracteres`);
-      if (field.errors['min']) errors.push(`Valor mínimo: ${field.errors['min'].min}`);
-      if (field.errors['max']) errors.push(`Valor máximo: ${field.errors['max'].max}`);
-      if (field.errors['email']) errors.push('Email inválido');
-      if (field.errors['url']) errors.push('URL inválida');
-    }
-    
-    // Errores de formulario completo
-    if (this.rifaForm.errors) {
-      if (this.rifaForm.errors['dateRange'] && (fieldName === 'fecha_fin' || fieldName === 'fecha_inicio')) {
-        errors.push(this.rifaForm.errors['dateRange']);
-      }
-      if (this.rifaForm.errors['sorteoDate'] && fieldName === 'fecha_sorteo') {
-        errors.push(this.rifaForm.errors['sorteoDate']);
-      }
-    }
-    
-    return errors;
   }
 
   private markAllFieldsAsTouched(): void {
@@ -237,45 +266,15 @@ export class CrearRifaComponent implements OnInit {
     return this.rifaForm.get(fieldName)?.value;
   }
 
-  getFieldLength(fieldName: string): number {
-    return this.rifaForm.get(fieldName)?.value?.length || 0;
-  }
-
-  getFechaMinima(): string {
-    const hoy = new Date();
-    return this.formatDateForInput(hoy);
-  }
-
   private formatDateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
+    // datetime-local → YYYY-MM-DDTHH:mm
+    return date.toISOString().slice(0, 16);
   }
 
   calcularRecaudacionMaxima(): number {
     const cantidad = this.getFieldValue('cantidad_numeros') || 0;
     const precio = this.getFieldValue('precio_numero') || 0;
     return cantidad * precio;
-  }
-
-  calcularDuracion(): number {
-    const inicio = this.getFieldValue('fecha_inicio');
-    const fin = this.getFieldValue('fecha_fin');
-    
-    if (inicio && fin) {
-      const fechaInicio = new Date(inicio);
-      const fechaFin = new Date(fin);
-      const diffTime = fechaFin.getTime() - fechaInicio.getTime();
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    }
-    
-    return 0;
-  }
-
-  formatPrice(precio: number): string {
-    return RifaUtils.formatPrice(precio || 0);
-  }
-
-  formatDateTime(fecha: string): string {
-    return RifaUtils.formatDateTime(fecha);
   }
 
   canCreateRifa(): boolean {

@@ -1,596 +1,333 @@
-// src/app/rifas/services/rifas.service.ts - COMPLETO
+// src/app/rifas/services/rifas.service.patch.ts
+// PARCHE PARA HACER EL SERVICIO 100% COMPATIBLE CON TUS COMPONENTES
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, catchError, of } from 'rxjs';
-import {
-  Rifa,
-  RifaDetallada,
-  CreateRifaRequest,
-  UpdateRifaRequest,
-  RifasListResponse,
-  RifaResponse,
-  RifaFilters,
-  NumeroRifa,
-  NumerosRifaResponse,
-  NumeroFilters,
-  ComprarNumerosRequest,
-  RifaStats
-} from '../models/rifa.models';
+import { Observable, map, catchError } from 'rxjs';
+
+// INTERFACES COMPATIBLES CON TUS COMPONENTES EXISTENTES
+export interface Rifa {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  institucion_promotora_id: number;
+  cantidad_numeros: number;
+  precio_numero: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  fecha_sorteo?: string;
+  fecha_limite_participacion?: string;
+  max_instituciones_participantes?: number;
+  comision_promotora: number;
+  requiere_aprobacion: boolean;
+  numeros_por_institucion?: number;
+  estado: 'borrador' | 'activa' | 'cerrada' | 'finalizada' | 'cancelada';
+  creado_por: number; // ✅ CAMPO REQUERIDO POR TUS COMPONENTES
+  numero_ganador?: number;
+  fecha_sorteo_realizado?: string;
+  imagen_url?: string;
+  bases_condiciones?: string;
+  observaciones?: string;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+  
+  // Campos calculados del backend
+  numeros_vendidos?: number;
+  numeros_disponibles?: number;
+  numeros_reservados?: number;
+  total_recaudado?: number;
+  porcentaje_vendido?: number;
+  institucion_promotora?: {
+    id: number;
+    nombre: string;
+  };
+  // Campos adicionales del backend
+  institucion_promotora_nombre?: string;
+  institucion_promotora_email?: string;
+  creador_nombre?: string;
+  creador_apellido?: string;
+  total_participantes?: number;
+}
+
+// RESPUESTA PARA CREAR RIFA (TUS COMPONENTES ESPERAN ID DIRECTO)
+export interface CreateRifaResponse {
+  status: 'success' | 'error';
+  message?: string;
+  data?: Rifa;
+  // Propiedades directas para compatibilidad
+  id: number;
+  nombre?: string;
+  estado?: string;
+  creado_por?: number; // ✅ AÑADIR PARA COMPATIBILIDAD
+}
+
+// RESPUESTA PAGINADA (TUS COMPONENTES ESPERAN 'rifas' NO 'data')
+export interface PaginatedRifasResponse {
+  status: 'success' | 'error';
+  rifas: Rifa[]; // TUS COMPONENTES USAN ESTE CAMPO
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// RESPUESTA ESTÁNDAR
+export interface ApiResponse<T> {
+  status: 'success' | 'error';
+  message?: string;
+  data?: T;
+  errors?: any;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class RifasService {
+export class RifasService { // NOMBRE CORRECTO: RifasService
   private readonly http = inject(HttpClient);
-  
-  // Detección automática de entorno
-  private readonly baseUrl = this.getApiUrl();
-  
-  // Estados reactivos
-  private readonly _rifas = new BehaviorSubject<Rifa[]>([]);
-  private readonly _rifaActual = new BehaviorSubject<RifaDetallada | null>(null);
-  private readonly _loading = new BehaviorSubject<boolean>(false);
-  private readonly _error = new BehaviorSubject<string | null>(null);
-
-  // Observables públicos
-  readonly rifas$ = this._rifas.asObservable();
-  readonly rifaActual$ = this._rifaActual.asObservable();
-  readonly loading$ = this._loading.asObservable();
-  readonly error$ = this._error.asObservable();
+  private readonly baseUrl: string;
 
   constructor() {
-    console.log('🎫 RifasService inicializado con URL:', this.baseUrl);
-  }
-
-  /**
-   * Detecta automáticamente la URL de la API basada en el entorno
-   */
-  private getApiUrl(): string {
     const hostname = window.location.hostname;
-    
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3100';
+      this.baseUrl = 'http://localhost:3100';
     } else {
-      return 'https://apirifas.huelemu.com.ar';
+      this.baseUrl = 'https://apirifas.huelemu.com.ar';
     }
   }
 
-  // =====================================================
-  // MÉTODOS PÚBLICOS - CRUD BÁSICO
-  // =====================================================
+  // ===================================================
+  // MÉTODOS ESPECÍFICAMENTE COMPATIBLES CON TUS COMPONENTES
+  // ===================================================
 
   /**
-   * Obtener lista de rifas con filtros
+   * Obtener rifas - MAPEA A FORMATO ESPERADO POR TUS COMPONENTES
    */
-  getRifas(filters?: RifaFilters): Observable<{rifas: Rifa[], pagination: any}> {
-    console.log('📋 RifasService: Obteniendo rifas con filtros:', filters);
+  getRifas(params?: any): Observable<PaginatedRifasResponse> {
+    let httpParams = new HttpParams();
     
-    this._loading.next(true);
-    this._error.next(null);
-    
-    let params = new HttpParams();
-    
-    if (filters) {
-      if (filters.search) params = params.set('search', filters.search);
-      if (filters.estado && filters.estado !== 'todas') params = params.set('estado', filters.estado);
-      if (filters.institucion_id) params = params.set('institucion_id', filters.institucion_id.toString());
-      if (filters.creado_por) params = params.set('creado_por', filters.creado_por.toString());
-      if (filters.desde_fecha) params = params.set('desde_fecha', filters.desde_fecha);
-      if (filters.hasta_fecha) params = params.set('hasta_fecha', filters.hasta_fecha);
-      if (filters.page) params = params.set('page', filters.page.toString());
-      if (filters.limit) params = params.set('limit', filters.limit.toString());
-      if (filters.ordenar_por) params = params.set('ordenar_por', filters.ordenar_por);
-      if (filters.direccion_orden) params = params.set('direccion_orden', filters.direccion_orden);
+    if (params?.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params?.institucion_id) httpParams = httpParams.set('institucion_id', params.institucion_id.toString());
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params?.search) httpParams = httpParams.set('search', params.search);
+
+    return this.http.get<any>(`${this.baseUrl}/rifas`, { params: httpParams }).pipe(
+      map(response => ({
+        status: response.status,
+        rifas: response.data || response.rifas || [], // MAPEAR A 'rifas' COMO ESPERAN TUS COMPONENTES
+        pagination: response.pagination
+      }))
+    );
+  }
+
+  /**
+   * Crear rifa - RETORNA ID DIRECTO Y FORMATEA DATOS CORRECTAMENTE + MEJOR DEBUG
+   */
+  createRifa(rifaData: any): Observable<CreateRifaResponse> {
+    console.log('🔵 RifasService.createRifa - Datos recibidos:', rifaData);
+
+    // Validar datos mínimos antes de enviar
+    if (!rifaData.nombre || !rifaData.cantidad_numeros || !rifaData.precio_numero) {
+      console.error('❌ Datos insuficientes para crear rifa:', rifaData);
+      throw new Error('Faltan datos requeridos para crear la rifa');
     }
 
-    return this.http.get<RifasListResponse>(`${this.baseUrl}/rifas`, { params })
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta rifas:', response);
-          
-          let rifas: Rifa[] = [];
-          let pagination = null;
-          
-          if (response && response.status === 'success' && response.data) {
-            if (Array.isArray(response.data)) {
-              rifas = response.data;
-            } else if (response.data.rifas) {
-              rifas = response.data.rifas;
-              pagination = response.data.pagination;
-            }
-          }
-          
-          this._rifas.next(rifas);
-          this._loading.next(false);
-          
-          return { rifas, pagination };
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener rifas:', error);
-          this._error.next('Error al cargar las rifas');
-          this._loading.next(false);
-          return of({ rifas: [], pagination: null });
-        })
-      );
-  }
-
-  /**
-   * Obtener rifa por ID
-   */
-  getRifaById(id: number): Observable<RifaDetallada | null> {
-    console.log('🎫 RifasService: Obteniendo rifa ID:', id);
-    
-    this._loading.next(true);
-    this._error.next(null);
-
-    return this.http.get<RifaResponse>(`${this.baseUrl}/rifas/${id}`)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta rifa individual:', response);
-          
-          let rifa: RifaDetallada | null = null;
-          
-          if (response && response.status === 'success' && response.data) {
-            rifa = response.data;
-          }
-          
-          this._rifaActual.next(rifa);
-          this._loading.next(false);
-          
-          return rifa;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener rifa:', error);
-          this._error.next('Error al cargar la rifa');
-          this._loading.next(false);
-          return of(null);
-        })
-      );
-  }
-
-  /**
-   * Crear nueva rifa
-   */
-  createRifa(rifaData: CreateRifaRequest): Observable<Rifa | null> {
-    console.log('➕ RifasService: Creando rifa:', rifaData);
-    
-    this._loading.next(true);
-    this._error.next(null);
-
-    return this.http.post<RifaResponse>(`${this.baseUrl}/rifas`, rifaData)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta crear rifa:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            // Actualizar lista local
-            const rifasActuales = this._rifas.value;
-            this._rifas.next([response.data, ...rifasActuales]);
-            
-            this._loading.next(false);
-            return response.data;
-          }
-          
-          this._loading.next(false);
-          return null;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al crear rifa:', error);
-          this._error.next('Error al crear la rifa');
-          this._loading.next(false);
-          return of(null);
-        })
-      );
-  }
-
-  /**
-   * Actualizar rifa existente
-   */
-  updateRifa(id: number, rifaData: UpdateRifaRequest): Observable<Rifa | null> {
-    console.log('✏️ RifasService: Actualizando rifa ID:', id, rifaData);
-    
-    this._loading.next(true);
-    this._error.next(null);
-
-    return this.http.put<RifaResponse>(`${this.baseUrl}/rifas/${id}`, rifaData)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta actualizar rifa:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            // Actualizar lista local
-            const rifasActuales = this._rifas.value;
-            const index = rifasActuales.findIndex(r => r.id === id);
-            if (index !== -1) {
-              rifasActuales[index] = response.data;
-              this._rifas.next([...rifasActuales]);
-            }
-            
-            // Actualizar rifa actual si es la misma
-            if (this._rifaActual.value?.id === id) {
-              this._rifaActual.next(response.data);
-            }
-            
-            this._loading.next(false);
-            return response.data;
-          }
-          
-          this._loading.next(false);
-          return null;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al actualizar rifa:', error);
-          this._error.next('Error al actualizar la rifa');
-          this._loading.next(false);
-          return of(null);
-        })
-      );
-  }
-
-  /**
-   * Eliminar rifa
-   */
-  deleteRifa(id: number, motivo?: string): Observable<boolean> {
-    console.log('🗑️ RifasService: Eliminando rifa ID:', id);
-    
-    this._loading.next(true);
-    this._error.next(null);
-
-    const body = motivo ? { motivo } : {};
-
-    return this.http.delete<any>(`${this.baseUrl}/rifas/${id}`, { body })
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta eliminar rifa:', response);
-          
-          if (response && response.status === 'success') {
-            // Remover de lista local
-            const rifasActuales = this._rifas.value;
-            const rifasFiltradas = rifasActuales.filter(r => r.id !== id);
-            this._rifas.next(rifasFiltradas);
-            
-            // Limpiar rifa actual si es la misma
-            if (this._rifaActual.value?.id === id) {
-              this._rifaActual.next(null);
-            }
-            
-            this._loading.next(false);
-            return true;
-          }
-          
-          this._loading.next(false);
-          return false;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al eliminar rifa:', error);
-          this._error.next('Error al eliminar la rifa');
-          this._loading.next(false);
-          return of(false);
-        })
-      );
-  }
-
-  // =====================================================
-  // MÉTODOS PARA GESTIÓN DE NÚMEROS
-  // =====================================================
-
-  /**
-   * Obtener números de una rifa
-   */
-  getNumerosRifa(rifaId: number, filters?: NumeroFilters): Observable<{numeros: NumeroRifa[], pagination: any}> {
-    console.log('🔢 RifasService: Obteniendo números de rifa:', rifaId, filters);
-    
-    let params = new HttpParams();
-    
-    if (filters) {
-      if (filters.estado && filters.estado !== 'todos') params = params.set('estado', filters.estado);
-      if (filters.vendedor_id) params = params.set('vendedor_id', filters.vendedor_id.toString());
-      if (filters.desde) params = params.set('desde', filters.desde.toString());
-      if (filters.hasta) params = params.set('hasta', filters.hasta.toString());
-      if (filters.page) params = params.set('page', filters.page.toString());
-      if (filters.limit) params = params.set('limit', filters.limit.toString());
-    }
-
-    return this.http.get<NumerosRifaResponse>(`${this.baseUrl}/rifas/${rifaId}/numeros`, { params })
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta números:', response);
-          
-          let numeros: NumeroRifa[] = [];
-          let pagination = null;
-          
-          if (response && response.status === 'success' && response.data) {
-            if (Array.isArray(response.data)) {
-              numeros = response.data;
-            } else if (response.data.numeros) {
-              numeros = response.data.numeros;
-              pagination = response.data.pagination;
-            }
-          }
-          
-          return { numeros, pagination };
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener números:', error);
-          this._error.next('Error al cargar los números');
-          return of({ numeros: [], pagination: null });
-        })
-      );
-  }
-
-  /**
-   * Comprar números de rifa
-   */
-  comprarNumeros(rifaId: number, compraData: ComprarNumerosRequest): Observable<boolean> {
-    console.log('💰 RifasService: Comprando números:', rifaId, compraData);
-    
-    this._loading.next(true);
-    this._error.next(null);
-
-    return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/numeros/comprar`, compraData)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta comprar números:', response);
-          
-          if (response && response.status === 'success') {
-            this._loading.next(false);
-            return true;
-          }
-          
-          this._loading.next(false);
-          return false;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al comprar números:', error);
-          this._error.next('Error al comprar los números');
-          this._loading.next(false);
-          return of(false);
-        })
-      );
-  }
-
-  /**
-   * Reservar números temporalmente
-   */
-  reservarNumeros(rifaId: number, numeros: number[], tiempoMinutos?: number): Observable<boolean> {
-    console.log('⏳ RifasService: Reservando números:', rifaId, numeros);
-    
-    const body = {
-      numeros,
-      tiempo_reserva: tiempoMinutos || 15
+    // Formatear datos para el backend
+    const formattedData = {
+      nombre: rifaData.nombre?.trim() || '',
+      descripcion: rifaData.descripcion?.trim() || '',
+      institucion_promotora_id: rifaData.institucion_promotora_id || null,
+      cantidad_numeros: parseInt(rifaData.cantidad_numeros || '0'),
+      precio_numero: parseFloat(rifaData.precio_numero || '0'),
+      fecha_inicio: this.formatDate(rifaData.fecha_inicio),
+      fecha_fin: this.formatDate(rifaData.fecha_fin),
+      fecha_sorteo: rifaData.fecha_sorteo ? this.formatDate(rifaData.fecha_sorteo) : null,
+      fecha_limite_participacion: rifaData.fecha_limite_participacion ? this.formatDate(rifaData.fecha_limite_participacion) : null,
+      max_instituciones_participantes: rifaData.max_instituciones_participantes ? parseInt(rifaData.max_instituciones_participantes) : null,
+      comision_promotora: parseFloat(rifaData.comision_promotora || '10'),
+      requiere_aprobacion: rifaData.requiere_aprobacion === true || rifaData.requiere_aprobacion === 'true',
+      numeros_por_institucion: rifaData.numeros_por_institucion ? parseInt(rifaData.numeros_por_institucion) : null,
+      imagen_url: rifaData.imagen_url?.trim() || null,
+      bases_condiciones: rifaData.bases_condiciones?.trim() || null,
+      observaciones: rifaData.observaciones?.trim() || null
     };
 
-    return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/numeros/reservar`, body)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta reservar números:', response);
-          return response && response.status === 'success';
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al reservar números:', error);
-          this._error.next('Error al reservar los números');
-          return of(false);
-        })
-      );
+    console.log('📤 RifasService.createRifa - Datos formateados para backend:', formattedData);
+
+    // Validar datos formateados
+    if (!formattedData.institucion_promotora_id) {
+      console.error('❌ institucion_promotora_id es requerido');
+      throw new Error('ID de institución promotora es requerido');
+    }
+
+    if (formattedData.cantidad_numeros <= 0) {
+      console.error('❌ cantidad_numeros debe ser mayor a 0');
+      throw new Error('La cantidad de números debe ser mayor a 0');
+    }
+
+    if (formattedData.precio_numero <= 0) {
+      console.error('❌ precio_numero debe ser mayor a 0');
+      throw new Error('El precio por número debe ser mayor a 0');
+    }
+
+    if (!formattedData.fecha_inicio) {
+      console.error('❌ fecha_inicio es requerida');
+      throw new Error('La fecha de inicio es requerida');
+    }
+
+    if (!formattedData.fecha_fin) {
+      console.error('❌ fecha_fin es requerida');
+      throw new Error('La fecha de fin es requerida');
+    }
+
+    return this.http.post<any>(`${this.baseUrl}/rifas`, formattedData).pipe(
+      map(response => {
+        console.log('📥 RifasService.createRifa - Respuesta exitosa del backend:', response);
+        return {
+          status: response.status,
+          message: response.message,
+          data: response.data,
+          // PROPIEDADES DIRECTAS PARA TUS COMPONENTES
+          id: response.data?.id || response.id,
+          nombre: response.data?.nombre || response.nombre,
+          estado: response.data?.estado || response.estado,
+          creado_por: response.data?.creado_por || response.creado_por
+        };
+      }),
+      catchError(error => {
+        console.error('❌ RifasService.createRifa - Error del backend:', error);
+        console.error('❌ Status:', error.status);
+        console.error('❌ Error completo:', error.error);
+        
+        // Re-lanzar el error para que lo maneje el componente
+        throw error;
+      })
+    );
   }
 
-  // =====================================================
-  // MÉTODOS PARA RIFAS PÚBLICAS
-  // =====================================================
+  /**
+   * Formatear fecha para el backend (YYYY-MM-DD HH:MM:SS o YYYY-MM-DD)
+   */
+  private formatDate(dateValue: any): string | null {
+    if (!dateValue) return null;
+
+    try {
+      let date: Date;
+      
+      if (dateValue instanceof Date) {
+        date = dateValue;
+      } else if (typeof dateValue === 'string') {
+        date = new Date(dateValue);
+      } else {
+        return null;
+      }
+
+      if (isNaN(date.getTime())) {
+        console.error('Fecha inválida:', dateValue);
+        return null;
+      }
+
+      // Formatear como YYYY-MM-DD HH:MM:SS para el backend
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      console.error('Error al formatear fecha:', error, dateValue);
+      return null;
+    }
+  }
 
   /**
-   * Obtener rifas públicas (sin autenticación)
+   * Cambiar estado de rifa - MÉTODO REQUERIDO POR TUS COMPONENTES
    */
-  getRifasPublicas(): Observable<Rifa[]> {
-    console.log('🌐 RifasService: Obteniendo rifas públicas');
+  cambiarEstadoRifa(id: number, estado: string): Observable<ApiResponse<Rifa>> {
+    return this.http.patch<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}/estado`, { estado });
+  }
+
+  /**
+   * Eliminar rifa - COMPATIBLE CON 1 O 2 PARÁMETROS
+   */
+  deleteRifa(id: number, motivo?: string): Observable<ApiResponse<any>> {
+    const body = motivo ? { motivo } : undefined;
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/rifas/${id}`, { body });
+  }
+
+  /**
+   * Obtener rifa específica
+   */
+  getRifa(id: number): Observable<ApiResponse<Rifa>> {
+    return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}`);
+  }
+
+  /**
+   * Actualizar rifa
+   */
+  updateRifa(id: number, rifaData: any): Observable<ApiResponse<Rifa>> {
+    return this.http.put<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}`, rifaData);
+  }
+
+  // ===================================================
+  // MÉTODOS PÚBLICOS
+  // ===================================================
+
+  getPublicRifas(params?: any): Observable<PaginatedRifasResponse> {
+    let httpParams = new HttpParams();
     
-    return this.http.get<RifasListResponse>(`${this.baseUrl}/rifas/publicas`)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta rifas públicas:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            return Array.isArray(response.data) ? response.data : response.data.rifas || [];
-          }
-          
-          return [];
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener rifas públicas:', error);
-          return of([]);
-        })
-      );
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params?.search) httpParams = httpParams.set('search', params.search);
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/publicas`, { params: httpParams }).pipe(
+      map(response => ({
+        status: response.status,
+        rifas: response.data || response.rifas || [],
+        pagination: response.pagination
+      }))
+    );
   }
 
-  /**
-   * Obtener rifa pública por ID
-   */
-  getRifaPublica(id: number): Observable<Rifa | null> {
-    console.log('🌐 RifasService: Obteniendo rifa pública ID:', id);
+  getPublicRifa(id: number): Observable<ApiResponse<Rifa>> {
+    return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/publicas/${id}`);
+  }
+
+  // ===================================================
+  // GESTIÓN DE NÚMEROS
+  // ===================================================
+
+  getRifaNumbers(rifaId: number, params?: any): Observable<any> {
+    let httpParams = new HttpParams();
     
-    return this.http.get<RifaResponse>(`${this.baseUrl}/rifas/publicas/${id}`)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta rifa pública:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            return response.data;
-          }
-          
-          return null;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener rifa pública:', error);
-          return of(null);
-        })
-      );
+    if (params?.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/numeros`, { params: httpParams });
   }
 
-  // =====================================================
-  // MÉTODOS PARA ESTADÍSTICAS
-  // =====================================================
-
-  /**
-   * Obtener estadísticas generales de rifas
-   */
-  getEstadisticas(): Observable<RifaStats | null> {
-    console.log('📊 RifasService: Obteniendo estadísticas');
-    
-    return this.http.get<any>(`${this.baseUrl}/rifas/estadisticas`)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta estadísticas:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            return response.data;
-          }
-          
-          return null;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener estadísticas:', error);
-          return of(null);
-        })
-      );
+  generateNumbers(rifaId: number): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/rifas/${rifaId}/numeros/generar`, {});
   }
 
-  /**
-   * Obtener estadísticas de una rifa específica
-   */
-  getEstadisticasRifa(rifaId: number): Observable<any> {
-    console.log('📊 RifasService: Obteniendo estadísticas de rifa:', rifaId);
-    
-    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/estadisticas`)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta estadísticas rifa:', response);
-          
-          if (response && response.status === 'success' && response.data) {
-            return response.data;
-          }
-          
-          return null;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al obtener estadísticas de rifa:', error);
-          return of(null);
-        })
-      );
+  // ===================================================
+  // ESTADÍSTICAS
+  // ===================================================
+
+  getRifaStats(rifaId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/rifas/${rifaId}/estadisticas`);
   }
 
-  // =====================================================
-  // MÉTODOS AUXILIARES
-  // =====================================================
+  // ===================================================
+  // UTILIDADES
+  // ===================================================
 
-  /**
-   * Limpiar estado
-   */
-  clearState(): void {
-    this._rifas.next([]);
-    this._rifaActual.next(null);
-    this._loading.next(false);
-    this._error.next(null);
-  }
-
-  /**
-   * Limpiar errores
-   */
-  clearError(): void {
-    this._error.next(null);
-  }
-
-  /**
-   * Obtener rifa del estado actual
-   */
-  getCurrentRifa(): RifaDetallada | null {
-    return this._rifaActual.value;
-  }
-
-  /**
-   * Obtener rifas del estado actual
-   */
-  getCurrentRifas(): Rifa[] {
-    return this._rifas.value;
-  }
-
-  /**
-   * Verificar si está cargando
-   */
-  isLoading(): boolean {
-    return this._loading.value;
-  }
-
-  /**
-   * Obtener error actual
-   */
-  getCurrentError(): string | null {
-    return this._error.value;
-  }
-
-  /**
-   * Recargar rifas
-   */
-  reloadRifas(filters?: RifaFilters): Observable<{rifas: Rifa[], pagination: any}> {
-    return this.getRifas(filters);
-  }
-
-  /**
-   * Cambiar estado de rifa
-   */
-  cambiarEstadoRifa(id: number, nuevoEstado: string, motivo?: string): Observable<boolean> {
-    console.log('🔄 RifasService: Cambiando estado de rifa:', id, nuevoEstado);
-    
-    const body: any = { estado: nuevoEstado };
-    if (motivo) body.motivo = motivo;
-
-    return this.http.patch<any>(`${this.baseUrl}/rifas/${id}/estado`, body)
-      .pipe(
-        map(response => {
-          console.log('📥 RifasService: Respuesta cambiar estado:', response);
-          
-          if (response && response.status === 'success') {
-            // Actualizar en lista local
-            const rifasActuales = this._rifas.value;
-            const index = rifasActuales.findIndex(r => r.id === id);
-            if (index !== -1) {
-              rifasActuales[index] = { ...rifasActuales[index], estado: nuevoEstado as any };
-              this._rifas.next([...rifasActuales]);
-            }
-            
-            return true;
-          }
-          
-          return false;
-        }),
-        catchError(error => {
-          console.error('❌ RifasService: Error al cambiar estado:', error);
-          this._error.next('Error al cambiar el estado de la rifa');
-          return of(false);
-        })
-      );
-  }
-
-  /**
-   * Validar si el usuario puede gestionar la rifa
-   */
-  canManageRifa(rifa: Rifa, userRole: string, userInstitutionId?: number): boolean {
-    if (userRole === 'admin_global') return true;
-    if (userRole === 'admin_institucion' && userInstitutionId === rifa.institucion_promotora_id) return true;
-    return false;
-  }
-
-  /**
-   * Obtener color de estado
-   */
-  getEstadoColor(estado: string): string {
-    const colores: {[key: string]: string} = {
-      'borrador': '#6c757d',
-      'activa': '#28a745',
-      'cerrada': '#ffc107',
-      'finalizada': '#17a2b8',
-      'cancelada': '#dc3545'
-    };
-    return colores[estado] || '#6c757d';
+  getBackendUrl(): string {
+    return this.baseUrl;
   }
 }

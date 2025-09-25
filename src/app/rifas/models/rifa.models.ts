@@ -85,20 +85,22 @@ export interface RifaDetallada extends Rifa {
  */
 export interface CreateRifaRequest {
   nombre: string;
-  descripcion?: string;
+  descripcion?: string | null;
+  institucion_promotora_id: number;
   cantidad_numeros: number;
   precio_numero: number;
   fecha_inicio: string;
   fecha_fin: string;
-  fecha_sorteo?: string;
-  imagen_url?: string;
-  reglas_adicionales?: string;
-  
-  // Para rifas multi-institución
-  max_instituciones_participantes?: number;
-  comision_promotora?: number;
+  fecha_sorteo?: string | null;
+  fecha_limite_participacion?: string | null;
+  comision_promotora?: number | null;
+  max_instituciones_participantes?: number | null;
+  numeros_por_institucion?: number | null;
   requiere_aprobacion?: boolean;
-  numeros_por_institucion?: number;
+  imagen_url?: string | null;
+  bases_condiciones?: string | null;
+  observaciones?: string | null;
+  borrador?: boolean;
 }
 
 /**

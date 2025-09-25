@@ -121,13 +121,13 @@ import { AuthService } from '../auth/services/auth.service';
                   <h4>🎫 Sistema de Rifas</h4>
                   <span class="status-badge active">¡ACTIVO!</span>
                 </div>
-                <p>Crear y gestionar rifas solidarias</p>
-                <ul class="feature-list">
-                  <li>✅ Crear y editar rifas</li>
-                  <li>✅ Gestión de números</li>
-                  <li>✅ Sistema de ventas</li>
-                  <li>✅ Reportes y estadísticas</li>
-                </ul>
+                <p class="card-description">Crear y gestionar rifas solidarias</p>
+                <div class="feature-list">
+                  <div class="feature-item">✅ Crear y editar rifas</div>
+                  <div class="feature-item">✅ Gestión de números</div>
+                  <div class="feature-item">✅ Sistema de ventas</div>
+                  <div class="feature-item">✅ Reportes y estadísticas</div>
+                </div>
                 <div class="button-group">
                   <button (click)="goToRifasList()" class="action-button featured">
                     📋 Ver Rifas
@@ -458,6 +458,9 @@ import { AuthService } from '../auth/services/auth.service';
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 280px; /* Altura uniforme */
     }
 
     .action-card:hover {
@@ -479,12 +482,22 @@ import { AuthService } from '../auth/services/auth.service';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .card-header h4 {
       margin: 0;
       color: #333;
       font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-description {
+      color: #666;
+      font-size: 0.95rem;
+      margin: 0 0 1rem 0;
+      line-height: 1.5;
+      flex-shrink: 0;
     }
 
     .status-badge {
@@ -493,6 +506,7 @@ import { AuthService } from '../auth/services/auth.service';
       font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     .status-badge.active {
@@ -511,21 +525,28 @@ import { AuthService } from '../auth/services/auth.service';
     }
 
     .feature-list {
-      list-style: none;
-      padding: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
       margin: 0 0 1.5rem 0;
+      min-height: 120px; /* Altura mínima para features */
     }
 
-    .feature-list li {
-      padding: 0.25rem 0;
+    .feature-item {
       color: #666;
       font-size: 0.9rem;
+      padding: 0.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .button-group {
       display: flex;
       gap: 0.75rem;
       flex-wrap: wrap;
+      margin-top: auto; /* Empujar botones al fondo */
     }
 
     .action-button {

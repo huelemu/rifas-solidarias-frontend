@@ -1,301 +1,446 @@
-<div class="crear-rifa-container">
-      <!-- Header -->
-      <div class="page-header">
+<div class="page-container">
+  <div class="page-content">
+    
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-gradient">
         <div class="header-content">
-          <h1>➕ Crear Nueva Rifa</h1>
+          <div class="header-left">
+            <h1>➕ Crear Nueva Rifa</h1>
+            <p>Complete la información para crear una nueva rifa solidaria</p>
+          </div>
           <div class="header-actions">
-            <button 
-              type="button"
-              class="btn btn-outline"
-              (click)="volver()">
-              ← Volver
+            <button (click)="goBack()" class="btn-secondary">
+              ← Volver a la Lista
             </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Formulario -->
-      <div class="form-container">
+    <!-- Mensajes de estado -->
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        ✅ {{ successMessage() }}
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        ❌ {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Formulario -->
+    <div class="form-container">
+      <div class="form-body">
         <form [formGroup]="rifaForm" (ngSubmit)="onSubmit()">
           
           <!-- Información Básica -->
           <div class="form-section">
-            <h2>📋 Información Básica</h2>
-            
+            <h3>📋 Información Básica</h3>
             <div class="form-grid">
-              <!-- Nombre -->
-              <div class="form-group full-width">
-                <label for="nombre" class="required">Nombre de la Rifa</label>
-                <input
+              
+              <!-- Nombre de la Rifa -->
+              <div class="form-group">
+                <label for="nombre">Nombre de la Rifa *</label>
+                <input 
+                  type="text" 
                   id="nombre"
-                  type="text"
                   formControlName="nombre"
                   class="form-control"
-                  [class.error]="isFieldInvalid('nombre')"
-                  placeholder="Ej: Gran Rifa Solidaria 2024"
-                  maxlength="100">
-                <div class="field-hint">
-                  {{ getFieldLength('nombre') }}/100 caracteres
-                </div>
-                @if (isFieldInvalid('nombre')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('nombre'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
+                  [class.error]="rifaForm.get('nombre')?.invalid && rifaForm.get('nombre')?.touched"
+                  placeholder="Ej: Rifa Solidaria Navideña 2024"
+                >
+                @if (rifaForm.get('nombre')?.invalid && rifaForm.get('nombre')?.touched) {
+                  <span class="error-text">El nombre es requerido (mín. 3 caracteres)</span>
                 }
               </div>
 
               <!-- Descripción -->
-              <div class="form-group full-width">
-                <label for="descripcion">Descripción (opcional)</label>
-                <textarea
+              <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea 
                   id="descripcion"
                   formControlName="descripcion"
                   class="form-control"
+                  placeholder="Descripción detallada de la rifa y sus objetivos..."
                   rows="3"
-                  placeholder="Describe el propósito de la rifa, premios, etc.">
-                </textarea>
+                ></textarea>
               </div>
+
             </div>
           </div>
 
           <!-- Configuración de Números -->
           <div class="form-section">
-            <h2>🔢 Configuración de Números</h2>
-            
+            <h3>🎫 Configuración de Números</h3>
             <div class="form-grid">
-              <!-- Cantidad de números -->
+              
+              <!-- Cantidad de Números -->
               <div class="form-group">
-                <label for="cantidad_numeros" class="required">Cantidad de Números</label>
-                <input
+                <label for="cantidad_numeros">Cantidad de Números *</label>
+                <input 
+                  type="number" 
                   id="cantidad_numeros"
-                  type="number"
                   formControlName="cantidad_numeros"
                   class="form-control"
-                  [class.error]="isFieldInvalid('cantidad_numeros')"
-                  [min]="RIFA_CONFIG.MIN_NUMEROS"
-                  [max]="RIFA_CONFIG.MAX_NUMEROS"
-                  placeholder="1000">
-                <div class="field-hint">
-                  Entre {{ RIFA_CONFIG.MIN_NUMEROS }} y {{ RIFA_CONFIG.MAX_NUMEROS }} números
-                </div>
-                @if (isFieldInvalid('cantidad_numeros')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('cantidad_numeros'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
+                  [class.error]="rifaForm.get('cantidad_numeros')?.invalid && rifaForm.get('cantidad_numeros')?.touched"
+                  placeholder="100"
+                  min="1"
+                  max="10000"
+                >
+                @if (rifaForm.get('cantidad_numeros')?.invalid && rifaForm.get('cantidad_numeros')?.touched) {
+                  <span class="error-text">Debe ser un número entre 1 y 10,000</span>
                 }
               </div>
 
-              <!-- Precio por número -->
+              <!-- Precio por Número -->
               <div class="form-group">
-                <label for="precio_numero" class="required">Precio por Número</label>
+                <label for="precio_numero">Precio por Número *</label>
                 <div class="input-group">
                   <span class="input-prefix">$</span>
-                  <input
+                  <input 
+                    type="number" 
                     id="precio_numero"
-                    type="number"
                     formControlName="precio_numero"
                     class="form-control"
-                    [class.error]="isFieldInvalid('precio_numero')"
-                    [min]="RIFA_CONFIG.MIN_PRECIO"
-                    [max]="RIFA_CONFIG.MAX_PRECIO"
+                    [class.error]="rifaForm.get('precio_numero')?.invalid && rifaForm.get('precio_numero')?.touched"
+                    placeholder="500"
+                    min="1"
                     step="0.01"
-                    placeholder="100.00">
+                  >
                 </div>
-                <div class="field-hint">
-                  Entre ${{ RIFA_CONFIG.MIN_PRECIO }} y ${{ RIFA_CONFIG.MAX_PRECIO }}
-                </div>
-                @if (isFieldInvalid('precio_numero')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('precio_numero'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
+                @if (rifaForm.get('precio_numero')?.invalid && rifaForm.get('precio_numero')?.touched) {
+                  <span class="error-text">Debe ser mayor a $0</span>
                 }
               </div>
-            </div>
 
-            <!-- Resumen de configuración -->
-            @if (getFieldValue('cantidad_numeros') && getFieldValue('precio_numero')) {
-              <div class="config-summary">
-                <div class="summary-item">
-                  <span class="summary-label">🎫 Total números:</span>
-                  <span class="summary-value">{{ getFieldValue('cantidad_numeros') }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">💰 Precio unitario:</span>
-                  <span class="summary-value">{{ formatPrice(getFieldValue('precio_numero')) }}</span>
-                </div>
-                <div class="summary-item highlight">
-                  <span class="summary-label">🏆 Recaudación máxima:</span>
-                  <span class="summary-value">{{ formatPrice(calcularRecaudacionMaxima()) }}</span>
-                </div>
-              </div>
-            }
+            </div>
           </div>
 
           <!-- Fechas -->
           <div class="form-section">
-            <h2>📅 Fechas Importantes</h2>
-            
+            <h3>📅 Fechas de la Rifa</h3>
             <div class="form-grid">
-              <!-- Fecha de inicio -->
+              
+              <!-- Fecha de Inicio -->
               <div class="form-group">
-                <label for="fecha_inicio" class="required">Fecha de Inicio</label>
-                <input
+                <label for="fecha_inicio">Fecha de Inicio *</label>
+                <input 
+                  type="datetime-local" 
                   id="fecha_inicio"
-                  type="date"
                   formControlName="fecha_inicio"
                   class="form-control"
-                  [class.error]="isFieldInvalid('fecha_inicio')"
-                  [min]="getFechaMinima()">
-                @if (isFieldInvalid('fecha_inicio')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('fecha_inicio'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
+                  [class.error]="rifaForm.get('fecha_inicio')?.invalid && rifaForm.get('fecha_inicio')?.touched"
+                >
+                @if (rifaForm.get('fecha_inicio')?.invalid && rifaForm.get('fecha_inicio')?.touched) {
+                  <span class="error-text">La fecha de inicio es requerida</span>
                 }
               </div>
 
-              <!-- Fecha de fin -->
+              <!-- Fecha de Fin -->
               <div class="form-group">
-                <label for="fecha_fin" class="required">Fecha de Fin</label>
-                <input
+                <label for="fecha_fin">Fecha de Fin *</label>
+                <input 
+                  type="datetime-local" 
                   id="fecha_fin"
-                  type="date"
                   formControlName="fecha_fin"
                   class="form-control"
-                  [class.error]="isFieldInvalid('fecha_fin')"
-                  [min]="getFieldValue('fecha_inicio') || getFechaMinima()">
-                @if (isFieldInvalid('fecha_fin')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('fecha_fin'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
+                  [class.error]="rifaForm.get('fecha_fin')?.invalid && rifaForm.get('fecha_fin')?.touched"
+                >
+                @if (rifaForm.get('fecha_fin')?.invalid && rifaForm.get('fecha_fin')?.touched) {
+                  <span class="error-text">La fecha de fin es requerida</span>
                 }
               </div>
 
-              <!-- Fecha de sorteo -->
+              <!-- Fecha de Sorteo -->
               <div class="form-group">
-                <label for="fecha_sorteo">Fecha de Sorteo (opcional)</label>
-                <input
+                <label for="fecha_sorteo">Fecha del Sorteo</label>
+                <input 
+                  type="datetime-local" 
                   id="fecha_sorteo"
-                  type="datetime-local"
                   formControlName="fecha_sorteo"
                   class="form-control"
-                  [class.error]="isFieldInvalid('fecha_sorteo')"
-                  [min]="getFieldValue('fecha_fin') || getFechaMinima()">
-                <div class="field-hint">
-                  Si no se especifica, se puede definir después
-                </div>
-                @if (isFieldInvalid('fecha_sorteo')) {
-                  <div class="error-messages">
-                    @for (error of getFieldErrors('fecha_sorteo'); track error) {
-                      <div class="error-message">{{ error }}</div>
-                    }
-                  </div>
-                }
+                >
+                <small class="form-help">Si no se especifica, se usará la fecha de fin</small>
               </div>
-            </div>
 
-            <!-- Resumen de fechas -->
-            @if (getFieldValue('fecha_inicio') && getFieldValue('fecha_fin')) {
-              <div class="dates-summary">
-                <div class="date-item">
-                  <span class="date-label">📅 Duración:</span>
-                  <span class="date-value">{{ calcularDuracion() }} días</span>
-                </div>
-                @if (getFieldValue('fecha_sorteo')) {
-                  <div class="date-item">
-                    <span class="date-label">🎲 Sorteo:</span>
-                    <span class="date-value">{{ formatDateTime(getFieldValue('fecha_sorteo')) }}</span>
-                  </div>
-                }
+              <!-- Fecha Límite Participación -->
+              <div class="form-group">
+                <label for="fecha_limite_participacion">Límite para Participar</label>
+                <input 
+                  type="datetime-local" 
+                  id="fecha_limite_participacion"
+                  formControlName="fecha_limite_participacion"
+                  class="form-control"
+                >
+                <small class="form-help">Fecha límite para que instituciones puedan participar</small>
               </div>
-            }
+
+            </div>
           </div>
 
-          <!-- Configuración Adicional -->
+          <!-- Instituciones -->
           <div class="form-section">
-            <h2>⚙️ Configuración Adicional</h2>
-            
+            <h3>🏢 Gestión de Instituciones</h3>
             <div class="form-grid">
-              <!-- Imagen de la rifa -->
-              <div class="form-group full-width">
-                <label for="imagen_url">URL de Imagen (opcional)</label>
-                <input
+              
+              <!-- Institución Promotora -->
+              <div class="form-group">
+                <label for="institucion_promotora_id">Institución Promotora *</label>
+                <select 
+                  id="institucion_promotora_id"
+                  formControlName="institucion_promotora_id"
+                  class="form-control"
+                  [class.error]="rifaForm.get('institucion_promotora_id')?.invalid && rifaForm.get('institucion_promotora_id')?.touched"
+                >
+                  <option value="">Seleccionar institución promotora...</option>
+                  @for (institucion of instituciones(); track institucion.id) {
+                    <option [value]="institucion.id">{{ institucion.nombre }}</option>
+                  }
+                </select>
+                @if (rifaForm.get('institucion_promotora_id')?.invalid && rifaForm.get('institucion_promotora_id')?.touched) {
+                  <span class="error-text">Debe seleccionar la institución promotora</span>
+                }
+                <small class="form-help">Institución que organiza y promueve la rifa</small>
+              </div>
+
+              <!-- Comisión Promotora -->
+              <div class="form-group">
+                <label for="comision_promotora">Comisión Promotora (%)</label>
+                <input 
+                  type="number" 
+                  id="comision_promotora"
+                  formControlName="comision_promotora"
+                  class="form-control"
+                  placeholder="10"
+                  min="0"
+                  max="50"
+                  step="0.5"
+                >
+                <small class="form-help">Porcentaje que recibe la institución promotora</small>
+              </div>
+
+              <!-- Máximo de Instituciones Participantes -->
+              <div class="form-group">
+                <label for="max_instituciones_participantes">Máximo Instituciones Participantes</label>
+                <input 
+                  type="number" 
+                  id="max_instituciones_participantes"
+                  formControlName="max_instituciones_participantes"
+                  class="form-control"
+                  placeholder="10"
+                  min="1"
+                  max="100"
+                >
+                <small class="form-help">Límite de instituciones que pueden participar (opcional)</small>
+              </div>
+
+              <!-- Números por Institución -->
+              <div class="form-group">
+                <label for="numeros_por_institucion">Números por Institución</label>
+                <input 
+                  type="number" 
+                  id="numeros_por_institucion"
+                  formControlName="numeros_por_institucion"
+                  class="form-control"
+                  placeholder="50"
+                  min="1"
+                >
+                <small class="form-help">Cantidad fija de números por institución participante (opcional)</small>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Configuración Avanzada -->
+          <div class="form-section">
+            <h3>⚙️ Configuración Avanzada</h3>
+            <div class="form-grid">
+              
+              <!-- Requiere Aprobación -->
+              <div class="form-group">
+                <label>
+                  <input 
+                    type="checkbox"
+                    formControlName="requiere_aprobacion"
+                    class="form-checkbox"
+                  >
+                  Requiere aprobación manual para participar
+                </label>
+                <small class="form-help">Si está marcado, las solicitudes de participación deben aprobarse manualmente</small>
+              </div>
+
+              <!-- URL de Imagen -->
+              <div class="form-group">
+                <label for="imagen_url">URL de Imagen</label>
+                <input 
+                  type="url" 
                   id="imagen_url"
-                  type="url"
                   formControlName="imagen_url"
                   class="form-control"
-                  placeholder="https://ejemplo.com/imagen-rifa.jpg">
-                <div class="field-hint">
-                  URL de una imagen que represente la rifa
-                </div>
+                  placeholder="https://ejemplo.com/imagen-rifa.jpg"
+                >
+                <small class="form-help">URL de imagen promocional de la rifa</small>
               </div>
 
-              <!-- Reglas adicionales -->
-              <div class="form-group full-width">
-                <label for="reglas_adicionales">Reglas y Condiciones (opcional)</label>
-                <textarea
-                  id="reglas_adicionales"
-                  formControlName="reglas_adicionales"
+              <!-- Bases y Condiciones -->
+              <div class="form-group form-group-full">
+                <label for="bases_condiciones">Bases y Condiciones</label>
+                <textarea 
+                  id="bases_condiciones"
+                  formControlName="bases_condiciones"
                   class="form-control"
+                  placeholder="Términos y condiciones de la rifa..."
                   rows="4"
-                  placeholder="Especifica reglas adicionales, condiciones de participación, etc.">
-                </textarea>
+                ></textarea>
+                <small class="form-help">Términos legales y condiciones de participación</small>
               </div>
+
+              <!-- Observaciones -->
+              <div class="form-group form-group-full">
+                <label for="observaciones">Observaciones</label>
+                <textarea 
+                  id="observaciones"
+                  formControlName="observaciones"
+                  class="form-control"
+                  placeholder="Notas adicionales, instrucciones especiales, etc."
+                  rows="3"
+                ></textarea>
+                <small class="form-help">Información adicional para los administradores</small>
+              </div>
+
             </div>
           </div>
 
-          <!-- Acciones del formulario -->
+          <!-- Lista de Instituciones Participantes (Solo si ya existen) -->
+          @if (institucionesParticipantes().length > 0) {
+            <div class="form-section">
+              <h3>🤝 Instituciones Pre-seleccionadas</h3>
+              <div class="instituciones-grid">
+                @for (institucion of institucionesParticipantes(); track institucion.id) {
+                  <div class="institucion-card">
+                    <div class="institucion-info">
+                      <h4>{{ institucion.nombre }}</h4>
+                      <p>{{ institucion.tipo | titlecase }}</p>
+                    </div>
+                    <button 
+                      type="button"
+                      (click)="removeInstitucion(institucion.id)"
+                      class="btn-remove"
+                      title="Eliminar institución"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                }
+              </div>
+              
+              <!-- Agregar Nueva Institución -->
+              <div class="add-institucion">
+                <select 
+                  [(ngModel)]="selectedInstitucionId"
+                  [ngModelOptions]="{standalone: true}"
+                  class="form-control"
+                >
+                  <option value="">Agregar institución participante...</option>
+                  @for (institucion of getAvailableInstituciones(); track institucion.id) {
+                    <option [value]="institucion.id">{{ institucion.nombre }}</option>
+                  }
+                </select>
+                <button 
+                  type="button"
+                  (click)="addInstitucion()"
+                  class="btn btn-outline"
+                  [disabled]="!selectedInstitucionId"
+                >
+                  ➕ Agregar
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Resumen de la Rifa -->
+          @if (rifaForm.get('cantidad_numeros')?.value && rifaForm.get('precio_numero')?.value) {
+            <div class="form-section">
+              <h3>💰 Resumen Financiero</h3>
+              <div class="resumen-grid">
+                <div class="resumen-card">
+                  <div class="resumen-icon">🎫</div>
+                  <div class="resumen-info">
+                    <div class="resumen-value">{{ rifaForm.get('cantidad_numeros')?.value | number }}</div>
+                    <div class="resumen-label">Números Totales</div>
+                  </div>
+                </div>
+                
+                <div class="resumen-card">
+                  <div class="resumen-icon">💵</div>
+                  <div class="resumen-info">
+                    <div class="resumen-value">${{ rifaForm.get('precio_numero')?.value | number:'1.2-2' }}</div>
+                    <div class="resumen-label">Precio por Número</div>
+                  </div>
+                </div>
+                
+                <div class="resumen-card highlighted">
+                  <div class="resumen-icon">💰</div>
+                  <div class="resumen-info">
+                    <div class="resumen-value">${{ getTotalPotencial() | number:'1.2-2' }}</div>
+                    <div class="resumen-label">Recaudación Potencial</div>
+                  </div>
+                </div>
+                
+                @if (rifaForm.get('comision_promotora')?.value) {
+                  <div class="resumen-card">
+                    <div class="resumen-icon">🏢</div>
+                    <div class="resumen-info">
+                      <div class="resumen-value">${{ getComisionPromotora() | number:'1.2-2' }}</div>
+                      <div class="resumen-label">Comisión Promotora ({{ rifaForm.get('comision_promotora')?.value }}%)</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Botones de Acción -->
           <div class="form-actions">
             <button 
-              type="button"
+              type="button" 
+              (click)="goBack()" 
               class="btn btn-outline"
-              (click)="volver()">
-              ← Cancelar
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
             </button>
             
             <button 
-              type="button"
+              type="button" 
+              (click)="saveDraft()" 
               class="btn btn-secondary"
-              [disabled]="!rifaForm.valid || submitting()"
-              (click)="guardarBorrador()">
-              @if (submitting()) {
-                <span class="loading-spinner"></span>
+              [disabled]="isSubmitting() || !rifaForm.get('nombre')?.value"
+            >
+              @if (isSubmitting()) {
+                <div class="spinner-sm"></div>
               }
-              📄 Guardar Borrador
+              💾 Guardar Borrador
             </button>
             
             <button 
-              type="submit"
+              type="submit" 
               class="btn btn-primary"
-              [disabled]="!rifaForm.valid || submitting()">
-              @if (submitting()) {
-                <span class="loading-spinner"></span>
+              [disabled]="rifaForm.invalid || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <div class="spinner-sm"></div>
               }
               ✅ Crear Rifa
             </button>
           </div>
+
         </form>
       </div>
-
-      <!-- Error global -->
-      @if (error()) {
-        <div class="error-banner">
-          <span class="error-icon">❌</span>
-          {{ error() }}
-          <button 
-            class="error-close"
-            (click)="clearError()">
-            ✕
-          </button>
-        </div>
-      }
     </div>
+
+  </div>
+</div>

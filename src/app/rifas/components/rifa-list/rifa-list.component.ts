@@ -18,8 +18,8 @@ import {
   selector: 'app-rifa-list',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './rifa-list.component.html',  
-  styleUrls: ['./rifa-list.component.scss']
+  templateUrl: './rifa-list.component.html',
+    styleUrls: ['../../styles/rifas-global.scss']
 })
 export class RifaListComponent implements OnInit {
   // Servicios
