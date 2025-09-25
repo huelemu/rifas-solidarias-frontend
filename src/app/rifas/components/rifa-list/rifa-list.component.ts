@@ -1,4 +1,4 @@
-// src/app/rifas/components/rifa-list/rifa-list.component.ts - COMPLETO
+// src/app/rifas/components/rifa-list/rifa-list.component.ts - CORREGIDO
 
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -19,7 +19,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './rifa-list.component.html',
-    styleUrls: ['../../styles/rifas-global.scss']
+  styleUrls: ['./rifa-list.component.scss'] // 🔧 CORREGIDO: usar archivo específico
 })
 export class RifaListComponent implements OnInit {
   // Servicios
@@ -28,7 +28,7 @@ export class RifaListComponent implements OnInit {
   private readonly router = inject(Router);
 
   // Signals para estado del componente
-  readonly rifas = signal<Rifa[]>([]);
+  readonly rifas = signal<any[]>([]);
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
   readonly pagination = signal<any>(null);
@@ -58,25 +58,45 @@ export class RifaListComponent implements OnInit {
   // MÉTODOS DE CARGA DE DATOS
   // =====================================================
 
-  private loadRifas(): void {
-    this.loading.set(true);
-    this.error.set(null);
+ private loadRifas(): void {
+  this.loading.set(true);
+  this.error.set(null);
 
-    this.rifasService.getRifas(this.currentFilters()).subscribe({
-      next: (result) => {
-        this.rifas.set(result.rifas);
+  console.log('📡 Haciendo petición con filtros:', this.currentFilters());
+  
+  this.rifasService.getRifas(this.currentFilters()).subscribe({
+    next: (result: any) => { // <- Usar any temporalmente
+      console.log('📦 Respuesta completa del backend:', result);
+      console.log('📦 Tipo de respuesta:', typeof result);
+      console.log('📦 Es array?', Array.isArray(result));
+      
+      if (result && Array.isArray(result.rifas)) {
+        console.log('✅ Usando result.rifas:', result.rifas);
+        this.rifas.set(result.rifas as any[]); // <- Casting a any
         this.pagination.set(result.pagination);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Error al cargar rifas:', error);
-        this.error.set('Error al cargar las rifas');
-        this.loading.set(false);
+      } else if (Array.isArray(result)) {
+        console.log('✅ Usando result directo:', result);
+        this.rifas.set(result as any[]); // <- Casting a any
+        this.pagination.set(null);
+      } else {
+        console.warn('⚠️ Estructura inesperada:', result);
+        this.rifas.set([]);
+        this.pagination.set(null);
       }
-    });
-  }
+      
+      this.loading.set(false);
+    },
+    error: (error: any) => {
+      console.error('❌ Error completo:', error);
+      this.error.set('Error al cargar las rifas');
+      this.loading.set(false);
+    }
+  });
+ }
+ 
 
   recargarRifas(): void {
+    console.log('🔄 Recargando rifas...');
     this.loadRifas();
   }
 
@@ -85,6 +105,7 @@ export class RifaListComponent implements OnInit {
   // =====================================================
 
   onFilterChange(): void {
+    console.log('🔍 Filtros cambiados:', this.currentFilters());
     this.currentFilters.update(filters => ({
       ...filters,
       page: 1
@@ -151,11 +172,14 @@ export class RifaListComponent implements OnInit {
       this.rifasService.cambiarEstadoRifa(rifaId, 'activa').subscribe({
         next: (success) => {
           if (success) {
+            console.log('✅ Rifa activada correctamente');
             this.loadRifas();
+          } else {
+            this.error.set('No se pudo activar la rifa');
           }
         },
         error: (error) => {
-          console.error('Error al activar rifa:', error);
+          console.error('❌ Error al activar rifa:', error);
           this.error.set('Error al activar la rifa');
         }
       });
@@ -167,11 +191,14 @@ export class RifaListComponent implements OnInit {
       this.rifasService.cambiarEstadoRifa(rifaId, 'cerrada').subscribe({
         next: (success) => {
           if (success) {
+            console.log('✅ Rifa pausada correctamente');
             this.loadRifas();
+          } else {
+            this.error.set('No se pudo pausar la rifa');
           }
         },
         error: (error) => {
-          console.error('Error al pausar rifa:', error);
+          console.error('❌ Error al pausar rifa:', error);
           this.error.set('Error al pausar la rifa');
         }
       });
@@ -185,11 +212,14 @@ export class RifaListComponent implements OnInit {
         this.rifasService.deleteRifa(rifaId, motivo || undefined).subscribe({
           next: (success) => {
             if (success) {
+              console.log('✅ Rifa eliminada correctamente');
               this.loadRifas();
+            } else {
+              this.error.set('No se pudo eliminar la rifa');
             }
           },
           error: (error) => {
-            console.error('Error al eliminar rifa:', error);
+            console.error('❌ Error al eliminar rifa:', error);
             this.error.set('Error al eliminar la rifa');
           }
         });
@@ -198,17 +228,17 @@ export class RifaListComponent implements OnInit {
   }
 
   duplicarRifa(rifaId: number): void {
-    console.log('Duplicar rifa:', rifaId);
+    console.log('📋 Duplicar rifa:', rifaId);
     alert('Funcionalidad en desarrollo');
   }
 
   exportarRifa(rifaId: number): void {
-    console.log('Exportar rifa:', rifaId);
+    console.log('📊 Exportar rifa:', rifaId);
     alert('Funcionalidad en desarrollo');
   }
 
   // =====================================================
-  // MÉTODOS DE UTILIDAD
+  // MÉTODOS DE UTILIDAD Y PERMISOS
   // =====================================================
 
   canCreateRifa(): boolean {
@@ -221,10 +251,18 @@ export class RifaListComponent implements OnInit {
     if (!user) return false;
     
     if (user.role === 'admin_global') return true;
-    if (user.role === 'admin_institucion' && user.institucion_id === rifa.institucion_promotora_id) return true;
+    
+    // Verificar tanto institucion_promotora_id como si es la misma institución
+    if (user.role === 'admin_institucion') {
+      return user.institucion_id === rifa.institucion_promotora_id;
+    }
     
     return false;
   }
+
+  // =====================================================
+  // MÉTODOS DE ESTADÍSTICAS - AGREGADOS
+  // =====================================================
 
   getActivasCount(): number {
     return this.rifas().filter(r => r.estado === 'activa').length;
@@ -234,28 +272,121 @@ export class RifaListComponent implements OnInit {
     return this.rifas().filter(r => r.estado === 'finalizada').length;
   }
 
+  // 🔧 AGREGADO: Método que faltaba
+  getBorradoresCount(): number {
+    return this.rifas().filter(r => r.estado === 'borrador').length;
+  }
+
+  // 🔧 AGREGADO: Método para rifas cerradas/pausadas
+  getCerradasCount(): number {
+    return this.rifas().filter(r => r.estado === 'cerrada').length;
+  }
+
+  // =====================================================
+  // MÉTODOS DE FORMATO Y PRESENTACIÓN
+  // =====================================================
+
   getCardClass(rifa: Rifa): string {
-    return `rifa-card card-${rifa.estado}`;
+    switch (rifa.estado) {
+      case 'borrador': return 'draft';
+      case 'activa': return 'active';
+      case 'finalizada': return 'finished';
+      case 'cerrada': return 'closed';
+      case 'cancelada': return 'closed'; // 🔧 AGREGADO: Estado cancelada
+      default: return '';
+    }
   }
 
   getEstadoClass(estado: string): string {
-    const config = this.getEstadoConfig(estado as any);
-    return config.class;
+    switch (estado) {
+      case 'borrador': return 'draft';
+      case 'activa': return 'active'; 
+      case 'finalizada': return 'finished';
+      case 'cerrada': return 'closed';
+      case 'cancelada': return 'closed';
+      default: return 'draft';
+    }
   }
 
   getEstadoConfig(estado: string) {
-    return RifaUtils.getEstadoConfig(estado as any);
+    try {
+      return RifaUtils.getEstadoConfig(estado as any);
+    } catch (error) {
+      console.warn('⚠️ Estado no reconocido:', estado);
+      // Fallback para estados desconocidos
+      return {
+        icon: '❓',
+        label: estado || 'Desconocido',
+        color: '#6c757d'
+      };
+    }
   }
 
-  formatPrice(precio: number): string {
-    return RifaUtils.formatPrice(precio);
+  // 🔧 MEJORADO: Mejor manejo de precios
+  formatPrice(precio: number | undefined | null): string {
+    if (precio === null || precio === undefined || isNaN(precio)) {
+      return '$0';
+    }
+    try {
+      return RifaUtils.formatPrice(precio);
+    } catch (error) {
+      console.warn('⚠️ Error al formatear precio:', precio);
+      return `$${precio.toLocaleString()}`;
+    }
   }
 
-  formatDate(fecha: string): string {
-    return RifaUtils.formatDate(fecha);
+  // 🔧 MEJORADO: Mejor manejo de fechas
+  formatDate(fecha: string | undefined | null): string {
+    if (!fecha) return 'No definida';
+    
+    try {
+      return RifaUtils.formatDate(fecha);
+    } catch (error) {
+      console.warn('⚠️ Error al formatear fecha:', fecha);
+      return new Date(fecha).toLocaleDateString();
+    }
   }
 
-  getDiasRestantes(fechaFin: string): number {
-    return RifaUtils.calcularDiasRestantes(fechaFin);
+  getDiasRestantes(fechaFin: string | undefined | null): number {
+    if (!fechaFin) return 0;
+    
+    try {
+      return RifaUtils.calcularDiasRestantes(fechaFin);
+    } catch (error) {
+      console.warn('⚠️ Error al calcular días restantes:', fechaFin);
+      const fecha = new Date(fechaFin);
+      const hoy = new Date();
+      const diferencia = fecha.getTime() - hoy.getTime();
+      return Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+    }
+  }
+
+  // =====================================================
+  // MÉTODOS DE DEBUG - TEMPORALES
+  // =====================================================
+
+// Agregar este método temporal para debug
+debugComponent(): void {
+  console.log('🐛 DEBUG INFO:', {
+    rifasLength: this.rifas().length,
+    loading: this.loading(),
+    error: this.error(),
+    filters: this.currentFilters()
+  });
+}
+
+  // 🔧 AGREGADO: Para debug - remover en producción
+  logRifaData(rifa: Rifa): void {
+    console.log('📊 Datos de rifa:', {
+      id: rifa.id,
+      nombre: rifa.nombre,
+      estado: rifa.estado,
+      cantidad_numeros: rifa.cantidad_numeros,
+      total_numeros: (rifa as any).total_numeros,
+      numeros_vendidos: rifa.numeros_vendidos,
+      institucion_nombre: (rifa as any).institucion_nombre,
+      institucion_promotora_id: rifa.institucion_promotora_id,
+      institucion_id: (rifa as any).institucion_id
+    });
   }
 }

@@ -19,6 +19,9 @@ export type MetodoPago = 'efectivo' | 'transferencia' | 'tarjeta' | 'mercadopago
  * Interfaz principal para Rifa
  */
 export interface Rifa {
+  institucion_id: number | undefined;
+recaudado: number|undefined;
+total_numeros: string|number;
   id: number;
   nombre: string;
   descripcion?: string;

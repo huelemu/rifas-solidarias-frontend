@@ -1,728 +1,1404 @@
-// src/app/rifas/components/rifa-list/rifa-list.component.scss
+.stat-icon {
+  width: 48px;
+  height: 48px;/* ===========================
+   RIFA-LIST-COMPONENT - ESTILOS ESTANDARIZADOS
+   Archivo: rifa-list-*.component.scss
+   Basado en el sistema de usuarios
+   =========================== */
 
+/* Layout principal - AJUSTADO A TU ESTRUCTURA */
 .rifa-list-container {
-  padding: 1.5rem;
-  max-width: 1400px;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  max-width: 1200px;
   margin: 0 auto;
-  
-  // =====================================================
-  // HEADER
-  // =====================================================
-  
-  .page-header {
-    margin-bottom: 2rem;
-    
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      
-      h1 {
-        margin: 0;
-        color: #2c3e50;
-        font-size: 2rem;
-        font-weight: 600;
-      }
-      
-      .header-actions {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-    }
-  }
-  
-  // =====================================================
-  // FILTROS
-  // =====================================================
-  
-  .filters-section {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    border: 1px solid #e9ecef;
-    
-    .filters-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      
-      .filter-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        
-        label {
-          font-weight: 500;
-          color: #495057;
-          font-size: 0.9rem;
-        }
-        
-        .form-control {
-          padding: 0.75rem;
-          border: 1px solid #ced4da;
-          border-radius: 8px;
-          font-size: 0.9rem;
-          transition: all 0.2s ease;
-          
-          &:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-            outline: none;
-          }
-        }
-      }
-    }
-    
-    .stats-summary {
-      display: flex;
-      gap: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid #dee2e6;
-      flex-wrap: wrap;
-      
-      .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        
-        .stat-label {
-          font-size: 0.9rem;
-          color: #6c757d;
-        }
-        
-        .stat-value {
-          font-weight: 600;
-          font-size: 1rem;
-          
-          &.active {
-            color: #28a745;
-          }
-          
-          &.finished {
-            color: #17a2b8;
-          }
-        }
-      }
-    }
-  }
-  
-  // =====================================================
-  // ESTADOS DE CARGA Y ERROR
-  // =====================================================
-  
-  .loading-container {
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ========================================
+   SECCIÓN DE ESTADÍSTICAS - COMO USUARIOS
+   ======================================== */
+
+.stats-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem 0 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  background: #e6fffa;
+  color: #319795;
+}
+
+/* Colores específicos para cada tipo de estadística */
+.stat-icon-active {
+  background: #f0fff4 !important;
+  color: #38a169 !important;
+}
+
+.stat-icon-finished {
+  background: #fed7d7 !important;
+  color: #e53e3e !important;
+}
+
+.stat-icon-draft {
+  background: #fffbeb !important;
+  color: #d69e2e !important;
+}
+
+/* ========================================
+   FILTROS - MEJORADOS COMO USUARIOS
+   ======================================== */
+
+.filters-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem 1rem;
+}
+
+.filters-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.filters-card h3 {
+  margin: 0 0 1rem 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* ========================================
+   FILTROS - AJUSTADO A TU ESTRUCTURA
+   ======================================== */
+
+.filters-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.filters-grid {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-item label {
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Estadísticas rápidas */
+.stats-summary {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #718096;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stat-value.active {
+  color: #38a169;
+}
+
+.stat-value.finished {
+  color: #e53e3e;
+}
+
+/* ========================================
+   ESTADOS DE CARGA - TU ESTRUCTURA
+   ======================================== */
+
+.loading-container,
+.error-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.loading-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.error-message {
+  color: #e53e3e;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Empty state - centrado y elegante */
+.empty-state {
+  grid-column: 1 / -1; /* Ocupa toda la fila del grid */
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #718096;
+  margin-bottom: 2rem;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.rifas-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ========================================
+   TARJETAS DE RIFAS - TAMAÑO CONTROLADO
+   ======================================== */
+
+.rifa-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  position: relative;
+  max-width: 400px; /* Limitar ancho máximo */
+}
+
+.rifa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e0;
+}
+
+/* Estados de la tarjeta según tu getCardClass() */
+.rifa-card.draft {
+  border-left: 4px solid #d69e2e;
+  background: linear-gradient(to right, #fffbf0 0%, white 10%);
+}
+
+.rifa-card.active {
+  border-left: 4px solid #38a169;
+  background: linear-gradient(to right, #f0fff4 0%, white 10%);
+}
+
+.rifa-card.finished {
+  border-left: 4px solid #e53e3e;
+  background: linear-gradient(to right, #fff5f5 0%, white 10%);
+}
+
+.rifa-card.closed {
+  border-left: 4px solid #6c757d;
+  background: linear-gradient(to right, #f8f9fa 0%, white 10%);
+  opacity: 0.8;
+}
+
+/* Header de la card */
+.card-header {
+  padding: 1.25rem 1.25rem 0 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.rifa-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.rifa-title h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rifa-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.rifa-id {
+  background: #f7fafc;
+  color: #4a5568;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rifa-institucion {
+  color: #718096;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.rifa-status {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.status-badge {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Colores para status según tu getEstadoClass() */
+.status-badge.draft {
+  background: #fffbeb;
+  color: #d69e2e;
+  border: 2px solid #faf089;
+}
+
+.status-badge.active {
+  background: #c6f6d5;
+  color: #2f855a;
+  border: 2px solid #9ae6b4;
+}
+
+.status-badge.finished {
+  background: #fed7d7;
+  color: #c53030;
+  border: 2px solid #feb2b2;
+}
+
+.status-badge.closed {
+  background: #e2e8f0;
+  color: #6c757d;
+  border: 2px solid #cbd5e0;
+}
+
+/* Body de la card */
+.card-body {
+  padding: 0 1.25rem 1.25rem 1.25rem;
+}
+
+.rifa-descripcion {
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Estadísticas */
+.rifa-stats {
+  margin-bottom: 1rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat .stat-label {
+  font-size: 0.7rem;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.stat .stat-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.stat .stat-value.success {
+  color: #38a169;
+}
+
+/* Barra de progreso */
+.progress-section {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.progress-value {
+  font-size: 0.8rem;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38a169, #68d391);
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+/* Recaudación */
+.recaudacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0fff4;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border-left: 3px solid #38a169;
+}
+
+.recaudacion-label {
+  font-size: 0.85rem;
+  color: #22543d;
+  font-weight: 500;
+}
+
+.recaudacion-value {
+  font-size: 1rem;
+  color: #22543d;
+  font-weight: 700;
+}
+
+/* Fechas */
+.rifa-dates {
+  background: #f7fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.date-item:last-child {
+  margin-bottom: 0;
+}
+
+.date-label {
+  font-size: 0.8rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.date-value {
+  font-size: 0.8rem;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+/* Días restantes */
+.dias-restantes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff5f5;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.dias-label {
+  font-size: 0.8rem;
+  color: #744210;
+  font-weight: 500;
+}
+
+.dias-value {
+  font-size: 0.8rem;
+  color: #744210;
+  font-weight: 700;
+}
+
+.dias-vencida {
+  font-size: 0.8rem;
+  color: #c53030;
+  font-weight: 700;
+}
+
+/* ========================================
+   ACCIONES - TU ESTRUCTURA
+   ======================================== */
+
+.card-actions {
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ========================================
+   BOTONES - ESTANDARIZADOS
+   ======================================== */
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #5a67d8;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.btn-success {
+  background: #38a169;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #2f855a;
+}
+
+.btn-warning {
+  background: #d69e2e;
+  color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #b7791f;
+}
+
+.btn-icon {
+  font-size: 0.9rem;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle::after {
+  content: '▼';
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  z-index: 1000;
+  display: none;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f7fafc;
+}
+
+.dropdown-item.danger {
+  color: #e53e3e;
+}
+
+.dropdown-item.danger:hover {
+  background: #fed7d7;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0.25rem 0;
+}
+
+/* ========================================
+   PAGINACIÓN - TU ESTRUCTURA
+   ======================================== */
+
+.pagination-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.pagination-info {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
     text-align: center;
-    padding: 4rem 2rem;
-    color: #6c757d;
-    
-    .loading-spinner {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #007bff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-    
-    p {
-      margin: 0;
-      font-size: 1.1rem;
-    }
   }
   
-  .error-container {
-    text-align: center;
-    padding: 3rem 2rem;
-    
-    .error-message {
-      background: #f8d7da;
-      color: #721c24;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      
-      .error-icon {
-        font-size: 1.2rem;
-      }
-    }
+  .header-actions {
+    width: 100%;
+    justify-content: center;
   }
-  
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #6c757d;
-    
-    .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-    }
-    
-    h3 {
-      color: #495057;
-      margin-bottom: 0.5rem;
-    }
-    
-    p {
-      margin-bottom: 2rem;
-      font-size: 1.1rem;
-    }
-  }
-  
-  // =====================================================
-  // GRID DE RIFAS
-  // =====================================================
   
   .rifas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: 1fr;
+    padding: 0 0.5rem 2rem 0.5rem;
   }
   
-  // =====================================================
-  // TARJETAS DE RIFAS
-  // =====================================================
-  
-  .rifa-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    border: 1px solid #e9ecef;
-    
-    &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
-    
-    // Estados específicos
-    &.card-borrador {
-      border-left: 4px solid #6c757d;
-    }
-    
-    &.card-activa {
-      border-left: 4px solid #28a745;
-    }
-    
-    &.card-cerrada {
-      border-left: 4px solid #ffc107;
-    }
-    
-    &.card-finalizada {
-      border-left: 4px solid #17a2b8;
-    }
-    
-    &.card-cancelada {
-      border-left: 4px solid #dc3545;
-      opacity: 0.8;
-    }
-    
-    .card-header {
-      padding: 1.25rem;
-      background: #f8f9fa;
-      border-bottom: 1px solid #e9ecef;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      
-      .rifa-title {
-        flex: 1;
-        
-        h3 {
-          margin: 0 0 0.5rem 0;
-          color: #2c3e50;
-          font-size: 1.25rem;
-          font-weight: 600;
-          line-height: 1.3;
-        }
-        
-        .rifa-meta {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-          
-          .rifa-id {
-            font-size: 0.85rem;
-            color: #6c757d;
-            font-weight: 500;
-          }
-          
-          .rifa-institucion {
-            font-size: 0.85rem;
-            color: #495057;
-            font-weight: 500;
-          }
-        }
-      }
-      
-      .rifa-status {
-        .status-badge {
-          padding: 0.4rem 0.8rem;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          
-          &.status-draft {
-            background: #6c757d;
-            color: white;
-          }
-          
-          &.status-active {
-            background: #28a745;
-            color: white;
-          }
-          
-          &.status-closed {
-            background: #ffc107;
-            color: #212529;
-          }
-          
-          &.status-finished {
-            background: #17a2b8;
-            color: white;
-          }
-          
-          &.status-cancelled {
-            background: #dc3545;
-            color: white;
-          }
-        }
-      }
-    }
-    
-    .card-body {
-      padding: 1.25rem;
-      
-      .rifa-descripcion {
-        margin: 0 0 1rem 0;
-        color: #6c757d;
-        font-size: 0.9rem;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-      
-      .rifa-stats {
-        margin-bottom: 1rem;
-        
-        .stat-row {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 0.75rem;
-          
-          .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            
-            .stat-label {
-              font-size: 0.8rem;
-              color: #6c757d;
-              margin-bottom: 0.25rem;
-            }
-            
-            .stat-value {
-              font-size: 1rem;
-              font-weight: 600;
-              color: #495057;
-              
-              &.success {
-                color: #28a745;
-              }
-            }
-          }
-        }
-        
-        .progress-section {
-          margin: 1rem 0;
-          
-          .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            
-            .progress-label {
-              font-size: 0.85rem;
-              color: #6c757d;
-            }
-            
-            .progress-value {
-              font-size: 0.9rem;
-              font-weight: 600;
-              color: #495057;
-            }
-          }
-          
-          .progress-bar {
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            
-            .progress-fill {
-              height: 100%;
-              background: linear-gradient(90deg, #28a745, #20c997);
-              transition: width 0.3s ease;
-            }
-          }
-        }
-        
-        .recaudacion {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.75rem;
-          background: #f8f9fa;
-          border-radius: 8px;
-          margin-top: 1rem;
-          
-          .recaudacion-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-          }
-          
-          .recaudacion-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #28a745;
-          }
-        }
-      }
-      
-      .rifa-dates {
-        margin-bottom: 1rem;
-        
-        .date-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.5rem 0;
-          border-bottom: 1px solid #f1f3f4;
-          
-          &:last-child {
-            border-bottom: none;
-          }
-          
-          .date-label {
-            font-size: 0.85rem;
-            color: #6c757d;
-          }
-          
-          .date-value {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #495057;
-          }
-        }
-      }
-      
-      .dias-restantes {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background: #e3f2fd;
-        border-radius: 8px;
-        
-        .dias-label {
-          font-size: 0.9rem;
-          color: #1976d2;
-        }
-        
-        .dias-value {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1976d2;
-        }
-        
-        .dias-vencida {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #dc3545;
-        }
-      }
-    }
-    
-    .card-actions {
-      padding: 1rem 1.25rem;
-      background: #f8f9fa;
-      border-top: 1px solid #e9ecef;
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      
-      .dropdown {
-        position: relative;
-        
-        .dropdown-toggle {
-          position: relative;
-          
-          &:after {
-            content: '▼';
-            font-size: 0.7rem;
-            margin-left: 0.5rem;
-          }
-        }
-        
-        .dropdown-menu {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          background: white;
-          border: 1px solid #dee2e6;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          min-width: 150px;
-          z-index: 1000;
-          display: none;
-          
-          &.show {
-            display: block;
-          }
-          
-          .dropdown-item {
-            display: block;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border: none;
-            background: none;
-            color: #495057;
-            text-decoration: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            
-            &:hover {
-              background: #f8f9fa;
-            }
-            
-            &.danger {
-              color: #dc3545;
-              
-              &:hover {
-                background: #f8d7da;
-              }
-            }
-          }
-          
-          .dropdown-divider {
-            height: 1px;
-            background: #dee2e6;
-            margin: 0.5rem 0;
-          }
-        }
-      }
-    }
+  .filters-grid {
+    grid-template-columns: 1fr;
   }
   
-  // =====================================================
-  // PAGINACIÓN
-  // =====================================================
+  .stats-summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .stat-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+  }
   
   .pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 1rem;
-    padding: 1.5rem 0;
-    
-    .pagination-info {
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-    
-    .pagination-controls {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
   }
-  
-  // =====================================================
-  // BOTONES
-  // =====================================================
-  
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+  .rifa-list-container {
     font-size: 0.9rem;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    .btn-icon {
-      font-size: 0.9rem;
-    }
-    
-    &.btn-primary {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-      
-      &:hover:not(:disabled) {
-        background: #0056b3;
-        border-color: #0056b3;
-      }
-    }
-    
-    &.btn-secondary {
-      background: #6c757d;
-      color: white;
-      border-color: #6c757d;
-      
-      &:hover:not(:disabled) {
-        background: #545b62;
-        border-color: #545b62;
-      }
-    }
-    
-    &.btn-success {
-      background: #28a745;
-      color: white;
-      border-color: #28a745;
-      
-      &:hover:not(:disabled) {
-        background: #1e7e34;
-        border-color: #1e7e34;
-      }
-    }
-    
-    &.btn-warning {
-      background: #ffc107;
-      color: #212529;
-      border-color: #ffc107;
-      
-      &:hover:not(:disabled) {
-        background: #e0a800;
-        border-color: #e0a800;
-      }
-    }
-    
-    &.btn-outline {
-      background: white;
-      color: #6c757d;
-      border-color: #ced4da;
-      
-      &:hover:not(:disabled) {
-        background: #f8f9fa;
-        border-color: #adb5bd;
-      }
-    }
   }
   
-  // =====================================================
-  // ANIMACIONES
-  // =====================================================
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .page-header {
+    padding: 1.5rem 0;
   }
   
-  // =====================================================
-  // RESPONSIVE
-  // =====================================================
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
   
-  @media (max-width: 768px) {
+  .filters-section {
+    padding: 1rem 0.5rem;
+  }
+  
+  .filters-grid,
+  .stats-summary {
     padding: 1rem;
-    
-    .page-header .header-content {
-      flex-direction: column;
-      align-items: stretch;
-      
-      h1 {
-        font-size: 1.5rem;
-        text-align: center;
-      }
-      
-      .header-actions {
-        justify-content: center;
-      }
-    }
-    
-    .filters-section .filters-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .rifas-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    
-    .rifa-card .card-actions {
-      .btn {
-        flex: 1;
-        justify-content: center;
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
-      }
-    }
-    
-    .pagination-container {
-      flex-direction: column;
-      text-align: center;
-    }
   }
   
-  @media (max-width: 480px) {
-    padding: 0.5rem;
-    
-    .rifa-card {
-      .card-header {
-        padding: 1rem;
-        flex-direction: column;
-        gap: 0.75rem;
-        
-        .rifa-title h3 {
-          font-size: 1.1rem;
-        }
-      }
-      
-      .card-body {
-        padding: 1rem;
-      }
-      
-      .card-actions {
-        padding: 0.75rem 1rem;
-        flex-direction: column;
-        
-        .btn {
-          width: 100%;
-          justify-content: center;
-        }
-      }
-    }
+  .rifa-card {
+    border-radius: 8px;
   }
+  
+  .card-header,
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card-actions {
+    padding: 0.75rem 1rem;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Colores específicos para rifas */
+.stat-total .stat-icon {
+  background: #e6fffa;
+  color: #319795;
+}
+
+.stat-active .stat-icon {
+  background: #f0fff4;
+  color: #38a169;
+}
+
+.stat-finished .stat-icon {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.stat-draft .stat-icon {
+  background: #fffbeb;
+  color: #d69e2e;
+}
+
+/* ========================================
+   FILTROS - IDÉNTICO A USUARIOS
+   ======================================== */
+
+.filters-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.filters-card h3 {
+  margin: 0 0 1rem 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.filter-input, .filter-select {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.filter-input:focus, .filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ========================================
+   ESTADOS DE CARGA - IDÉNTICOS A USUARIOS
+   ======================================== */
+
+.loading-card, .error-card, .empty-card {
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   TARJETAS DE RIFAS - IDÉNTICAS A USUARIOS
+   ======================================== */
+
+.rifas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.rifa-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.rifa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e0;
+}
+
+/* Estados de rifa */
+.rifa-card.draft {
+  border-left: 3px solid #d69e2e;
+  background: #fffbf0;
+}
+
+.rifa-card.active {
+  border-left: 3px solid #38a169;
+  background: #f0fff4;
+}
+
+.rifa-card.finished {
+  border-left: 3px solid #e53e3e;
+  background: #fff8f8;
+}
+
+.rifa-card.closed {
+  border-left: 3px solid #6c757d;
+  background: #fafafa;
+  opacity: 0.8;
+}
+
+/* Header de la tarjeta */
+.rifa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rifa-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rifa-info h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rifa-description {
+  margin: 0;
+  color: #718096;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rifa-status {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+/* Badges - IDÉNTICOS A USUARIOS */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+.status-draft { 
+  background: #fffbeb; 
+  color: #d69e2e; 
+}
+
+.status-active { 
+  background: #c6f6d5; 
+  color: #2f855a; 
+}
+
+.status-finished { 
+  background: #fed7d7; 
+  color: #c53030; 
+}
+
+.status-closed { 
+  background: #e2e8f0; 
+  color: #6c757d; 
+}
+
+/* Detalles de la rifa */
+.rifa-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-item label {
+  font-weight: 500;
+  color: #a0aec0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item span {
+  color: #2d3748;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Información de números */
+.numeros-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.numeros-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.numeros-item .number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.numeros-item .label {
+  font-size: 0.7rem;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Acciones - IDÉNTICAS A USUARIOS */
+.rifa-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-action {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-view { 
+  background: #e6fffa; 
+  color: #319795; 
+}
+
+.btn-edit { 
+  background: #fffbeb; 
+  color: #d69e2e; 
+}
+
+.btn-delete { 
+  background: #fed7d7; 
+  color: #e53e3e; 
+}
+
+.btn-activate {
+  background: #f0fff4;
+  color: #38a169;
+}
+
+.btn-close {
+  background: #e2e8f0;
+  color: #6c757d;
+}
+
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .rifas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-actions {
+    flex-wrap: wrap;
+  }
+}
 }
