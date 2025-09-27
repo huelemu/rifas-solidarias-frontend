@@ -277,6 +277,52 @@ export const METODOS_PAGO: Array<{value: MetodoPago, label: string, icon: string
   { value: 'mercadopago', label: 'MercadoPago', icon: '📱' }
 ];
 
+// =====================================================
+// INTERFACES PARA COMPRA (agregar al archivo de modelos)
+// =====================================================
+
+export interface ComprarNumerosRequest {
+  numeros: number[];
+  comprador_info: {
+    nombre: string;
+    apellido: string;
+    telefono?: string;
+    email?: string;
+  };
+  metodo_pago: 'efectivo' | 'transferencia' | 'tarjeta' | 'mercadopago';
+  observaciones?: string;
+}
+
+export interface ComprarNumerosResponse {
+  status: 'success' | 'error';
+  message: string;
+  data: {
+    rifa_id: number;
+    numeros_comprados: number[];
+    cantidad: number;
+    precio_unitario: number;
+    total_pagado: number;
+    fecha_compra: string;
+    metodo_pago: string;
+    referencia_compra?: string;
+  };
+}
+
+export interface MisNumerosResponse {
+  status: 'success' | 'error';
+  data: Array<{
+    id: number;
+    numero: number;
+    rifa_id: number;
+    rifa_nombre: string;
+    estado: 'vendido' | 'reservado';
+    precio_pagado: number;
+    fecha_compra: string;
+    metodo_pago: string;
+    referencia_pago?: string;
+  }>;
+}
+
 /**
  * Configuración por defecto para rifas
  */
@@ -422,4 +468,5 @@ export class RifaUtils {
     } while (excluidos.includes(numero));
     return numero;
   }
+
 }

@@ -180,6 +180,15 @@ import { AuthService } from '../../../auth/services/auth.service';
                   🔢 Gestionar Números
                 </button>
                 
+            
+            @if (rifa().estado === 'activa') {
+              <button 
+                class="btn btn-success"
+                (click)="comprarNumeros()">
+                🛒 Comprar Números
+              </button>
+            }
+
                 <button 
                   class="btn btn-secondary"
                   (click)="verEstadisticas()">
@@ -565,6 +574,11 @@ export class RifaDetailComponent implements OnInit {
       currency: 'ARS'
     }).format(price);
   }
+
+// En rifa-detail.component.ts
+comprarNumeros(): void {
+  this.router.navigate(['/rifas', this.rifaId, 'comprar']);
+}
 
   /**
    * Formatear fecha

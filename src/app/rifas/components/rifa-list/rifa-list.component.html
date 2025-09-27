@@ -292,9 +292,10 @@
                 </div>
               }
             </div>
-
+            
             <!-- Acciones -->
             <div class="card-actions">
+              <!-- Botón Ver -->
               <button 
                 class="btn btn-outline"
                 (click)="verDetalle(rifa.id)"
@@ -303,6 +304,18 @@
                 Ver
               </button>
 
+              <!-- 🛒 BOTÓN COMPRAR - EL QUE FALTABA -->
+              @if (rifa.estado === 'activa' && puedeComprarNumeros()) {
+                <button 
+                  class="btn btn-success"
+                  (click)="comprarNumeros(rifa.id)"
+                  title="Comprar números de esta rifa">
+                  <span class="btn-icon">🛒</span>
+                  Comprar
+                </button>
+              }
+
+              <!-- Botones de gestión para administradores -->
               @if (canManageRifa(rifa)) {
                 <button 
                   class="btn btn-outline"

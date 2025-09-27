@@ -273,6 +273,52 @@ export class RifasService { // NOMBRE CORRECTO: RifasService
     return this.http.put<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/${id}`, rifaData);
   }
 
+/**
+ * Comprar números de una rifa
+ */
+comprarNumeros(rifaId: number, compraData: any): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/comprar`, compraData);
+}
+
+/**
+ * Obtener mis números comprados
+ */
+getMisNumeros(rifaId?: number): Observable<any> {
+  const url = rifaId 
+    ? `${this.baseUrl}/rifas/${rifaId}/mis-numeros`
+    : `${this.baseUrl}/mis-numeros`;
+  
+  return this.http.get<any>(url);
+}
+
+/**
+ * Reservar números temporalmente
+ */
+reservarNumeros(rifaId: number, numeros: number[]): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/reservar`, { numeros });
+}
+
+/**
+ * Cancelar reserva de números
+ */
+cancelarReserva(rifaId: number, numeros: number[]): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/cancelar-reserva`, { numeros });
+}
+
+/**
+ * Verificar disponibilidad de números específicos
+ */
+verificarDisponibilidad(rifaId: number, numeros: number[]): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/verificar-disponibilidad`, { numeros });
+}
+
+/**
+ * Obtener historial de compras del usuario
+ */
+getHistorialCompras(): Observable<any> {
+  return this.http.get<any>(`${this.baseUrl}/usuario/historial-compras`);
+}
+  
   // ===================================================
   // MÉTODOS PÚBLICOS
   // ===================================================

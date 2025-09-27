@@ -88,7 +88,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Números de Rifa - Rifas Solidarias'
   },
- /*
+ 
   // Comprar números - HABILITADO
   {
     path: 'rifas/:id/comprar',
@@ -104,7 +104,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Mis Números - Rifas Solidarias'
   },
-
+/*
   // Estadísticas de rifa - HABILITADO
   {
     path: 'rifas/:id/estadisticas',

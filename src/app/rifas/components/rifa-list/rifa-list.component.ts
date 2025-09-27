@@ -270,6 +270,32 @@ getEstadoConfig(estado: string): any {
     return currentUser?.role === 'admin_global' || currentUser?.role === 'admin_institucion';
   }
 
+  /**
+ * Navegar a comprar números de una rifa
+ */
+comprarNumeros(rifaId: number): void {
+  console.log('🛒 Navegando a comprar números de rifa:', rifaId);
+  this.router.navigate(['/rifas', rifaId, 'comprar']);
+}
+
+/**
+ * Verificar si el usuario puede comprar números
+ */
+puedeComprarNumeros(): boolean {
+  const currentUser = this.authService.currentUser();
+  
+  // Todos los usuarios autenticados pueden comprar números
+  return currentUser !== null;
+}
+
+/**
+ * Navegar a "Mis números"
+ */
+verMisNumeros(): void {
+  console.log('🎫 Navegando a mis números');
+  this.router.navigate(['/mis-numeros']);
+}
+
   // =====================================================
   // MÉTODOS DE FORMATEO
   // =====================================================
