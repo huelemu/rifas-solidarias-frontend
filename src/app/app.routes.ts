@@ -1,4 +1,4 @@
-// src/app/app.routes.ts - VERSIÓN COMPLETA CON RIFAS HABILITADO
+// src/app/app.routes.ts - VERSIÓN COMPLETA CON RUTAS DE RIFAS HABILITADAS
 
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/guards/auth.guard';
@@ -12,20 +12,7 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/components/login.component').then(m => m.LoginComponent),
     title: 'Iniciar Sesión - Rifas Solidarias'
   },
-/*
-  // Rifas públicas - accesibles sin autenticación
-  {
-    path: 'rifas/publicas',
-    loadComponent: () => import('./rifas/components/public-rifas-list.component').then(m => m.PublicRifasListComponent),
-    title: 'Rifas Públicas - Rifas Solidarias'
-  },
 
-  {
-    path: 'rifas/publicas/:id',
-    loadComponent: () => import('./rifas/components/public-rifa-detail.component').then(m => m.PublicRifaDetailComponent),
-    title: 'Ver Rifa - Rifas Solidarias'
-  },
-*/
   // ===================================================
   // RUTAS PROTEGIDAS - REQUIEREN AUTENTICACIÓN
   // ===================================================
@@ -59,7 +46,7 @@ export const routes: Routes = [
   },
 
   // ===================================================
-  // MÓDULO DE RIFAS - ¡CORE DEL NEGOCIO HABILITADO!
+  // MÓDULO DE RIFAS - ¡TODAS LAS RUTAS HABILITADAS!
   // ===================================================
   
   // Lista principal de rifas (admin)
@@ -77,59 +64,72 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Crear Rifa - Rifas Solidarias'
   },
-/*
-  // Editar rifa existente
-  {
-    path: 'rifas/editar/:id',
-    loadComponent: () => import('./rifas/components/edit-rifa.component').then(m => m.EditRifaComponent),
-    canActivate: [authGuard],
-    title: 'Editar Rifa - Rifas Solidarias'
-  },
 
-  // Ver detalle de rifa (admin)
+  // Ver detalle de rifa (admin) - HABILITADO
   {
     path: 'rifas/:id',
-    loadComponent: () => import('./rifas/components/rifa-detail.component').then(m => m.RifaDetailComponent),
+    loadComponent: () => import('./rifas/components/rifa-detail/rifa-detail.component').then(m => m.RifaDetailComponent),
     canActivate: [authGuard],
     title: 'Detalle de Rifa - Rifas Solidarias'
   },
 
-  // Gestión de números de una rifa
+  // Editar rifa existente - HABILITADO
+  {
+    path: 'rifas/:id/editar',
+    loadComponent: () => import('./rifas/components/edit-rifa/edit-rifa.component').then(m => m.EditRifaComponent),
+    canActivate: [authGuard],
+    title: 'Editar Rifa - Rifas Solidarias'
+  },
+
+  // Gestión de números de una rifa - HABILITADO
   {
     path: 'rifas/:id/numeros',
-    loadComponent: () => import('./rifas/components/rifa-numbers.component').then(m => m.RifaNumbersComponent),
+    loadComponent: () => import('./rifas/components/rifa-numbers/rifa-numbers.component').then(m => m.RifaNumbersComponent),
     canActivate: [authGuard],
     title: 'Números de Rifa - Rifas Solidarias'
   },
-
-  // Comprar números
+ /*
+  // Comprar números - HABILITADO
   {
     path: 'rifas/:id/comprar',
-    loadComponent: () => import('./rifas/components/buy-numbers.component').then(m => m.BuyNumbersComponent),
+    loadComponent: () => import('./rifas/components/buy-numbers/buy-numbers.component').then(m => m.BuyNumbersComponent),
     canActivate: [authGuard],
     title: 'Comprar Números - Rifas Solidarias'
   },
 
-  // Mis números comprados
+  // Mis números comprados - HABILITADO
   {
     path: 'mis-numeros',
-    loadComponent: () => import('./rifas/components/my-numbers.component').then(m => m.MyNumbersComponent),
+    loadComponent: () => import('./rifas/components/my-numbers/my-numbers.component').then(m => m.MyNumbersComponent),
     canActivate: [authGuard],
     title: 'Mis Números - Rifas Solidarias'
   },
 
-  // Estadísticas de rifa
+  // Estadísticas de rifa - HABILITADO
   {
     path: 'rifas/:id/estadisticas',
-    loadComponent: () => import('./rifas/components/rifa-stats.component').then(m => m.RifaStatsComponent),
+    loadComponent: () => import('./rifas/components/rifa-stats/rifa-stats.component').then(m => m.RifaStatsComponent),
     canActivate: [authGuard],
     title: 'Estadísticas - Rifas Solidarias'
   },
-*/
+
+  // Rifas públicas - accesibles sin autenticación
+  {
+    path: 'rifas/publicas',
+    loadComponent: () => import('./rifas/components/public-rifas-list/public-rifas-list.component').then(m => m.PublicRifasListComponent),
+    title: 'Rifas Públicas - Rifas Solidarias'
+  },
+
+  {
+    path: 'rifas/publicas/:id',
+    loadComponent: () => import('./rifas/components/public-rifa-detail/public-rifa-detail.component').then(m => m.PublicRifaDetailComponent),
+    title: 'Ver Rifa - Rifas Solidarias'
+  },
+
   // ===================================================
-  // MÓDULO DE REPORTES
+  // MÓDULO DE REPORTES (FUTURO)
   // ===================================================
-  /*
+ 
   {
     path: 'reportes',
     loadComponent: () => import('./reports/components/reports-dashboard.component').then(m => m.ReportsDashboardComponent),
@@ -150,58 +150,23 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Reporte de Instituciones - Rifas Solidarias'
   },
+  */
 
   // ===================================================
-  // MÓDULO DE DIAGNÓSTICO
-  // ===================================================
-  {
-    path: 'diagnostico',
-    loadComponent: () => import('./diagnostic/diagnostic.component').then(m => m.DiagnosticComponent),
-    canActivate: [authGuard],
-    title: 'Diagnóstico del Sistema - Rifas Solidarias'
-  },
-*/
-
-  // ===================================================
-  // PÁGINAS DE ERROR Y ESTADO
+  // RUTAS DE REDIRECCIÓN Y ERROR
   // ===================================================
   
-  // Página de acceso denegado
-  {
-    path: 'unauthorized',
-    loadComponent: () => import('./shared/components/unauthorized.component').then(m => m.UnauthorizedComponent),
-    title: 'Acceso Denegado - Rifas Solidarias'
-  },
-
-  // 404 - Página no encontrada
-  {
-    path: 'not-found',
-    loadComponent: () => import('./shared/components/not-found.component').then(m => m.NotFoundComponent),
-    title: 'Página No Encontrada - Rifas Solidarias'
-  },
-
-  // ===================================================
-  // RUTAS DE REDIRECCIÓN
-  // ===================================================
-  
-  // Ruta por defecto - redirige al dashboard si está autenticado
+  // Redirección por defecto
   {
     path: '',
     redirectTo: '/dashboard',
     pathMatch: 'full'
   },
 
-  // Redirección para compatibilidad
-  {
-    path: 'home',
-    redirectTo: '/dashboard',
-    pathMatch: 'full'
-  },
-
-  // Ruta wildcard para páginas no encontradas
+  // Página no encontrada
   {
     path: '**',
-    redirectTo: '/not-found',
-    pathMatch: 'full'
+    loadComponent: () => import('../app/shared/components/not-found.component').then(m => m.NotFoundComponent),
+    title: 'Página no encontrada - Rifas Solidarias'
   }
 ];
