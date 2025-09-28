@@ -1,4 +1,4 @@
-// src/app/auth/models/auth.models.ts
+// src/app/auth/models/auth.models.ts - VERSIÓN CORREGIDA
 
 /**
  * Interfaz para la petición de login
@@ -57,7 +57,7 @@ export interface Institucion {
 }
 
 /**
- * Interfaz para la petición de registro
+ * ✅ CORREGIDA: Interfaz para la petición de registro
  */
 export interface RegisterRequest {
   name: string;
@@ -65,6 +65,9 @@ export interface RegisterRequest {
   password: string;
   role: UserRole;
   institucion_id?: number;
+  // ✨ CAMPOS AGREGADOS
+  telefono?: string;
+  dni?: string;
 }
 
 /**

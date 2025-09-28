@@ -1,8 +1,8 @@
-// src/app/auth/services/auth.service.ts
+// src/app/auth/services/auth.service.ts - VERSIÓN COMPLETA Y CORREGIDA
 
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { 
@@ -43,6 +43,7 @@ export class AuthService {
 
   constructor() {
     this.initializeAuth();
+    this.handleOAuthCallback();
   }
 
   /**
@@ -52,12 +53,73 @@ export class AuthService {
     const hostname = window.location.hostname;
     
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      // IMPORTANTE: Sin /api al final porque ya lo corregiste
       return 'http://localhost:3100';
     } else {
-      // IMPORTANTE: Sin /api al final porque ya lo corregiste
       return 'https://apirifas.huelemu.com.ar';
     }
+  }
+
+  /**
+   * Maneja el callback de OAuth (Google)
+   */
+  private handleOAuthCallback(): void {
+    // Verificar si estamos en una URL de callback
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Si hay tokens en la URL (callback de Google)
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const error = urlParams.get('error');
+
+    if (error) {
+      console.error('❌ Error en OAuth callback:', error);
+      this.router.navigate(['/login'], { 
+        queryParams: { error: 'oauth_error' } 
+      });
+      return;
+    }
+
+    if (accessToken && refreshToken) {
+      console.log('✅ OAuth callback exitoso, procesando tokens...');
+      
+      // Hacer request para obtener información del usuario
+      this.processOAuthTokens(accessToken, refreshToken);
+      
+      // Limpiar la URL
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
+    }
+  }
+
+  /**
+   * Procesa los tokens de OAuth y obtiene información del usuario
+   */
+  private processOAuthTokens(accessToken: string, refreshToken: string): void {
+    // Primero intentar obtener perfil del usuario con el token
+    this.http.get<any>(`${this.apiUrl}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          console.log('✅ Perfil de usuario obtenido:', response.data);
+          
+          const newAuthState: AuthState = {
+            isAuthenticated: true,
+            user: response.data,
+            accessToken,
+            refreshToken
+          };
+          
+          this.saveAuthState(newAuthState);
+          console.log('💾 Estado OAuth guardado correctamente');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error obteniendo perfil OAuth:', error);
+        this.router.navigate(['/login'], { 
+          queryParams: { error: 'profile_error' } 
+        });
+      }
+    });
   }
 
   /**
@@ -150,19 +212,17 @@ export class AuthService {
   }
 
   /**
-   * Realiza el login del usuario
+   * Realiza el login del usuario (método tradicional)
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     console.log('🔐 AuthService: Iniciando login para:', credentials.email);
     console.log('🌐 URL del backend:', `${this.apiUrl}/auth/login`);
     
-    // Hacemos la request al backend
     return this.http.post<any>(`${this.apiUrl}/auth/login`, credentials)
       .pipe(
         map((backendResponse) => {
           console.log('📥 AuthService: Respuesta del backend:', backendResponse);
           
-          // Mapear la respuesta del backend al formato esperado por el frontend
           const mappedResponse: LoginResponse = {
             success: backendResponse.status === 'success',
             message: backendResponse.message,
@@ -212,10 +272,72 @@ export class AuthService {
   }
 
   /**
+   * Obtiene la URL de Google OAuth para login
+   */
+  getGoogleAuthUrl(): Observable<any> {
+    console.log('🔐 AuthService: Obteniendo URL de Google OAuth...');
+    
+    return this.http.get<any>(`${this.apiUrl}/auth/google/login`)
+      .pipe(
+        tap((response) => {
+          console.log('📥 AuthService: Respuesta de Google OAuth URL:', response);
+        }),
+        catchError((error) => {
+          console.error('❌ AuthService: Error obteniendo URL de Google OAuth:', error);
+          return this.handleError(error);
+        })
+      );
+  }
+
+  /**
+   * Inicia el proceso de login con Google
+   */
+  loginWithGoogle(): void {
+    console.log('🔐 AuthService: Redirigiendo a Google OAuth...');
+    
+    // Guardar la URL actual para redirección después del login
+    const returnUrl = this.router.url;
+    if (returnUrl && returnUrl !== '/login') {
+      localStorage.setItem('returnUrl', returnUrl);
+    }
+    
+    // Obtener URL de Google y redirigir
+    this.getGoogleAuthUrl().subscribe({
+      next: (response) => {
+        if (response.status === 'success' && response.data?.authUrl) {
+          window.location.href = response.data.authUrl;
+        } else {
+          console.error('❌ No se pudo obtener URL de Google OAuth');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error en Google OAuth:', error);
+      }
+    });
+  }
+
+  /**
+   * Alias para loginWithGoogle (para compatibilidad)
+   */
+  signInWithGoogle(): void {
+    this.loginWithGoogle();
+  }
+
+  /**
    * Realiza el registro de un nuevo usuario
    */
   register(userData: RegisterRequest): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, userData)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Reenvía verificación de email
+   */
+  resendVerification(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/resend-verification`, { email })
       .pipe(
         catchError(this.handleError)
       );
@@ -247,20 +369,14 @@ export class AuthService {
    * Cierra la sesión del usuario
    */
   logout(): void {
-    // Intentar hacer logout en el servidor si tenemos token
-    const refreshToken = this.authState().refreshToken;
+    console.log('🚪 AuthService: Cerrando sesión...');
     
-    if (refreshToken) {
-      this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken })
-        .pipe(
-          catchError((error) => {
-            console.warn('Error en logout del servidor:', error);
-            return of(null);
-          })
-        )
-        .subscribe();
-    }
-
+    // Llamar al endpoint de logout en el backend si existe
+    this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe({
+      next: () => console.log('✅ Logout del backend exitoso'),
+      error: (error) => console.warn('⚠️ Error en logout del backend:', error)
+    });
+    
     this.clearAuthState();
     this.router.navigate(['/login']);
   }
@@ -273,14 +389,21 @@ export class AuthService {
   }
 
   /**
-   * Verifica si el usuario tiene un rol específico
+   * Obtiene el refresh token actual
    */
-  hasRole(role: UserRole): boolean {
-    return this.authState().user?.role === role;
+  getRefreshToken(): string | null {
+    return this.authState().refreshToken;
   }
 
   /**
-   * Verifica si el usuario es administrador (cualquier tipo)
+   * Verifica si el usuario es administrador global
+   */
+  isGlobalAdmin(): boolean {
+    return this.authState().user?.role === 'admin_global';
+  }
+
+  /**
+   * Verifica si el usuario es administrador (global o de institución)
    */
   isAdmin(): boolean {
     const role = this.authState().user?.role;
@@ -288,82 +411,80 @@ export class AuthService {
   }
 
   /**
-   * Verifica si el usuario es administrador global
+   * Verifica si el usuario es administrador de institución
    */
-  isGlobalAdmin(): boolean {
-    return this.hasRole('admin_global');
+  isInstitutionAdmin(): boolean {
+    return this.authState().user?.role === 'admin_institucion';
   }
 
   /**
-   * Verifica si el usuario pertenece a una institución específica
+   * Verifica si el usuario es vendedor
    */
-  belongsToInstitution(institutionId: number): boolean {
-    return this.authState().user?.institucion_id === institutionId;
+  isSeller(): boolean {
+    return this.authState().user?.role === 'vendedor';
   }
 
   /**
-   * Redirige al usuario según su rol después del login
+   * Verifica si el usuario es comprador
+   */
+  isBuyer(): boolean {
+    return this.authState().user?.role === 'comprador';
+  }
+
+  /**
+   * Redirige al usuario después del login según su rol
    */
   redirectAfterLogin(): void {
-    const user = this.authState().user;
+    console.log('🔄 AuthService: Redirigiendo después del login...');
     
-    if (!user) {
-      this.router.navigate(['/login']);
+    // Verificar si hay una URL de retorno guardada
+    const returnUrl = localStorage.getItem('returnUrl');
+    if (returnUrl) {
+      localStorage.removeItem('returnUrl');
+      this.router.navigate([returnUrl]);
       return;
     }
 
-    // Por ahora redirigimos a un dashboard genérico
-    // Más adelante se puede personalizar según el rol
+    // Redirección por defecto al dashboard
     this.router.navigate(['/dashboard']);
   }
 
   /**
-   * Verifica si el usuario actual puede editar otro usuario
+   * Maneja errores de HTTP de manera consistente
    */
-  canEditUser(targetUserId: number): boolean {
-    const currentUser = this.authState().user;
-    if (!currentUser) return false;
-
-    // Admin global puede editar cualquier usuario
-    if (currentUser.role === 'admin_global') return true;
-
-    // Admin de institución puede editar usuarios de su institución
-    if (currentUser.role === 'admin_institucion') {
-      // Aquí necesitarías verificar si el usuario objetivo pertenece a la misma institución
-      // Por ahora retornamos false, se implementará cuando tengamos más datos
-      return false;
-    }
-
-    // El usuario puede editarse a sí mismo
-    return currentUser.id === targetUserId;
-  }
-
-  /**
-   * Manejo centralizado de errores
-   */
-  private handleError = (error: HttpErrorResponse) => {
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('❌ AuthService: Error HTTP:', error);
+    
     let errorMessage = 'Error desconocido';
-
-    if (error.error?.message) {
+    
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
       errorMessage = error.error.message;
-    } else if (error.status === 401) {
-      errorMessage = 'Credenciales incorrectas';
-      this.clearAuthState();
-    } else if (error.status === 403) {
-      errorMessage = 'No tienes permisos para realizar esta acción';
-    } else if (error.status === 423) {
-      errorMessage = 'Usuario bloqueado temporalmente por intentos fallidos';
-    } else if (error.status === 429) {
-      errorMessage = 'Demasiados intentos. Intenta más tarde';
-    } else if (error.status === 0) {
-      errorMessage = 'Error de conexión. Verifique su conexión a Internet.';
-    } else if (error.status >= 500) {
-      errorMessage = 'Error del servidor. Intente más tarde.';
     } else {
-      errorMessage = `Error ${error.status}: ${error.message}`;
+      // Error del lado del servidor
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.status === 0) {
+        errorMessage = 'No se puede conectar con el servidor';
+      } else if (error.status === 401) {
+        errorMessage = 'Credenciales inválidas';
+        // Si es 401, limpiar el estado de autenticación
+        this.clearAuthState();
+      } else if (error.status === 403) {
+        errorMessage = 'No tienes permisos para realizar esta acción';
+      } else if (error.status === 500) {
+        errorMessage = 'Error interno del servidor';
+      } else {
+        errorMessage = `Error ${error.status}: ${error.message}`;
+      }
     }
 
-    console.error('Error en AuthService:', error);
-    return throwError(() => new Error(errorMessage));
-  };
+    const apiError: ApiError = {
+      success: false,
+      message: errorMessage,
+      errors: error.error?.errors
+    };
+
+    return throwError(() => apiError);
+  }
 }

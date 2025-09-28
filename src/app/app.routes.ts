@@ -104,6 +104,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Mis Números - Rifas Solidarias'
   },
+
+  {
+    path: 'auth/register',
+    loadComponent: () => import('./auth/components/register.component').then(m => m.RegisterComponent)
+  },
+
 /*
   // Estadísticas de rifa - HABILITADO
   {
