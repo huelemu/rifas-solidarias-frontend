@@ -114,7 +114,7 @@ import { LoginRequest } from '../models/auth.models';
 
         <div class="login-footer">
           <p>¿No tienes cuenta?
-            <a href="/register" class="link">Regístrate aquí</a>
+            <a href="/auth/register" class="link">Regístrate aquí</a>
           </p>
           
           <!-- Información de testing -->
