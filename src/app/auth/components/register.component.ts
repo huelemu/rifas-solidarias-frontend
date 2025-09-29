@@ -1,229 +1,303 @@
-// src/app/auth/components/register.component.ts - VERSIÓN COMPLETA SIN ERRORES
+// src/app/auth/components/register.component.ts
 
-import { Component, inject, signal } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { RegisterRequest } from '../models/auth.models';
+import { RegisterRequest, UserRole } from '../models/auth.models';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
     <div class="register-container">
       <div class="register-card">
+        <!-- Header -->
         <div class="register-header">
-          <h1>🎯 Rifas Solidarias</h1>
-          <p>Crear Cuenta</p>
+          <div class="logo">
+            <h1>🎯</h1>
+          </div>
+          <h2>Crear Nueva Cuenta</h2>
+          <p>Únete a Rifas Solidarias</p>
         </div>
 
-        <!-- Mostrar mensaje de verificación si el registro fue exitoso -->
-        @if (showVerificationMessage()) {
-          <div class="verification-section">
-            <div class="verification-card">
-              <div class="verification-icon">📧</div>
-              <h3>¡Registro Exitoso!</h3>
-              <p>Hemos enviado un email de verificación a:</p>
-              <strong>{{ registeredEmail() }}</strong>
-              <p>Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.</p>
-              
-              <div class="verification-actions">
-                <button 
-                  (click)="resendVerification()" 
-                  class="resend-button"
-                  [disabled]="isResending()">
-                  @if (isResending()) {
-                    <span class="spinner"></span>
-                    Reenviando...
-                  } @else {
-                    📮 Reenviar Email
-                  }
-                </button>
-                
-                <button (click)="goToLogin()" class="login-button">
-                  🔐 Ir al Login
-                </button>
-              </div>
-              
-              @if (resendMessage()) {
-                <div class="resend-message" [class.success]="resendMessage()!.includes('exitosamente')" [class.error]="!resendMessage()!.includes('exitosamente')">
-                  {{ resendMessage() }}
-                </div>
-              }
-            </div>
-          </div>
-        } @else {
-          <!-- Formulario de registro -->
-          
-          <!-- Botón de Google OAuth -->
-          <div class="google-auth-section">
-            <button
-              type="button"
-              (click)="signInWithGoogle()"
-              class="google-button"
-              [disabled]="isLoading()"
-            >
-              <svg class="google-icon" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span>Registrarse con Google</span>
-            </button>
-          </div>
+        <!-- Métodos de registro -->
+        <div class="register-methods">
+          <!-- Registro con Google -->
+          <button 
+            type="button"
+            class="google-register-btn"
+            (click)="registerWithGoogle()"
+            [disabled]="isLoading()">
+            <svg class="google-icon" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            @if (isLoading()) {
+              <span class="loading-spinner"></span>
+              Conectando...
+            } @else {
+              Continuar con Google
+            }
+          </button>
 
           <!-- Separador -->
           <div class="separator">
             <div class="separator-line"></div>
-            <span class="separator-text">O regístrate con email</span>
+            <span class="separator-text">o</span>
             <div class="separator-line"></div>
           </div>
+        </div>
 
-          <!-- Formulario tradicional -->
-          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-            <!-- Nombre y Apellido -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="nombre">Nombre</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  formControlName="nombre"
-                  placeholder="Tu nombre"
-                  [class.error]="isFieldInvalid('nombre')"
-                />
-                @if (isFieldInvalid('nombre')) {
-                  <span class="error-message">
-                    @if (registerForm.get('nombre')?.hasError('required')) {
-                      El nombre es requerido
-                    }
-                    @if (registerForm.get('nombre')?.hasError('minlength')) {
-                      El nombre debe tener al menos 2 caracteres
-                    }
-                  </span>
+        <!-- Formulario de registro manual -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+          
+          <!-- Nombres -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre" class="form-label">
+                <span class="label-icon">👤</span>
+                Nombre
+              </label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('nombre')"
+                placeholder="Juan"
+                autocomplete="given-name">
+              
+              @if (isFieldInvalid('nombre')) {
+                <div class="field-error">
+                  @for (error of getFieldErrors('nombre'); track error) {
+                    <span>{{ error }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="apellido" class="form-label">
+                <span class="label-icon">👤</span>
+                Apellido
+              </label>
+              <input
+                id="apellido"
+                type="text"
+                formControlName="apellido"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('apellido')"
+                placeholder="Pérez"
+                autocomplete="family-name">
+              
+              @if (isFieldInvalid('apellido')) {
+                <div class="field-error">
+                  @for (error of getFieldErrors('apellido'); track error) {
+                    <span>{{ error }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email" class="form-label">
+              <span class="label-icon">📧</span>
+              Correo Electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('email')"
+              placeholder="tu@email.com"
+              autocomplete="email">
+            
+            @if (isFieldInvalid('email')) {
+              <div class="field-error">
+                @for (error of getFieldErrors('email'); track error) {
+                  <span>{{ error }}</span>
                 }
-              </div>
-
-              <div class="form-group">
-                <label for="apellido">Apellido</label>
-                <input
-                  type="text"
-                  id="apellido"
-                  formControlName="apellido"
-                  placeholder="Tu apellido"
-                  [class.error]="isFieldInvalid('apellido')"
-                />
-                @if (isFieldInvalid('apellido')) {
-                  <span class="error-message">
-                    @if (registerForm.get('apellido')?.hasError('required')) {
-                      El apellido es requerido
-                    }
-                    @if (registerForm.get('apellido')?.hasError('minlength')) {
-                      El apellido debe tener al menos 2 caracteres
-                    }
-                  </span>
-                }
-              </div>
-            </div>
-
-            <!-- Email -->
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                formControlName="email"
-                placeholder="tu@email.com"
-                [class.error]="isFieldInvalid('email')"
-              />
-              @if (isFieldInvalid('email')) {
-                <span class="error-message">
-                  @if (registerForm.get('email')?.hasError('required')) {
-                    El email es requerido
-                  }
-                  @if (registerForm.get('email')?.hasError('email')) {
-                    Ingrese un email válido
-                  }
-                </span>
-              }
-            </div>
-
-            <!-- Contraseña -->
-            <div class="form-group">
-              <label for="password">Contraseña</label>
-              <input
-                type="password"
-                id="password"
-                formControlName="password"
-                placeholder="••••••••"
-                [class.error]="isFieldInvalid('password')"
-              />
-              @if (isFieldInvalid('password')) {
-                <span class="error-message">
-                  @if (registerForm.get('password')?.hasError('required')) {
-                    La contraseña es requerida
-                  }
-                  @if (registerForm.get('password')?.hasError('minlength')) {
-                    La contraseña debe tener al menos 6 caracteres
-                  }
-                </span>
-              }
-            </div>
-
-            <!-- Confirmar Contraseña -->
-            <div class="form-group">
-              <label for="confirmPassword">Confirmar Contraseña</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                formControlName="confirmPassword"
-                placeholder="••••••••"
-                [class.error]="isFieldInvalid('confirmPassword')"
-              />
-              @if (isFieldInvalid('confirmPassword')) {
-                <span class="error-message">
-                  @if (registerForm.get('confirmPassword')?.hasError('required')) {
-                    Confirma tu contraseña
-                  }
-                  @if (registerForm.hasError('passwordMismatch')) {
-                    Las contraseñas no coinciden
-                  }
-                </span>
-              }
-            </div>
-
-            <!-- Error general -->
-            @if (errorMessage()) {
-              <div class="alert alert-error">
-                {{ errorMessage() }}
               </div>
             }
-
-            <!-- Submit button -->
-            <button
-              type="submit"
-              class="register-button"
-              [disabled]="registerForm.invalid || isLoading()"
-            >
-              @if (isLoading()) {
-                <span class="spinner"></span>
-                Registrando...
-              } @else {
-                Crear Cuenta
-              }
-            </button>
-          </form>
-          
-          <!-- Footer -->
-          <div class="register-footer">
-            <p>¿Ya tienes cuenta? 
-              <a href="/login" class="link">Inicia sesión aquí</a>
-            </p>
           </div>
-        }
+
+          <!-- Contraseña -->
+          <div class="form-group">
+            <label for="password" class="form-label">
+              <span class="label-icon">🔒</span>
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('password')"
+              placeholder="••••••••"
+              autocomplete="new-password">
+            
+            @if (isFieldInvalid('password')) {
+              <div class="field-error">
+                @for (error of getFieldErrors('password'); track error) {
+                  <span>{{ error }}</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Confirmar contraseña -->
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label">
+              <span class="label-icon">🔒</span>
+              Confirmar Contraseña
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              formControlName="confirmPassword"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('confirmPassword')"
+              placeholder="••••••••"
+              autocomplete="new-password">
+            
+            @if (isFieldInvalid('confirmPassword')) {
+              <div class="field-error">
+                @for (error of getFieldErrors('confirmPassword'); track error) {
+                  <span>{{ error }}</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Campos opcionales -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="telefono" class="form-label">
+                <span class="label-icon">📱</span>
+                Teléfono (opcional)
+              </label>
+              <input
+                id="telefono"
+                type="tel"
+                formControlName="telefono"
+                class="form-input"
+                placeholder="+54 9 11 1234-5678"
+                autocomplete="tel">
+            </div>
+
+            <div class="form-group">
+              <label for="dni" class="form-label">
+                <span class="label-icon">🆔</span>
+                DNI (opcional)
+              </label>
+              <input
+                id="dni"
+                type="text"
+                formControlName="dni"
+                class="form-input"
+                placeholder="12345678"
+                maxlength="8">
+            </div>
+          </div>
+
+          <!-- Rol -->
+          <div class="form-group">
+            <label for="rol" class="form-label">
+              <span class="label-icon">🏷️</span>
+              Tipo de Usuario
+            </label>
+            <select
+              id="rol"
+              formControlName="rol"
+              class="form-select">
+              <option value="comprador">🛒 Comprador - Quiero comprar números</option>
+              <option value="vendedor">💼 Vendedor - Quiero vender números</option>
+              <option value="admin_institucion">🏛️ Admin Institución - Administrar mi institución</option>
+            </select>
+            
+            <div class="field-help">
+              Selecciona el tipo de cuenta que mejor describe tu uso
+            </div>
+          </div>
+
+          <!-- Error general -->
+          @if (errorMessage()) {
+            <div class="alert alert-error">
+              <span class="alert-icon">❌</span>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <!-- Success message -->
+          @if (successMessage()) {
+            <div class="alert alert-success">
+              <span class="alert-icon">✅</span>
+              <span>{{ successMessage() }}</span>
+            </div>
+          }
+
+          <!-- Términos y condiciones -->
+          <div class="terms-section">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                formControlName="acceptTerms"
+                class="checkbox-input">
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">
+                Acepto los 
+                <a href="/terminos" target="_blank" class="link">términos y condiciones</a>
+                y la 
+                <a href="/privacidad" target="_blank" class="link">política de privacidad</a>
+              </span>
+            </label>
+            
+            @if (isFieldInvalid('acceptTerms')) {
+              <div class="field-error">
+                <span>Debes aceptar los términos y condiciones</span>
+              </div>
+            }
+          </div>
+
+          <!-- Submit button -->
+          <button
+            type="submit"
+            class="register-button"
+            [disabled]="registerForm.invalid || isLoading()">
+            @if (isLoading()) {
+              <span class="loading-spinner"></span>
+              Creando cuenta...
+            } @else {
+              <span class="btn-icon">🚀</span>
+              Crear Cuenta
+            }
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="register-footer">
+          <p>
+            ¿Ya tienes cuenta?
+            <a routerLink="/login" class="link">Inicia sesión aquí</a>
+          </p>
+          
+          <!-- Información de testing -->
+          @if (isDevelopment()) {
+            <div class="test-info">
+              <h4>🧪 Para Testing:</h4>
+              <p>Backend: <span class="backend-url">{{ getBackendUrl() }}</span></p>
+              <small>Registro automático según el entorno</small>
+            </div>
+          }
+        </div>
       </div>
     </div>
   `,
@@ -234,16 +308,18 @@ import { RegisterRequest } from '../models/auth.models';
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 1rem;
+      padding: 2rem 1rem;
     }
 
     .register-card {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
       width: 100%;
-      max-width: 450px;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .register-header {
@@ -251,9 +327,14 @@ import { RegisterRequest } from '../models/auth.models';
       margin-bottom: 2rem;
     }
 
-    .register-header h1 {
+    .logo h1 {
+      font-size: 3rem;
+      margin: 0;
+    }
+
+    .register-header h2 {
       color: #333;
-      margin: 0 0 0.5rem 0;
+      margin: 0.5rem 0;
       font-size: 1.8rem;
       font-weight: 600;
     }
@@ -264,128 +345,34 @@ import { RegisterRequest } from '../models/auth.models';
       font-size: 1rem;
     }
 
-    /* Verificación de email */
-    .verification-section {
-      text-align: center;
+    .register-methods {
+      margin-bottom: 2rem;
     }
 
-    .verification-card {
-      padding: 2rem 1rem;
-    }
-
-    .verification-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-    }
-
-    .verification-card h3 {
-      color: #27ae60;
-      margin: 0 0 1rem 0;
-      font-size: 1.5rem;
-    }
-
-    .verification-card p {
-      color: #666;
-      margin: 0.5rem 0;
-      line-height: 1.5;
-    }
-
-    .verification-card strong {
-      color: #333;
-      font-weight: 600;
-    }
-
-    .verification-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .resend-button, .login-button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .resend-button {
-      background: #f8f9fa;
-      color: #495057;
-      border: 2px solid #dee2e6;
-    }
-
-    .login-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .resend-button:hover:not(:disabled) {
-      background: #e9ecef;
-      transform: translateY(-1px);
-    }
-
-    .login-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .resend-message {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-
-    .resend-message.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .resend-message.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    /* Google OAuth */
-    .google-auth-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .google-button {
+    .google-register-btn {
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.75rem;
-      padding: 0.75rem 1rem;
+      padding: 0.875rem 1rem;
       border: 2px solid #e1e5e9;
-      border-radius: 8px;
+      border-radius: 12px;
       background: white;
       color: #333;
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
+      transition: all 0.3s ease;
     }
 
-    .google-button:hover:not(:disabled) {
-      border-color: #dadce0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    .google-register-btn:hover:not(:disabled) {
+      border-color: #4285F4;
+      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.1);
       transform: translateY(-1px);
     }
 
-    .google-button:disabled {
+    .google-register-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
@@ -396,7 +383,6 @@ import { RegisterRequest } from '../models/auth.models';
       height: 20px;
     }
 
-    /* Separador */
     .separator {
       display: flex;
       align-items: center;
@@ -413,10 +399,9 @@ import { RegisterRequest } from '../models/auth.models';
     .separator-text {
       color: #666;
       font-size: 0.9rem;
-      white-space: nowrap;
+      font-weight: 500;
     }
 
-    /* Formulario */
     .register-form {
       display: flex;
       flex-direction: column;
@@ -435,106 +420,99 @@ import { RegisterRequest } from '../models/auth.models';
       gap: 0.5rem;
     }
 
-    label {
+    .form-label {
       font-weight: 500;
       color: #333;
       font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    input {
-      padding: 0.75rem;
-      border: 2px solid #e1e5e9;
-      border-radius: 8px;
+    .label-icon {
       font-size: 1rem;
-      transition: border-color 0.2s;
-      font-family: inherit;
     }
 
-    input:focus {
+    .form-input, .form-select {
+      padding: 0.875rem;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus, .form-select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    input.error {
+    .form-input.invalid, .form-select.invalid {
       border-color: #e74c3c;
     }
 
-    input.error:focus {
+    .form-input.invalid:focus, .form-select.invalid:focus {
       box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
     }
 
-    .error-message {
+    .field-error {
       color: #e74c3c;
       font-size: 0.8rem;
-      margin-top: 0.25rem;
-    }
-
-    .alert {
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-
-    .alert-error {
-      background-color: #ffeaea;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-
-    .register-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-size: 1rem;
       font-weight: 500;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      font-family: inherit;
     }
 
-    .register-button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .register-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid #ffffff30;
-      border-top: 2px solid #ffffff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .register-footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid #e1e5e9;
-    }
-
-    .register-footer p {
+    .field-help {
       color: #666;
-      margin: 0;
+      font-size: 0.8rem;
+    }
+
+    .terms-section {
+      margin: 1rem 0;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
       font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .checkbox-input {
+      display: none;
+    }
+
+    .checkbox-custom {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e1e5e9;
+      border-radius: 4px;
+      background: white;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .checkbox-input:checked + .checkbox-custom {
+      background: #667eea;
+      border-color: #667eea;
+    }
+
+    .checkbox-input:checked + .checkbox-custom::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .checkbox-text {
+      color: #333;
     }
 
     .link {
@@ -547,32 +525,142 @@ import { RegisterRequest } from '../models/auth.models';
       text-decoration: underline;
     }
 
-    @media (max-width: 480px) {
-      .register-card {
-        padding: 1.5rem;
-        margin: 1rem;
+    .alert {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    .register-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .register-button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .register-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .register-footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .register-footer p {
+      color: #666;
+      margin: 0 0 1rem 0;
+    }
+
+    .test-info {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .test-info h4 {
+      margin: 0 0 0.5rem 0;
+      color: #495057;
+      font-size: 0.9rem;
+    }
+
+    .test-info p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+
+    .backend-url {
+      font-family: monospace;
+      background: #e9ecef;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .register-container {
+        padding: 1rem;
       }
-      
-      .register-header h1 {
-        font-size: 1.5rem;
+
+      .register-card {
+        padding: 2rem;
       }
 
       .form-row {
         grid-template-columns: 1fr;
       }
+    }
 
-      input {
-        padding: 0.6rem;
-        font-size: 16px; /* Previene zoom en iOS */
+    @media (max-width: 480px) {
+      .register-card {
+        padding: 1.5rem;
       }
 
-      .verification-actions {
-        gap: 0.75rem;
+      .logo h1 {
+        font-size: 2.5rem;
+      }
+
+      .register-header h2 {
+        font-size: 1.5rem;
       }
     }
   `]
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
+  // Servicios
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -580,26 +668,41 @@ export class RegisterComponent {
   // Signals para estado del componente
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly showVerificationMessage = signal(false);
-  readonly registeredEmail = signal('');
-  readonly isResending = signal(false);
-  readonly resendMessage = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
 
   // Formulario reactivo
   readonly registerForm: FormGroup = this.fb.group({
-    nombre: ['', [Validators.required, Validators.minLength(2)]],
-    apellido: ['', [Validators.required, Validators.minLength(2)]],
+    nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+    apellido: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', Validators.required]
-  }, { validators: this.passwordMatchValidator });
+    confirmPassword: ['', [Validators.required]],
+    telefono: [''],
+    dni: ['', [Validators.pattern(/^\d{7,8}$/)]],
+    rol: ['comprador', Validators.required],
+    acceptTerms: [false, Validators.requiredTrue]
+  }, {
+    validators: [this.passwordMatchValidator]
+  });
+
+  constructor() {
+    // Si ya está autenticado, redirigir
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  ngOnInit(): void {
+    console.log('🚀 RegisterComponent inicializado');
+  }
 
   /**
    * Validador personalizado para verificar que las contraseñas coincidan
    */
-  private passwordMatchValidator(control: any) {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
+  private passwordMatchValidator(control: AbstractControl): {[key: string]: any} | null {
+    const formGroup = control as FormGroup;
+    const password = formGroup.get('password');
+    const confirmPassword = formGroup.get('confirmPassword');
     
     if (password && confirmPassword && password.value !== confirmPassword.value) {
       return { passwordMismatch: true };
@@ -609,11 +712,135 @@ export class RegisterComponent {
   }
 
   /**
+   * Verifica si estamos en entorno de desarrollo
+   */
+  isDevelopment(): boolean {
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  }
+
+  /**
+   * Obtiene la URL del backend para mostrar en la UI
+   */
+  getBackendUrl(): string {
+    if (this.isDevelopment()) {
+      return 'http://localhost:3100';
+    } else {
+      return 'https://apirifas.huelemu.com.ar';
+    }
+  }
+
+  /**
    * Verifica si un campo específico es inválido y ha sido tocado
    */
   isFieldInvalid(fieldName: string): boolean {
     const field = this.registerForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
+  }
+
+  /**
+   * Obtiene los errores de un campo específico
+   */
+  getFieldErrors(fieldName: string): string[] {
+    const field = this.registerForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (!field || !field.errors) return errors;
+
+    const errorMappings: { [key: string]: string } = {
+      required: 'Este campo es requerido',
+      minlength: `Mínimo ${field.errors['minlength']?.requiredLength} caracteres`,
+      maxlength: `Máximo ${field.errors['maxlength']?.requiredLength} caracteres`,
+      email: 'Ingrese un email válido',
+      pattern: 'Formato inválido',
+      passwordMismatch: 'Las contraseñas no coinciden'
+    };
+
+    Object.keys(field.errors).forEach(errorKey => {
+      if (errorMappings[errorKey]) {
+        errors.push(errorMappings[errorKey]);
+      }
+    });
+
+    // Error especial para confirmPassword
+    if (fieldName === 'confirmPassword' && this.registerForm.hasError('passwordMismatch')) {
+      errors.push('Las contraseñas no coinciden');
+    }
+
+    return errors;
+  }
+
+  /**
+   * Maneja el envío del formulario de registro
+   */
+  onSubmit(): void {
+    console.log('📝 RegisterComponent: Enviando formulario...');
+    console.log('📝 Datos del formulario:', this.registerForm.value);
+    
+    if (this.registerForm.invalid) {
+      this.markAllFieldsAsTouched();
+      console.log('❌ Formulario inválido:', this.registerForm.errors);
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    // Preparar datos para enviar al backend (coinciden con RegisterRequest corregido)
+    const registerData: RegisterRequest = {
+      nombre: this.registerForm.get('nombre')?.value.trim(),
+      apellido: this.registerForm.get('apellido')?.value.trim(),
+      email: this.registerForm.get('email')?.value.trim(),
+      password: this.registerForm.get('password')?.value,
+      rol: this.registerForm.get('rol')?.value as UserRole,
+      telefono: this.registerForm.get('telefono')?.value?.trim() || undefined,
+      dni: this.registerForm.get('dni')?.value?.trim() || undefined
+    };
+
+    console.log('🔄 RegisterComponent: Datos enviados al backend:', registerData);
+
+    this.authService.register(registerData).subscribe({
+      next: (response) => {
+        this.isLoading.set(false);
+        console.log('✅ RegisterComponent: Registro exitoso:', response);
+        
+        if (response.success) {
+          this.successMessage.set('¡Cuenta creada exitosamente! Redirigiendo...');
+          
+          // Si el registro devuelve tokens, guardar estado
+          if (response.data?.tokens) {
+            console.log('🔑 Tokens recibidos, usuario queda logueado');
+            // El AuthService ya maneja esto automáticamente
+            setTimeout(() => {
+              this.router.navigate(['/dashboard']);
+            }, 1500);
+          } else {
+            // Sin auto-login, redirigir al login
+            setTimeout(() => {
+              this.router.navigate(['/login'], {
+                queryParams: { email: registerData.email, registered: 'true' }
+              });
+            }, 1500);
+          }
+        } else {
+          this.errorMessage.set(response.message || 'Error en el registro');
+        }
+      },
+      error: (error) => {
+        this.isLoading.set(false);
+        console.error('❌ RegisterComponent: Error en registro:', error);
+        
+        let errorMsg = 'Error en el registro. Intenta nuevamente.';
+        
+        if (error?.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error?.message) {
+          errorMsg = error.message;
+        }
+        
+        this.errorMessage.set(errorMsg);
+      }
+    });
   }
 
   /**
@@ -626,84 +853,24 @@ export class RegisterComponent {
   }
 
   /**
-   * Maneja el envío del formulario de registro
+   * Registro con Google
    */
-  onSubmit(): void {
-    if (this.registerForm.invalid) {
-      this.markAllFieldsAsTouched();
-      return;
-    }
-
+  registerWithGoogle(): void {
+    console.log('🔄 RegisterComponent: Registro con Google...');
     this.isLoading.set(true);
-    this.errorMessage.set('');
-
-    const userData: RegisterRequest = {
-      name: `${this.registerForm.value.nombre} ${this.registerForm.value.apellido}`,
-      email: this.registerForm.value.email,
-      password: this.registerForm.value.password,
-      role: 'comprador'
-    };
-
-    this.authService.register(userData).subscribe({
+    this.errorMessage.set(null);
+    
+    this.authService.registerWithGoogle().subscribe({
       next: (response) => {
-        this.isLoading.set(false);
-        
-        if (response && response.data) {
-          console.log('✅ RegisterComponent: Registro exitoso:', response.data.user);
-          this.registeredEmail.set(userData.email);
-          this.showVerificationMessage.set(true);
-        } else {
-          this.errorMessage.set(response?.message || 'Error en el registro');
-        }
+        console.log('✅ RegisterComponent: URL de Google obtenida:', response.authUrl);
+        // Redirigir a Google OAuth
+        window.location.href = response.authUrl;
       },
       error: (error) => {
         this.isLoading.set(false);
-        console.error('❌ RegisterComponent: Error en registro:', error);
-        this.errorMessage.set(error.message || 'Error en el registro');
+        console.error('❌ RegisterComponent: Error en registro con Google:', error);
+        this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
       }
     });
-  }
-
-  /**
-   * Reenvía el email de verificación
-   */
-  async resendVerification(): Promise<void> {
-    if (!this.registeredEmail()) return;
-
-    this.isResending.set(true);
-    this.resendMessage.set('');
-
-    try {
-      await this.authService.resendVerification(this.registeredEmail()).toPromise();
-      this.resendMessage.set('Email de verificación reenviado exitosamente');
-    } catch (error: any) {
-      this.resendMessage.set('Error al reenviar email de verificación');
-      console.error('Error reenviando verificación:', error);
-    } finally {
-      this.isResending.set(false);
-    }
-  }
-
-  /**
-   * Maneja el registro con Google (CORREGIDO: signInWithGoogle en lugar de signUpWithGoogle)
-   */
-  signInWithGoogle(): void {
-    try {
-      this.isLoading.set(true);
-      this.errorMessage.set('');
-      
-      this.authService.signInWithGoogle();
-    } catch (error: any) {
-      this.isLoading.set(false);
-      console.error('Error en registro con Google:', error);
-      this.errorMessage.set('Error al registrarse con Google');
-    }
-  }
-
-  /**
-   * Va a la página de login
-   */
-  goToLogin(): void {
-    this.router.navigate(['/login']);
   }
 }

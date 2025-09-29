@@ -1,4 +1,4 @@
-// src/app/auth/models/auth.models.ts - VERSIÓN CORREGIDA
+// src/app/auth/models/auth.models.ts - INTERFACES COMPLETAS Y CORREGIDAS
 
 /**
  * Interfaz para la petición de login
@@ -22,12 +22,34 @@ export interface LoginResponse {
 }
 
 /**
- * Interfaz para la respuesta del registro
+ * ⭐ CORREGIDO: Interfaz para la petición de registro
+ * MAPEA EXACTAMENTE CON LO QUE ESPERA EL BACKEND
+ */
+export interface RegisterRequest {
+  nombre: string;        // ✅ Backend espera 'nombre'
+  apellido: string;      // ✅ Backend espera 'apellido'
+  email: string;         // ✅ Campo requerido
+  password: string;      // ✅ Campo requerido
+  rol?: UserRole;        // ✅ Backend espera 'rol' (opcional, default 'comprador')
+  institucion_id?: number; // ✅ Campo opcional
+  telefono?: string;     // ✅ Campo opcional
+  dni?: string;          // ✅ Campo opcional
+}
+
+/**
+ * ⭐ CORREGIDO: Interfaz para la respuesta del registro
+ * TOKENS OPCIONAL PORQUE EL BACKEND PODRÍA NO INCLUIRLOS
  */
 export interface RegisterResponse {
   success: boolean;
   data?: {
     user: User;
+    tokens?: {           // ✅ Opcional - el backend podría no hacer auto-login
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: string;
+      tokenType: string;
+    };
   };
   message: string;
 }
@@ -38,7 +60,7 @@ export interface RegisterResponse {
 export interface User {
   id: number;
   email: string;
-  name: string;
+  name: string;          // Mapeado desde nombre + apellido del backend
   role: UserRole;
   institucion_id?: number;
   institucion?: Institucion;
@@ -54,20 +76,6 @@ export interface Institucion {
   nombre: string;
   descripcion?: string;
   activa?: boolean;
-}
-
-/**
- * ✅ CORREGIDA: Interfaz para la petición de registro
- */
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  institucion_id?: number;
-  // ✨ CAMPOS AGREGADOS
-  telefono?: string;
-  dni?: string;
 }
 
 /**

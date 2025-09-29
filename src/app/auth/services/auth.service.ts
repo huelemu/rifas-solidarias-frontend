@@ -59,6 +59,81 @@ export class AuthService {
     }
   }
 
+//-------
+
+// Agregar estos métodos al AuthService (src/app/auth/services/auth.service.ts)
+
+/**
+ * Inicia el proceso de autenticación con Google
+ */
+loginWithGoogle(): Observable<{authUrl: string}> {
+  console.log('🔐 AuthService: Iniciando login con Google...');
+  
+  return this.http.get<any>(`${this.apiUrl}/auth/google/login`)
+    .pipe(
+      map((response) => {
+        console.log('📥 AuthService: URL de Google OAuth obtenida:', response.data.authUrl);
+        return { authUrl: response.data.authUrl };
+      }),
+      catchError(this.handleError)
+    );
+}
+
+/**
+ * Inicia el proceso de registro con Google (usa la misma URL que login)
+ */
+registerWithGoogle(): Observable<{authUrl: string}> {
+  console.log('🔐 AuthService: Iniciando registro con Google...');
+  
+  // ✅ CAMBIO: Usar la misma ruta que login ya que Google maneja ambos casos
+  return this.http.get<any>(`${this.apiUrl}/auth/google/login`)
+    .pipe(
+      map((response) => {
+        console.log('📥 AuthService: URL de Google OAuth para registro obtenida:', response.data.authUrl);
+        return { authUrl: response.data.authUrl };
+      }),
+      catchError(this.handleError)
+    );
+}
+
+/**
+ * Procesa tokens de Google OAuth (desde callback)
+ */
+processGoogleCallback(tokens: {access_token: string, refresh_token: string}): void {
+  console.log('🔐 AuthService: Procesando callback de Google OAuth');
+  
+  // ✅ GUARDAR ESTADO INMEDIATAMENTE PARA QUE AUTHGUARD LO DETECTE
+  const newAuthState: AuthState = {
+    isAuthenticated: true,
+    user: null, // Se llenará con getProfile
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token
+  };
+  
+  this.saveAuthState(newAuthState);
+  console.log('✅ AuthService: Estado básico guardado inmediatamente');
+  
+  // ✅ OBTENER PERFIL EN SEGUNDO PLANO (SIN BLOQUEAR EL FLUJO)
+  this.getProfile().subscribe({
+    next: (user) => {
+      // Actualizar con información del usuario
+      const completeState: AuthState = {
+        ...newAuthState,
+        user: user
+      };
+      this.saveAuthState(completeState);
+      console.log('✅ AuthService: Información del usuario agregada al estado');
+    },
+    error: (error) => {
+      console.warn('⚠️ AuthService: Error obteniendo perfil (no crítico):', error);
+      // El usuario ya está autenticado, esto no es crítico
+    }
+  });
+  
+
+}
+
+
   /**
    * Maneja el callback de OAuth (Google)
    */
@@ -289,49 +364,83 @@ export class AuthService {
       );
   }
 
-  /**
-   * Inicia el proceso de login con Google
-   */
-  loginWithGoogle(): void {
-    console.log('🔐 AuthService: Redirigiendo a Google OAuth...');
-    
-    // Guardar la URL actual para redirección después del login
-    const returnUrl = this.router.url;
-    if (returnUrl && returnUrl !== '/login') {
-      localStorage.setItem('returnUrl', returnUrl);
-    }
-    
-    // Obtener URL de Google y redirigir
-    this.getGoogleAuthUrl().subscribe({
-      next: (response) => {
-        if (response.status === 'success' && response.data?.authUrl) {
-          window.location.href = response.data.authUrl;
-        } else {
-          console.error('❌ No se pudo obtener URL de Google OAuth');
-        }
-      },
-      error: (error) => {
-        console.error('❌ Error en Google OAuth:', error);
-      }
-    });
-  }
-
-  /**
+    /**
    * Alias para loginWithGoogle (para compatibilidad)
    */
   signInWithGoogle(): void {
     this.loginWithGoogle();
   }
 
-  /**
-   * Realiza el registro de un nuevo usuario
-   */
-  register(userData: RegisterRequest): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, userData)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
+
+/**
+ * Realiza el registro de un nuevo usuario
+ */
+register(userData: RegisterRequest): Observable<RegisterResponse> {
+  console.log('🔐 AuthService: Iniciando registro para:', userData.email);
+  console.log('🌐 URL del backend:', `${this.apiUrl}/auth/register`);
+  console.log('📝 Datos enviados:', userData);
+  
+  return this.http.post<any>(`${this.apiUrl}/auth/register`, userData)
+    .pipe(
+      map((backendResponse) => {
+        console.log('📥 AuthService: Respuesta del backend en registro:', backendResponse);
+        
+        // Mapear la respuesta del backend al formato esperado por el frontend
+        const mappedResponse: RegisterResponse = {
+          success: backendResponse.status === 'success',
+          message: backendResponse.message,
+          data: backendResponse.data ? {
+            user: {
+              id: backendResponse.data.user.id,
+              email: backendResponse.data.user.email,
+              name: `${backendResponse.data.user.nombre} ${backendResponse.data.user.apellido}`,
+              role: backendResponse.data.user.rol as UserRole,
+              institucion_id: backendResponse.data.user.institucion_id,
+              institucion: backendResponse.data.user.institucion_nombre ? {
+                id: backendResponse.data.user.institucion_id || 0,
+                nombre: backendResponse.data.user.institucion_nombre
+              } : undefined
+            },
+            // ✅ Tokens opcional
+            ...(backendResponse.data.tokens && {
+              tokens: {
+                accessToken: backendResponse.data.tokens.accessToken,
+                refreshToken: backendResponse.data.tokens.refreshToken,
+                expiresIn: backendResponse.data.tokens.expiresIn,
+                tokenType: backendResponse.data.tokens.tokenType
+              }
+            })
+          } : undefined
+        };
+        
+        console.log('🔄 AuthService: Respuesta de registro mapeada:', mappedResponse);
+        return mappedResponse;
+      }),
+      tap((response) => {
+        if (response.success && response.data?.tokens) {
+          console.log('✅ AuthService: Registro exitoso con auto-login');
+          console.log('👤 Usuario:', response.data.user);
+          console.log('🔑 Token recibido:', response.data.tokens.accessToken ? 'Sí' : 'No');
+          
+          // Auto-login: guardar estado de autenticación
+          const newAuthState: AuthState = {
+            isAuthenticated: true,
+            user: response.data.user,
+            accessToken: response.data.tokens.accessToken,
+            refreshToken: response.data.tokens.refreshToken
+          };
+          this.saveAuthState(newAuthState);
+          console.log('💾 Estado de autenticación guardado después del registro');
+        } else {
+          console.log('ℹ️ AuthService: Registro exitoso sin auto-login');
+        }
+      }),
+      catchError((error) => {
+        console.error('❌ AuthService: Error en registro:', error);
+        return this.handleError(error);
+      })
+    );
+}
 
   /**
    * Reenvía verificación de email
