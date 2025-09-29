@@ -61,7 +61,7 @@ export class AuthService {
 
 //-------
 
-// Agregar estos métodos al AuthService (src/app/auth/services/auth.service.ts)
+
 
 /**
  * Inicia el proceso de autenticación con Google
@@ -168,35 +168,74 @@ processGoogleCallback(tokens: {access_token: string, refresh_token: string}): vo
   /**
    * Procesa los tokens de OAuth y obtiene información del usuario
    */
-  private processOAuthTokens(accessToken: string, refreshToken: string): void {
-    // Primero intentar obtener perfil del usuario con el token
-    this.http.get<any>(`${this.apiUrl}/auth/me`, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
-    }).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          console.log('✅ Perfil de usuario obtenido:', response.data);
-          
-          const newAuthState: AuthState = {
-            isAuthenticated: true,
-            user: response.data,
-            accessToken,
-            refreshToken
-          };
-          
-          this.saveAuthState(newAuthState);
-          console.log('💾 Estado OAuth guardado correctamente');
-        }
-      },
-      error: (error) => {
-        console.error('❌ Error obteniendo perfil OAuth:', error);
+private processOAuthTokens(accessToken: string, refreshToken: string): void {
+  console.log('🔐 AuthService: Procesando tokens OAuth de Google');
+  console.log('🔑 Access Token:', accessToken ? 'Presente (length: ' + accessToken.length + ')' : 'Ausente');
+  console.log('🔑 Refresh Token:', refreshToken ? 'Presente (length: ' + refreshToken.length + ')' : 'Ausente');
+  
+  // Obtener perfil del usuario con el token
+  this.http.get<any>(`${this.apiUrl}/auth/me`, {
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+  }).subscribe({
+    next: (response) => {
+      console.log('📥 processOAuthTokens: Respuesta completa de /auth/me:', response);
+      
+      if (response.status === 'success' && response.data) {
+        // ✅ FIX: El usuario viene directamente en response.data, NO en response.data.user
+        const userData = response.data;
+        console.log('👤 processOAuthTokens: Datos del usuario:', userData);
+        
+        // CRÍTICO: Mapear correctamente nombre y apellido
+        const user: User = {
+          id: userData.id,
+          email: userData.email,
+          // ✅ ESTE ES EL FIX: Concatenar nombre y apellido correctamente
+          name: `${userData.nombre || ''} ${userData.apellido || ''}`.trim(),
+          role: userData.rol as UserRole,
+          institucion_id: userData.institucion_id,
+          institucion: userData.institucion_nombre ? {
+            id: userData.institucion_id || 0,
+            nombre: userData.institucion_nombre
+          } : undefined
+        };
+        
+        console.log('✅ processOAuthTokens: Usuario mapeado correctamente:');
+        console.log('   - ID:', user.id);
+        console.log('   - Email:', user.email);
+        console.log('   - Nombre completo:', user.name);
+        console.log('   - Rol:', user.role);
+        console.log('   - Institución ID:', user.institucion_id);
+        
+        const newAuthState: AuthState = {
+          isAuthenticated: true,
+          user: user,
+          accessToken,
+          refreshToken
+        };
+        
+        this.saveAuthState(newAuthState);
+        console.log('💾 processOAuthTokens: Estado OAuth guardado correctamente en localStorage');
+        console.log('🔍 Estado actual del authState signal:', this.authState());
+        console.log('🔍 currentUser() signal:', this.currentUser());
+        console.log('🔍 isAuthenticated() signal:', this.isAuthenticated());
+      } else {
+        console.error('❌ processOAuthTokens: Formato de respuesta inesperado:', response);
         this.router.navigate(['/login'], { 
-          queryParams: { error: 'profile_error' } 
+          queryParams: { error: 'invalid_response' } 
         });
       }
-    });
-  }
-
+    },
+    error: (error) => {
+      console.error('❌ processOAuthTokens: Error obteniendo perfil OAuth:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Error completo:', error);
+      this.router.navigate(['/login'], { 
+        queryParams: { error: 'profile_error' } 
+      });
+    }
+  });
+}
   /**
    * Inicializa el estado de autenticación desde localStorage
    */
@@ -466,13 +505,52 @@ register(userData: RegisterRequest): Observable<RegisterResponse> {
   /**
    * Obtiene el perfil del usuario actual
    */
-  getProfile(): Observable<User> {
-    return this.http.get<{success: boolean, data: User}>(`${this.apiUrl}/auth/me`)
-      .pipe(
-        map(response => response.data),
-        catchError(this.handleError)
-      );
-  }
+getProfile(): Observable<User> {
+  return this.http.get<any>(`${this.apiUrl}/auth/me`)
+    .pipe(
+      map(response => {
+        console.log('📥 getProfile: Respuesta completa:', response);
+        
+        if (response.status === 'success' && response.data) {
+          // ✅ FIX: El backend puede devolver el usuario de DOS formas:
+          // 1. response.data (directo) <- Google OAuth
+          // 2. response.data.user (anidado) <- Login normal
+          const userData = response.data.user || response.data;
+          
+          console.log('👤 getProfile: Datos del usuario extraídos:', userData);
+          
+          // Mapear correctamente el usuario
+          const user: User = {
+            id: userData.id,
+            email: userData.email,
+            // ✅ CRÍTICO: Concatenar nombre y apellido
+            name: `${userData.nombre || ''} ${userData.apellido || ''}`.trim(),
+            role: userData.rol as UserRole,
+            institucion_id: userData.institucion_id,
+            institucion: userData.institucion_nombre ? {
+              id: userData.institucion_id || 0,
+              nombre: userData.institucion_nombre
+            } : undefined
+          };
+          
+          console.log('✅ getProfile: Usuario mapeado correctamente:');
+          console.log('   - ID:', user.id);
+          console.log('   - Email:', user.email);
+          console.log('   - Nombre completo:', user.name);
+          console.log('   - Rol:', user.role);
+          
+          return user;
+        }
+        
+        console.error('❌ getProfile: Formato de respuesta inválido:', response);
+        throw new Error('Formato de respuesta inválido');
+      }),
+      catchError((error) => {
+        console.error('❌ getProfile: Error:', error);
+        return this.handleError(error);
+      })
+    );
+}
 
   /**
    * Cierra la sesión del usuario
