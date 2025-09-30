@@ -1,7 +1,7 @@
-<!-- src/app/institutions/components/institution-list.component.html - IDÉNTICO A USUARIOS -->
+<!-- src/app/institutions/components/institution-list.component.html - CON NAVEGACIÓN -->
 
 <div class="institutions-container">
-  <!-- Header IDÉNTICO a usuarios -->
+  <!-- Header -->
   <header class="institutions-header">
     <div class="header-content">
       <div class="header-left">
@@ -13,7 +13,7 @@
           ← Volver al Dashboard
         </button>
         @if (canManageInstitutions()) {
-          <button (click)="openCreateModal()" class="btn-primary">
+          <button (click)="createInstitution()" class="btn-primary">
             ➕ Nueva Institución
           </button>
         }
@@ -22,7 +22,7 @@
   </header>
 
   <main class="institutions-main">
-    <!-- Estadísticas rápidas - IDÉNTICAS a usuarios -->
+    <!-- Estadísticas rápidas -->
     @if (stats(); as statistics) {
       <div class="stats-grid">
         <div class="stat-card">
@@ -78,7 +78,7 @@
       </div>
     }
 
-    <!-- Lista de instituciones - IDÉNTICA a usuarios -->
+    <!-- Lista de instituciones -->
     @if (!loading() && !error() && institutions() && institutions().length > 0) {
       <div class="institutions-grid">
         @for (institution of filteredInstitutions(); track institution.id) {
@@ -86,7 +86,7 @@
             <div class="institution-header">
               <div class="institution-info">
                 <h4>{{ institution.nombre }}</h4>
-                <p class="institution-email">{{ institution.contacto_email }}</p>
+                <p class="institution-email">{{ institution.email }}</p>
               </div>
               <div class="institution-status">
                 <span class="status-badge" [class]="getStatusClass(institution.estado)">
@@ -106,20 +106,20 @@
                   {{ getTypeLabel(institution.tipo) }}
                 </span>
               </div>
-              @if (institution.contacto_telefono) {
+              @if (institution.telefono) {
                 <div class="detail-item">
                   <label>Teléfono:</label>
-                  <span>{{ institution.contacto_telefono }}</span>
+                  <span>{{ institution.telefono }}</span>
                 </div>
               }
               <div class="detail-item">
                 <label>Creada:</label>
                 <span>{{ formatDate(institution.fecha_creacion) }}</span>
               </div>
-              @if (institution.sitio_web) {
+              @if (institution.logo_url) {
                 <div class="detail-item">
                   <label>Sitio Web:</label>
-                  <span><a [href]="institution.sitio_web" target="_blank">Ver sitio</a></span>
+                  <span><a [href]="institution.logo_url" target="_blank">Logo</a></span>
                 </div>
               }
               @if (institution.descripcion) {
@@ -130,6 +130,7 @@
               }
             </div>
 
+            <!-- Botones actualizados para usar navegación -->
             <div class="institution-actions">
               <button 
                 (click)="openDetailModal(institution)" 
@@ -138,37 +139,41 @@
               >
                 👁️
               </button>
-              <button 
-                (click)="openEditModal(institution)" 
-                class="btn-action btn-edit"
-                title="Editar institución"
-                [disabled]="!canEditInstitution(institution)"
-              >
-                ✏️
-              </button>
-              <button 
-                (click)="toggleInstitutionStatus(institution)" 
-                class="btn-action"
-                [class]="institution.estado === 'activa' ? 'btn-deactivate' : 'btn-activate'"
-                [title]="institution.estado === 'activa' ? 'Desactivar' : 'Activar'"
-              >
-                {{ institution.estado === 'activa' ? '⏸️' : '▶️' }}
-              </button>
-              @if (canDeleteInstitution(institution)) {
+              @if (canEditInstitution(institution)) {
                 <button 
-                  (click)="openDeleteModal(institution)" 
-                  class="btn-action btn-delete"
-                  title="Eliminar institución"
+                  (click)="editInstitution(institution)" 
+                  class="btn-action btn-edit"
+                  title="Editar institución"
                 >
-                  🗑️
+                  ✏️
                 </button>
+              }
+              @if (canManageInstitutions()) {
+                <button 
+                  (click)="toggleInstitutionStatus(institution)" 
+                  class="btn-action"
+                  [class.btn-deactivate]="institution.estado === 'activa'"
+                  [class.btn-activate]="institution.estado !== 'activa'"
+                  [title]="institution.estado === 'activa' ? 'Desactivar' : 'Activar'"
+                >
+                  {{ institution.estado === 'activa' ? '⏸️' : '▶️' }}
+                </button>
+                @if (canDeleteInstitution(institution)) {
+                  <button 
+                    (click)="openDeleteModal(institution)" 
+                    class="btn-action btn-delete"
+                    title="Eliminar institución"
+                  >
+                    🗑️
+                  </button>
+                }
               }
             </div>
           </div>
         }
       </div>
 
-      <!-- Paginación - IDÉNTICA a usuarios -->
+      <!-- Paginación -->
       @if (pagination(); as pag) {
         <div class="pagination">
           <div class="pagination-info">
@@ -208,7 +213,7 @@
         <h3>🏢 No hay instituciones</h3>
         <p>Aún no se han registrado instituciones en el sistema.</p>
         @if (canManageInstitutions()) {
-          <button (click)="openCreateModal()" class="btn-primary">
+          <button (click)="createInstitution()" class="btn-primary">
             ➕ Crear Primera Institución
           </button>
         }
@@ -217,256 +222,7 @@
   </main>
 </div>
 
-<!-- MODAL CREAR INSTITUCIÓN -->
-@if (showCreateModal()) {
-  <div class="modal-overlay" (click)="closeModals()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>➕ Nueva Institución</h3>
-        <button class="btn-close" (click)="closeModals()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <form (ngSubmit)="createInstitution()">
-          
-          <!-- Error general -->
-          @if (formErrors().general) {
-            <div class="error-message">{{ formErrors().general }}</div>
-          }
-          
-          <!-- Nombre -->
-          <div class="form-group">
-            <label>Nombre de la Institución *</label>
-            <input 
-              type="text" 
-              class="form-control"
-              [(ngModel)]="formData().nombre"
-              name="nombre"
-              placeholder="Ej: Club Atlético Example"
-              [class.error]="formErrors().nombre"
-            >
-            @if (formErrors().nombre) {
-              <div class="field-error">{{ formErrors().nombre }}</div>
-            }
-          </div>
-          
-          <!-- Tipo -->
-          <div class="form-group">
-            <label>Tipo de Institución *</label>
-            <select class="form-control" [(ngModel)]="formData().tipo" name="tipo">
-              @for (type of institutionTypes; track type.value) {
-                <option [value]="type.value">{{ type.label }}</option>
-              }
-            </select>
-            @if (formErrors().tipo) {
-              <div class="field-error">{{ formErrors().tipo }}</div>
-            }
-          </div>
-          
-          <!-- Email de contacto -->
-          <div class="form-group">
-            <label>Email de Contacto *</label>
-            <input 
-              type="email" 
-              class="form-control"
-              [(ngModel)]="formData().contacto_email"
-              name="contacto_email"
-              placeholder="contacto@institucion.com"
-              [class.error]="formErrors().contacto_email"
-            >
-            @if (formErrors().contacto_email) {
-              <div class="field-error">{{ formErrors().contacto_email }}</div>
-            }
-          </div>
-          
-          <!-- Descripción -->
-          <div class="form-group">
-            <label>Descripción</label>
-            <textarea 
-              class="form-control"
-              [(ngModel)]="formData().descripcion"
-              name="descripcion"
-              placeholder="Breve descripción de la institución..."
-              rows="3"
-            ></textarea>
-          </div>
-          
-          <div class="form-row">
-            <!-- Teléfono -->
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input 
-                type="tel" 
-                class="form-control"
-                [(ngModel)]="formData().contacto_telefono"
-                name="contacto_telefono"
-                placeholder="+54 11 1234-5678"
-              >
-            </div>
-            
-            <!-- WhatsApp -->
-            <div class="form-group">
-              <label>WhatsApp</label>
-              <input 
-                type="tel" 
-                class="form-control"
-                [(ngModel)]="formData().contacto_whatsapp"
-                name="contacto_whatsapp"
-                placeholder="+54 9 11 1234-5678"
-              >
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <!-- CUIT/CUIL -->
-            <div class="form-group">
-              <label>CUIT/CUIL</label>
-              <input 
-                type="text" 
-                class="form-control"
-                [(ngModel)]="formData().cuit_cuil"
-                name="cuit_cuil"
-                placeholder="20-12345678-9"
-                [class.error]="formErrors().cuit_cuil"
-              >
-              @if (formErrors().cuit_cuil) {
-                <div class="field-error">{{ formErrors().cuit_cuil }}</div>
-              }
-            </div>
-            
-            <!-- Estado -->
-            <div class="form-group">
-              <label>Estado Inicial</label>
-              <select class="form-control" [(ngModel)]="formData().estado" name="estado">
-                @for (status of institutionStatuses; track status.value) {
-                  <option [value]="status.value">{{ status.label }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          
-          <!-- Sitio web -->
-          <div class="form-group">
-            <label>Sitio Web</label>
-            <input 
-              type="url" 
-              class="form-control"
-              [(ngModel)]="formData().sitio_web"
-              name="sitio_web"
-              placeholder="https://www.institucion.com"
-              [class.error]="formErrors().sitio_web"
-            >
-            @if (formErrors().sitio_web) {
-              <div class="field-error">{{ formErrors().sitio_web }}</div>
-            }
-          </div>
-          
-          <!-- Dirección -->
-          <div class="form-group">
-            <label>Dirección</label>
-            <input 
-              type="text" 
-              class="form-control"
-              [(ngModel)]="formData().direccion"
-              name="direccion"
-              placeholder="Calle 123, Ciudad, Provincia"
-            >
-          </div>
-          
-          <!-- Observaciones -->
-          <div class="form-group">
-            <label>Observaciones</label>
-            <textarea 
-              class="form-control"
-              [(ngModel)]="formData().observaciones"
-              name="observaciones"
-              placeholder="Observaciones adicionales..."
-              rows="2"
-            ></textarea>
-          </div>
-        </form>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModals()" [disabled]="submitting()">
-          Cancelar
-        </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="createInstitution()"
-          [disabled]="submitting()"
-        >
-          @if (submitting()) {
-            <span class="spinner small"></span>
-            Creando...
-          } @else {
-            ➕ Crear Institución
-          }
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- MODAL EDITAR INSTITUCIÓN -->
-@if (showEditModal()) {
-  <div class="modal-overlay" (click)="closeModals()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>✏️ Editar Institución</h3>
-        <button class="btn-close" (click)="closeModals()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <form (ngSubmit)="updateInstitution()">
-          
-          <!-- Error general -->
-          @if (formErrors().general) {
-            <div class="error-message">{{ formErrors().general }}</div>
-          }
-          
-          <!-- Nombre -->
-          <div class="form-group">
-            <label>Nombre de la Institución *</label>
-            <input 
-              type="text" 
-              class="form-control"
-              [(ngModel)]="editFormData().nombre"
-              name="nombre"
-              [class.error]="formErrors().nombre"
-            >
-            @if (formErrors().nombre) {
-              <div class="field-error">{{ formErrors().nombre }}</div>
-            }
-          </div>
-          
-          <!-- Resto del formulario igual que crear... -->
-          
-        </form>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModals()" [disabled]="submitting()">
-          Cancelar
-        </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="updateInstitution()"
-          [disabled]="submitting()"
-        >
-          @if (submitting()) {
-            <span class="spinner small"></span>
-            Guardando...
-          } @else {
-            💾 Guardar Cambios
-          }
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- MODAL ELIMINAR INSTITUCIÓN -->
+<!-- MODAL ELIMINAR INSTITUCIÓN (MANTENER - acción destructiva) -->
 @if (showDeleteModal()) {
   <div class="modal-overlay" (click)="closeModals()">
     <div class="modal-content small" (click)="$event.stopPropagation()">
@@ -513,7 +269,7 @@
   </div>
 }
 
-<!-- MODAL DETALLES INSTITUCIÓN -->
+<!-- MODAL DETALLES INSTITUCIÓN (OPCIONAL - puedes mantenerlo o quitarlo) -->
 @if (showDetailModal()) {
   <div class="modal-overlay" (click)="closeModals()">
     <div class="modal-content large" (click)="$event.stopPropagation()">
@@ -564,33 +320,28 @@
                 <div class="detail-item">
                   <label>Email:</label>
                   <span>
-                    <a [href]="'mailto:' + institution.contacto_email">
-                      {{ institution.contacto_email }}
+                    <a [href]="'mailto:' + institution.email">
+                      {{ institution.email }}
                     </a>
                   </span>
                 </div>
-                @if (institution.contacto_telefono) {
+                @if (institution.telefono) {
                   <div class="detail-item">
                     <label>Teléfono:</label>
                     <span>
-                      <a [href]="'tel:' + institution.contacto_telefono">
-                        {{ institution.contacto_telefono }}
+                      <a [href]="'tel:' + institution.telefono">
+                        {{ institution.telefono }}
                       </a>
                     </span>
                   </div>
                 }
-                @if (institution.contacto_whatsapp) {
-                  <div class="detail-item">
-                    <label>WhatsApp:</label>
-                    <span>{{ institution.contacto_whatsapp }}</span>
-                  </div>
-                }
-                @if (institution.sitio_web) {
+           
+                @if (institution.logo_url) {
                   <div class="detail-item">
                     <label>Sitio Web:</label>
                     <span>
-                      <a [href]="institution.sitio_web" target="_blank">
-                        {{ institution.sitio_web }}
+                      <a [href]="institution.logo_url" target="_blank">
+                        {{ institution.logo_url }}
                       </a>
                     </span>
                   </div>
@@ -609,7 +360,7 @@
               <h4>⚡ Acciones Rápidas</h4>
               <div class="action-buttons">
                 @if (canEditInstitution(institution)) {
-                  <button class="btn btn-primary" (click)="openEditModal(institution); closeModals()">
+                  <button class="btn btn-primary" (click)="editInstitution(institution); closeModals()">
                     ✏️ Editar Institución
                   </button>
                 }
@@ -618,14 +369,14 @@
                   👥 Ver Usuarios
                 </button>
                 
-                @if (institution.sitio_web) {
-                  <a [href]="institution.sitio_web" target="_blank" class="btn btn-secondary">
+                @if (institution.logo_url) {
+                  <a [href]="institution.logo_url" target="_blank" class="btn btn-secondary">
                     🌐 Visitar Sitio Web
                   </a>
                 }
                 
-                @if (institution.contacto_email) {
-                  <a [href]="'mailto:' + institution.contacto_email" class="btn btn-secondary">
+                @if (institution.email) {
+                  <a [href]="'mailto:' + institution.email" class="btn btn-secondary">
                     📧 Enviar Email
                   </a>
                 }

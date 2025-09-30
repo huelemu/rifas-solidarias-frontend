@@ -1,0 +1,278 @@
+<!-- src/app/institutions/components/institution-form.component.html -->
+
+<div class="page-container">
+  <div class="page-content">
+    
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>{{ isEditMode() ? '✏️ Editar Institución' : '➕ Nueva Institución' }}</h1>
+          <p>{{ isEditMode() ? 'Modificar información de la institución' : 'Agregar nueva institución al sistema' }}</p>
+        </div>
+        <button (click)="goBack()" class="btn btn-secondary">
+          <span>← Volver</span>
+        </button>
+      </div>
+    </header>
+
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>{{ isEditMode() ? 'Cargando institución...' : 'Preparando formulario...' }}</p>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="error-card">
+        <div class="error-icon">❌</div>
+        <h3>Error al cargar</h3>
+        <p>{{ errorMessage() }}</p>
+        <button (click)="retry()" class="btn btn-primary">
+          🔄 Reintentar
+        </button>
+      </div>
+    }
+
+    @if (!isLoading() && !errorMessage()) {
+      <form [formGroup]="institutionForm" (ngSubmit)="onSubmit()" class="form-card">
+        
+        <div class="form-grid">
+          
+          <!-- Columna Izquierda -->
+          <div class="form-column">
+            
+            <div class="form-section">
+              <h3 class="section-title">🏢 Información Básica</h3>
+              
+              <div class="form-group">
+                <label for="nombre">Nombre de la Institución <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="nombre"
+                  formControlName="nombre"
+                  placeholder="Ej: Club Atlético Example"
+                  [class.error]="isFieldInvalid('nombre')"
+                />
+                @if (isFieldInvalid('nombre')) {
+                  <span class="error-message">
+                    @if (institutionForm.get('nombre')?.hasError('required')) {
+                      El nombre es requerido
+                    }
+                    @if (institutionForm.get('nombre')?.hasError('minlength')) {
+                      Mínimo 3 caracteres
+                    }
+                  </span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="tipo">Tipo de Institución <span class="required">*</span></label>
+                <select
+                  id="tipo"
+                  formControlName="tipo"
+                  [class.error]="isFieldInvalid('tipo')"
+                >
+                  <option value="">Seleccionar tipo...</option>
+                  <option value="club">⚽ Club Deportivo</option>
+                  <option value="escuela">🎓 Escuela</option>
+                  <option value="fundacion">💝 Fundación</option>
+                  <option value="ong">🌍 ONG</option>
+                  <option value="cooperativa">🏛️ Cooperativa</option>
+                  <option value="otro">📋 Otro</option>
+                </select>
+                @if (isFieldInvalid('tipo')) {
+                  <span class="error-message">Selecciona un tipo</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea
+                  id="descripcion"
+                  formControlName="descripcion"
+                  placeholder="Breve descripción de la institución..."
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" formControlName="estado">
+                  <option value="activa">✅ Activa</option>
+                  <option value="inactiva">⏸️ Inactiva</option>
+                  <option value="suspendida">🚫 Suspendida</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">📄 Datos Adicionales</h3>
+              
+              <div class="form-group">
+                <label for="cuit">CUIT/CUIL</label>
+                <input
+                  type="text"
+                  id="cuit"
+                  formControlName="cuit"
+                  placeholder="20-12345678-9"
+                  [class.error]="isFieldInvalid('cuit')"
+                />
+                @if (isFieldInvalid('cuit')) {
+                  <span class="error-message">Formato inválido (XX-XXXXXXXX-X)</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input
+                  type="text"
+                  id="direccion"
+                  formControlName="direccion"
+                  placeholder="Calle 123, Ciudad, Provincia"
+                />
+              </div>
+            </div>
+
+            <!-- SECCIÓN DE LOGO -->
+            @if (isEditMode()) {
+              <div class="form-section">
+                <h3 class="section-title">🖼️ Logo de la Institución</h3>
+                
+                <!-- Logo actual -->
+                @if (getLogoUrl()) {
+                  <div class="logo-current">
+                    <img [src]="getLogoUrl()" alt="Logo" class="logo-preview-large" />
+                    <button 
+                      type="button" 
+                      (click)="removeLogo()" 
+                      class="btn btn-danger-sm"
+                      [disabled]="isUploadingLogo()"
+                    >
+                      🗑️ Eliminar Logo
+                    </button>
+                  </div>
+                }
+                
+                <!-- Preview de nuevo logo -->
+                @if (logoPreview && !getLogoUrl()) {
+                  <div class="logo-preview-container">
+                    <img [src]="logoPreview" alt="Preview" class="logo-preview-large" />
+                    <div class="logo-preview-actions">
+                      <button 
+                        type="button" 
+                        (click)="uploadLogo()" 
+                        class="btn btn-primary"
+                        [disabled]="isUploadingLogo()"
+                      >
+                        @if (isUploadingLogo()) {
+                          <span class="spinner-sm"></span>
+                          <span>Subiendo...</span>
+                        } @else {
+                          <span>📤 Subir Logo</span>
+                        }
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="cancelFileSelection()" 
+                        class="btn btn-secondary"
+                        [disabled]="isUploadingLogo()"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                }
+                
+                <!-- Selector de archivo -->
+                @if (!logoPreview && !getLogoUrl()) {
+                  <div class="file-upload-area">
+                    <input 
+                      type="file" 
+                      #fileInput 
+                      (change)="onFileSelected($event)"
+                      accept="image/*"
+                      style="display: none"
+                    />
+                    <button 
+                      type="button" 
+                      (click)="fileInput.click()" 
+                      class="btn btn-upload"
+                    >
+                      📁 Seleccionar Logo
+                    </button>
+                    <p class="upload-hint">JPG, PNG, GIF o WEBP - Máx. 5MB</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Columna Derecha -->
+          <div class="form-column">
+            
+            <div class="form-section">
+              <h3 class="section-title">📞 Información de Contacto</h3>
+              
+              <div class="form-group">
+                <label for="email">Email de Contacto <span class="required">*</span></label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  placeholder="contacto@institucion.com"
+                  [class.error]="isFieldInvalid('email')"
+                />
+                @if (isFieldInvalid('email')) {
+                  <span class="error-message">
+                    @if (institutionForm.get('email')?.hasError('required')) {
+                      El email es requerido
+                    }
+                    @if (institutionForm.get('email')?.hasError('email')) {
+                      Email inválido
+                    }
+                  </span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  formControlName="telefono"
+                  placeholder="+54 11 1234-5678"
+                />
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <strong>Datos importantes</strong>
+                <p>Asegúrate de completar toda la información de contacto para facilitar la comunicación con la institución.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="goBack()" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="institutionForm.invalid || isSaving()"
+          >
+            @if (isSaving()) {
+              <span class="spinner-sm"></span>
+              <span>{{ isEditMode() ? 'Actualizando...' : 'Creando...' }}</span>
+            } @else {
+              <span>{{ isEditMode() ? '💾 Actualizar Institución' : '➕ Crear Institución' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

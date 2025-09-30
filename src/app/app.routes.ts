@@ -42,23 +42,54 @@ export const routes: Routes = [
   },
 
   // ===================================================
-  // MÓDULO DE GESTIÓN DE USUARIOS
+  // ⭐ MÓDULO DE GESTIÓN DE USUARIOS - CORREGIDO
   // ===================================================
   {
     path: 'usuarios',
-    loadComponent: () => import('./users/components/user-list.component').then(m => m.UserListComponent),
     canActivate: [authGuard],
-    title: 'Gestión de Usuarios - Rifas Solidarias'
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./users/components/user-list.component').then(m => m.UserListComponent),
+        title: 'Gestión de Usuarios - Rifas Solidarias'
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () => import('./users/components/user-form.component').then(m => m.UserFormComponent),
+        title: 'Crear Usuario - Rifas Solidarias'
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./users/components/user-form.component').then(m => m.UserFormComponent),
+        title: 'Editar Usuario - Rifas Solidarias'
+      }
+    ]
   },
+
 
   // ===================================================
   // MÓDULO DE GESTIÓN DE INSTITUCIONES
   // ===================================================
   {
     path: 'instituciones',
-    loadComponent: () => import('./institutions/components/institution-list.component').then(m => m.InstitutionListComponent),
     canActivate: [authGuard],
-    title: 'Gestión de Instituciones - Rifas Solidarias'
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./institutions/components/institution-list.component').then(m => m.InstitutionListComponent),
+        title: 'Gestión de Instituciones - Rifas Solidarias'
+      },
+      {
+        path: 'nueva',
+        loadComponent: () => import('./institutions/components/institution-form.component').then(m => m.InstitutionFormComponent),
+        title: 'Nueva Institución - Rifas Solidarias'
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./institutions/components/institution-form.component').then(m => m.InstitutionFormComponent),
+        title: 'Editar Institución - Rifas Solidarias'
+      }
+    ]
   },
 
   // ===================================================

@@ -1,48 +1,35 @@
-// src/app/institutions/models/institution.models.ts
+// src/app/institutions/models/institution.models.ts - AJUSTADO A TABLA REAL
 
-/**
- * Tipos de instituciones disponibles
- */
 export type InstitutionType = 'club' | 'fundacion' | 'ong' | 'cooperativa' | 'escuela' | 'otro';
-
-/**
- * Estados de una institución
- */
 export type InstitutionStatus = 'activa' | 'inactiva' | 'suspendida';
 
 /**
- * Interfaz principal para institución
+ * Interfaz principal - COINCIDE CON LA TABLA DE BD
  */
 export interface Institution {
   id: number;
   nombre: string;
   descripcion?: string;
   tipo: InstitutionType;
-  estado: InstitutionStatus;
-  logo_url?: string;
-  sitio_web?: string;
-  contacto_email: string;
-  contacto_telefono?: string;
-  contacto_whatsapp?: string;
+  email: string;              // ← BD usa 'email'
+  telefono?: string;          // ← BD usa 'telefono'
   direccion?: string;
-  cuit_cuil?: string;
+  cuit?: string;              // ← BD usa 'cuit'
+  logo_url?: string;
+  estado: InstitutionStatus;
   fecha_creacion: string;
   fecha_actualizacion: string;
-  usuario_creador_id?: number;
-  observaciones?: string;
 }
 
 /**
- * Interfaz extendida con información adicional
+ * Interfaz extendida con info adicional
  */
 export interface InstitutionExtended extends Institution {
-  // Estadísticas adicionales
   total_usuarios?: number;
   total_rifas_promotoras?: number;
   total_participaciones?: number;
   total_ventas?: number;
   usuario_creador_nombre?: string;
-  // Información de administradores
   administradores?: Array<{
     id: number;
     nombre: string;
@@ -53,42 +40,37 @@ export interface InstitutionExtended extends Institution {
 }
 
 /**
- * Interfaz para crear institución
+ * Para CREAR institución - mapea al backend
  */
 export interface CreateInstitutionRequest {
   nombre: string;
   descripcion?: string;
   tipo: InstitutionType;
-  contacto_email: string;
-  contacto_telefono?: string;
-  contacto_whatsapp?: string;
-  sitio_web?: string;
+  email: string;              // ← Frontend usa 'contacto_email' pero envía como 'email'
+  telefono?: string;          // ← Frontend usa 'contacto_telefono' pero envía como 'telefono'
   direccion?: string;
-  cuit_cuil?: string;
+  cuit?: string;              // ← Frontend usa 'cuit_cuil' pero envía como 'cuit'
+  logo_url?: string;
   estado?: InstitutionStatus;
-  observaciones?: string;
 }
 
 /**
- * Interfaz para actualizar institución
+ * Para ACTUALIZAR institución - mapea al backend
  */
 export interface UpdateInstitutionRequest {
   nombre?: string;
   descripcion?: string;
   tipo?: InstitutionType;
-  contacto_email?: string;
-  contacto_telefono?: string;
-  contacto_whatsapp?: string;
-  sitio_web?: string;
+  email?: string;             // ← Mapea contacto_email → email
+  telefono?: string;          // ← Mapea contacto_telefono → telefono
   direccion?: string;
-  cuit_cuil?: string;
-  estado?: InstitutionStatus;
-  observaciones?: string;
+  cuit?: string;              // ← Mapea cuit_cuil → cuit
   logo_url?: string;
+  estado?: InstitutionStatus;
 }
 
 /**
- * Respuesta del backend para listar instituciones
+ * Respuestas del backend
  */
 export interface InstitutionsListResponse {
   status: string;
@@ -104,9 +86,6 @@ export interface InstitutionsListResponse {
   };
 }
 
-/**
- * Respuesta del backend para institución individual
- */
 export interface InstitutionResponse {
   status: string;
   message: string;
@@ -116,7 +95,7 @@ export interface InstitutionResponse {
 }
 
 /**
- * Filtros para búsqueda de instituciones
+ * Filtros para búsqueda
  */
 export interface InstitutionFilters {
   search?: string;
@@ -130,7 +109,7 @@ export interface InstitutionFilters {
 }
 
 /**
- * Estadísticas generales de instituciones
+ * Estadísticas
  */
 export interface InstitutionStats {
   total: number;
@@ -151,7 +130,7 @@ export interface InstitutionStats {
 }
 
 /**
- * Información detallada de una institución
+ * Detalle completo
  */
 export interface InstitutionDetail {
   institucion: InstitutionExtended;
@@ -185,17 +164,11 @@ export interface InstitutionDetail {
   }>;
 }
 
-/**
- * Opciones para asignar administrador
- */
 export interface AssignAdminRequest {
   usuario_id: number;
   permisos?: string[];
 }
 
-/**
- * Respuesta de operaciones
- */
 export interface InstitutionOperationResponse {
   status: 'success' | 'error';
   message: string;
@@ -203,53 +176,19 @@ export interface InstitutionOperationResponse {
 }
 
 /**
- * Configuración de la institución
+ * Constantes
  */
-export interface InstitutionSettings {
-  permite_auto_registro: boolean;
-  requiere_aprobacion_vendedores: boolean;
-  comision_default: number;
-  limite_rifas_simultaneas: number;
-  notificaciones_email: boolean;
-  notificaciones_whatsapp: boolean;
-}
-
-/**
- * Interfaz para validaciones
- */
-export interface InstitutionValidation {
-  nombre: {
-    valid: boolean;
-    errors: string[];
-  };
-  contacto_email: {
-    valid: boolean;
-    errors: string[];
-  };
-  tipo: {
-    valid: boolean;
-    errors: string[];
-  };
-  cuit_cuil: {
-    valid: boolean;
-    errors: string[];
-  };
-}
-
-/**
- * Constantes útiles
- */
-export const INSTITUTION_TYPES: Array<{value: InstitutionType, label: string}> = [
-  { value: 'club', label: 'Club Deportivo' },
-  { value: 'fundacion', label: 'Fundación' },
-  { value: 'ong', label: 'ONG' },
-  { value: 'cooperativa', label: 'Cooperativa' },
-  { value: 'escuela', label: 'Institución Educativa' },
-  { value: 'otro', label: 'Otro' }
+export const INSTITUTION_TYPES = [
+  { value: 'club', label: '⚽ Club Deportivo' },
+  { value: 'fundacion', label: '🤝 Fundación' },
+  { value: 'ong', label: '❤️ ONG' },
+  { value: 'cooperativa', label: '🏛️ Cooperativa' },
+  { value: 'escuela', label: '🎓 Escuela' },
+  { value: 'otro', label: '📋 Otro' }
 ];
 
-export const INSTITUTION_STATUSES: Array<{value: InstitutionStatus, label: string, class: string}> = [
-  { value: 'activa', label: 'Activa', class: 'status-active' },
-  { value: 'inactiva', label: 'Inactiva', class: 'status-inactive' },
-  { value: 'suspendida', label: 'Suspendida', class: 'status-suspended' }
+export const INSTITUTION_STATUSES = [
+  { value: 'activa', label: '✅ Activa' },
+  { value: 'inactiva', label: '⏸️ Inactiva' },
+  { value: 'suspendida', label: '🚫 Suspendida' }
 ];

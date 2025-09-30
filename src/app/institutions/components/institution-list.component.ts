@@ -1,4 +1,4 @@
-// src/app/institutions/components/institution-list.component.ts - CORREGIDO
+// src/app/institutions/components/institution-list.component.ts - CON NAVEGACIÓN
 
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,9 +11,7 @@ import {
   InstitutionFilters,
   InstitutionStats,
   INSTITUTION_TYPES,
-  INSTITUTION_STATUSES,
-  CreateInstitutionRequest,
-  UpdateInstitutionRequest
+  INSTITUTION_STATUSES
 } from '../models/institution.models';
 
 @Component({
@@ -35,10 +33,11 @@ export class InstitutionListComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly stats = signal<InstitutionStats | null>(null);
   readonly selectedInstitution = signal<Institution | null>(null);
-  readonly showCreateModal = signal<boolean>(false);
-  readonly showEditModal = signal<boolean>(false);
+  
+  // Solo mantenemos el modal de eliminación (acción destructiva)
   readonly showDeleteModal = signal<boolean>(false);
   readonly showDetailModal = signal<boolean>(false);
+  readonly submitting = signal<boolean>(false);
 
   // Filtros y paginación
   readonly currentFilters = signal<InstitutionFilters>({
@@ -52,25 +51,6 @@ export class InstitutionListComponent implements OnInit {
   });
 
   readonly pagination = signal<any>(null);
-
-  // Formulario signals
-  readonly formData = signal<CreateInstitutionRequest>({
-    nombre: '',
-    descripcion: '',
-    tipo: 'club',
-    contacto_email: '',
-    contacto_telefono: '',
-    contacto_whatsapp: '',
-    sitio_web: '',
-    direccion: '',
-    cuit_cuil: '',
-    estado: 'activa',
-    observaciones: ''
-  });
-
-  readonly editFormData = signal<UpdateInstitutionRequest>({});
-  readonly formErrors = signal<any>({});
-  readonly submitting = signal<boolean>(false);
 
   // Computed properties
   readonly filteredInstitutions = computed(() => {
@@ -86,7 +66,7 @@ export class InstitutionListComponent implements OnInit {
         const matchesSearch = 
           institution.nombre.toLowerCase().includes(search) ||
           (institution.descripcion && institution.descripcion.toLowerCase().includes(search)) ||
-          institution.contacto_email.toLowerCase().includes(search);
+          institution.email.toLowerCase().includes(search);
         
         if (!matchesSearch) return false;
       }
@@ -199,34 +179,34 @@ export class InstitutionListComponent implements OnInit {
     this.loadInstitutions();
   }
 
+  // ===================================================
+  // MÉTODOS DE NAVEGACIÓN (REEMPLAZAN LOS MODALES)
+  // ===================================================
+
   /**
-   * Abre modal para crear institución
+   * Navega para crear institución
    */
-  openCreateModal(): void {
-    this.resetForm();
-    this.showCreateModal.set(true);
+  createInstitution(): void {
+    this.router.navigate(['/instituciones/nueva']);
   }
 
   /**
-   * Abre modal para editar institución
+   * Navega para editar institución
    */
-  openEditModal(institution: Institution): void {
-    this.selectedInstitution.set(institution);
-    this.editFormData.set({
-      nombre: institution.nombre,
-      descripcion: institution.descripcion || '',
-      tipo: institution.tipo,
-      contacto_email: institution.contacto_email,
-      contacto_telefono: institution.contacto_telefono || '',
-      contacto_whatsapp: institution.contacto_whatsapp || '',
-      sitio_web: institution.sitio_web || '',
-      direccion: institution.direccion || '',
-      cuit_cuil: institution.cuit_cuil || '',
-      estado: institution.estado,
-      observaciones: institution.observaciones || ''
-    });
-    this.showEditModal.set(true);
+  editInstitution(institution: Institution): void {
+    this.router.navigate(['/instituciones', institution.id, 'editar']);
   }
+
+  /**
+   * Ver detalles de institución (por ahora redirige a editar)
+   */
+  viewInstitution(institution: Institution): void {
+    this.router.navigate(['/instituciones', institution.id, 'editar']);
+  }
+
+  // ===================================================
+  // MODALES (SOLO PARA ELIMINACIÓN Y DETALLES)
+  // ===================================================
 
   /**
    * Abre modal para eliminar institución
@@ -248,126 +228,9 @@ export class InstitutionListComponent implements OnInit {
    * Cierra todos los modales
    */
   closeModals(): void {
-    this.showCreateModal.set(false);
-    this.showEditModal.set(false);
     this.showDeleteModal.set(false);
     this.showDetailModal.set(false);
     this.selectedInstitution.set(null);
-    this.resetForm();
-  }
-
-  /**
-   * Resetea el formulario
-   */
-  resetForm(): void {
-    this.formData.set({
-      nombre: '',
-      descripcion: '',
-      tipo: 'club',
-      contacto_email: '',
-      contacto_telefono: '',
-      contacto_whatsapp: '',
-      sitio_web: '',
-      direccion: '',
-      cuit_cuil: '',
-      estado: 'activa',
-      observaciones: ''
-    });
-    this.editFormData.set({});
-    this.formErrors.set({});
-  }
-
-  /**
-   * Crea una nueva institución
-   */
-  async createInstitution(): Promise<void> {
-    try {
-      this.submitting.set(true);
-      this.formErrors.set({});
-
-      // Validaciones básicas
-      const errors = this.validateForm(this.formData());
-      if (Object.keys(errors).length > 0) {
-        this.formErrors.set(errors);
-        return;
-      }
-
-      const newInstitution = await this.institutionService.createInstitution(this.formData()).toPromise();
-      
-      if (newInstitution) {
-        // Agregar a la lista
-        this.institutions.update(institutions => [newInstitution, ...institutions]);
-        
-        // Actualizar estadísticas
-        this.loadStats();
-        
-        // Cerrar modal
-        this.closeModals();
-        
-        console.log('✅ Institución creada exitosamente:', newInstitution);
-      }
-    } catch (error: any) {
-      console.error('❌ Error al crear institución:', error);
-      
-      if (error.error && error.error.errors) {
-        this.formErrors.set(error.error.errors);
-      } else {
-        this.formErrors.set({ 
-          general: error.error?.message || 'Error al crear la institución' 
-        });
-      }
-    } finally {
-      this.submitting.set(false);
-    }
-  }
-
-  /**
-   * Actualiza una institución
-   */
-  async updateInstitution(): Promise<void> {
-    const selected = this.selectedInstitution();
-    if (!selected) return;
-
-    try {
-      this.submitting.set(true);
-      this.formErrors.set({});
-
-      // Validaciones básicas
-      const errors = this.validateForm(this.editFormData());
-      if (Object.keys(errors).length > 0) {
-        this.formErrors.set(errors);
-        return;
-      }
-
-      const updatedInstitution = await this.institutionService.updateInstitution(selected.id, this.editFormData()).toPromise();
-      
-      if (updatedInstitution) {
-        // Actualizar en la lista
-        this.institutions.update(institutions =>
-          institutions.map(inst => inst.id === selected.id ? updatedInstitution : inst)
-        );
-        
-        // Actualizar estadísticas
-        this.loadStats();
-        
-        // Cerrar modal
-        this.closeModals();
-        
-        console.log('✅ Institución actualizada exitosamente:', updatedInstitution);
-      }
-    } catch (error: any) {
-      console.error('❌ Error al actualizar institución:', error);
-      
-      if (error.error && error.error.errors) {
-        this.formErrors.set(error.error.errors);
-      } else {
-        this.formErrors.set({ 
-          general: error.error?.message || 'Error al actualizar la institución' 
-        });
-      }
-    } finally {
-      this.submitting.set(false);
-    }
   }
 
   /**
@@ -429,47 +292,9 @@ export class InstitutionListComponent implements OnInit {
     }
   }
 
-  /**
-   * Valida el formulario
-   */
-  private validateForm(formData: CreateInstitutionRequest | UpdateInstitutionRequest): any {
-    const errors: any = {};
-
-    // Validar nombre
-    if (!formData.nombre || formData.nombre.trim().length < 2) {
-      errors.nombre = 'El nombre debe tener al menos 2 caracteres';
-    }
-
-    // Validar email
-    if (!formData.contacto_email) {
-      errors.contacto_email = 'El email de contacto es requerido';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contacto_email)) {
-      errors.contacto_email = 'El email no tiene un formato válido';
-    }
-
-    // Validar tipo
-    if (!formData.tipo) {
-      errors.tipo = 'Debe seleccionar un tipo de institución';
-    }
-
-    // Validar CUIT/CUIL si se proporciona
-    if (formData.cuit_cuil && formData.cuit_cuil.length > 0) {
-      if (!/^\d{2}-?\d{8}-?\d{1}$/.test(formData.cuit_cuil)) {
-        errors.cuit_cuil = 'El formato de CUIT/CUIL no es válido';
-      }
-    }
-
-    // Validar URL del sitio web si se proporciona
-    if (formData.sitio_web && formData.sitio_web.length > 0) {
-      try {
-        new URL(formData.sitio_web);
-      } catch {
-        errors.sitio_web = 'La URL del sitio web no es válida';
-      }
-    }
-
-    return errors;
-  }
+  // ===================================================
+  // PERMISOS
+  // ===================================================
 
   /**
    * Verifica permisos para gestionar instituciones
@@ -507,6 +332,10 @@ export class InstitutionListComponent implements OnInit {
     // Solo admin global puede eliminar instituciones
     return user.role === 'admin_global';
   }
+
+  // ===================================================
+  // HELPERS Y UTILIDADES
+  // ===================================================
 
   /**
    * Obtiene el total de instituciones
@@ -566,13 +395,6 @@ export class InstitutionListComponent implements OnInit {
       case 'escuela': return '🎓';
       default: return '🏢';
     }
-  }
-
-  /**
-   * Navega al detalle de una institución
-   */
-  goToInstitutionDetail(institution: Institution): void {
-    this.router.navigate(['/instituciones', institution.id]);
   }
 
   /**

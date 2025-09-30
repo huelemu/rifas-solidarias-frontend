@@ -174,6 +174,43 @@ export class InstitutionService {
       );
   }
 
+/**
+ * Subir logo de institución
+ */
+uploadLogo(institutionId: number, file: File): Observable<any> {
+  const formData = new FormData();
+  formData.append('logo', file);
+  
+  return this.http.post<any>(`${this.apiUrl}/instituciones/${institutionId}/logo`, formData)
+    .pipe(
+      map(response => {
+        console.log('✅ Logo subido:', response);
+        return response.data;
+      }),
+      catchError(error => {
+        console.error('❌ Error al subir logo:', error);
+        throw error;
+      })
+    );
+}
+
+/**
+ * Eliminar logo de institución
+ */
+deleteLogo(institutionId: number): Observable<any> {
+  return this.http.delete<any>(`${this.apiUrl}/instituciones/${institutionId}/logo`)
+    .pipe(
+      map(response => {
+        console.log('✅ Logo eliminado:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('❌ Error al eliminar logo:', error);
+        throw error;
+      })
+    );
+}
+
   /**
    * Actualiza una institución existente
    */
@@ -320,28 +357,6 @@ export class InstitutionService {
         }),
         catchError((error) => {
           console.error('❌ InstitutionService: Error al remover admin:', error);
-          throw error;
-        })
-      );
-  }
-
-  /**
-   * Sube logo de la institución
-   */
-  uploadLogo(institutionId: number, logoFile: File): Observable<{logo_url: string}> {
-    console.log('📷 InstitutionService: Subiendo logo para institución ID:', institutionId);
-    
-    const formData = new FormData();
-    formData.append('logo', logoFile);
-    
-    return this.http.post<any>(`${this.apiUrl}/instituciones/${institutionId}/logo`, formData)
-      .pipe(
-        map((response) => {
-          console.log('✅ InstitutionService: Logo subido:', response);
-          return response.data || response;
-        }),
-        catchError((error) => {
-          console.error('❌ InstitutionService: Error al subir logo:', error);
           throw error;
         })
       );

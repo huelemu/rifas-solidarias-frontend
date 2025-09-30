@@ -14,26 +14,19 @@ export const institutionsRoutes: Routes = [
           import('./components/institution-list.component').then(m => m.InstitutionListComponent),
         title: 'Gestión de Instituciones'
       },
-      /*
-      {
-        path: ':id',
+      
+       {
+        path: 'nueva',
         loadComponent: () => 
-          import('./components/institution-detail.component').then(m => m.InstitutionDetailComponent),
-        title: 'Detalle de Institución'
+          import('./components/institution-form.component').then(m => m.InstitutionFormComponent),
+        title: 'Nueva Institución'
       },
       {
-        path: ':id/edit',
+        path: ':id/editar',
         loadComponent: () => 
           import('./components/institution-form.component').then(m => m.InstitutionFormComponent),
         title: 'Editar Institución'
       },
-      {
-        path: 'new',
-        loadComponent: () => 
-          import('./components/institution-form.component').then(m => m.InstitutionFormComponent),
-        title: 'Nueva Institución'
-      }
-     */
     ]
   }
 ];

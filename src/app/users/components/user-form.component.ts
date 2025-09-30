@@ -1,4 +1,4 @@
-// src/app/users/components/user-form.component.ts
+// src/app/users/components/user-form.component.ts - VERSIÓN MEJORADA
 
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -14,55 +14,62 @@ import { UserRole } from '../../auth/models/auth.models';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="form-container">
-      <header class="form-header">
-        <div class="header-content">
-          <div class="header-left">
-            <h1>{{ isEditMode() ? '✏️ Editar Usuario' : '➕ Crear Usuario' }}</h1>
-            <p>{{ isEditMode() ? 'Modificar información del usuario' : 'Agregar nuevo usuario al sistema' }}</p>
-          </div>
-          <div class="header-actions">
-            <button (click)="goBack()" class="btn-secondary">
-              ← Volver a la Lista
+    <div class="page-container">
+      <div class="page-content">
+        
+        <!-- Header compacto -->
+        <header class="page-header">
+          <div class="header-content">
+            <div class="header-title">
+              <h1>{{ isEditMode() ? '✏️ Editar Usuario' : '➕ Crear Usuario' }}</h1>
+              <p>{{ isEditMode() ? 'Modificar información del usuario' : 'Agregar nuevo usuario al sistema' }}</p>
+            </div>
+            <button (click)="goBack()" class="btn btn-secondary">
+              <span>← Volver</span>
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main class="form-main">
+        <!-- Loading state -->
         @if (isLoading()) {
-          <div class="loading-card">
+          <div class="loading-container">
             <div class="spinner"></div>
             <p>{{ isEditMode() ? 'Cargando usuario...' : 'Preparando formulario...' }}</p>
           </div>
         }
 
+        <!-- Error state -->
         @if (errorMessage()) {
           <div class="error-card">
-            <h3>❌ Error</h3>
+            <div class="error-icon">❌</div>
+            <h3>Error al cargar</h3>
             <p>{{ errorMessage() }}</p>
-            <button (click)="retry()" class="btn-primary">
+            <button (click)="retry()" class="btn btn-primary">
               🔄 Reintentar
             </button>
           </div>
         }
 
+        <!-- Formulario -->
         @if (!isLoading() && !errorMessage()) {
-          <div class="form-card">
-            <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+          <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="form-card">
+            
+            <!-- Grid de 2 columnas -->
+            <div class="form-grid">
               
-              <!-- Información Personal -->
-              <div class="form-section">
-                <h3>👤 Información Personal</h3>
+              <!-- Columna Izquierda -->
+              <div class="form-column">
                 
-                <div class="form-row">
+                <div class="form-section">
+                  <h3 class="section-title">👤 Información Personal</h3>
+                  
                   <div class="form-group">
-                    <label for="nombre">Nombre *</label>
+                    <label for="nombre">Nombre <span class="required">*</span></label>
                     <input
                       type="text"
                       id="nombre"
                       formControlName="nombre"
-                      placeholder="Nombre del usuario"
+                      placeholder="Ej: Juan"
                       [class.error]="isFieldInvalid('nombre')"
                     />
                     @if (isFieldInvalid('nombre')) {
@@ -71,19 +78,19 @@ import { UserRole } from '../../auth/models/auth.models';
                           El nombre es requerido
                         }
                         @if (userForm.get('nombre')?.hasError('minlength')) {
-                          El nombre debe tener al menos 2 caracteres
+                          Mínimo 2 caracteres
                         }
                       </span>
                     }
                   </div>
 
                   <div class="form-group">
-                    <label for="apellido">Apellido *</label>
+                    <label for="apellido">Apellido <span class="required">*</span></label>
                     <input
                       type="text"
                       id="apellido"
                       formControlName="apellido"
-                      placeholder="Apellido del usuario"
+                      placeholder="Ej: Pérez"
                       [class.error]="isFieldInvalid('apellido')"
                     />
                     @if (isFieldInvalid('apellido')) {
@@ -92,51 +99,46 @@ import { UserRole } from '../../auth/models/auth.models';
                           El apellido es requerido
                         }
                         @if (userForm.get('apellido')?.hasError('minlength')) {
-                          El apellido debe tener al menos 2 caracteres
+                          Mínimo 2 caracteres
+                        }
+                      </span>
+                    }
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input
+                      type="email"
+                      id="email"
+                      formControlName="email"
+                      placeholder="usuario@ejemplo.com"
+                      [class.error]="isFieldInvalid('email')"
+                    />
+                    @if (isFieldInvalid('email')) {
+                      <span class="error-message">
+                        @if (userForm.get('email')?.hasError('required')) {
+                          El email es requerido
+                        }
+                        @if (userForm.get('email')?.hasError('email')) {
+                          Email inválido
                         }
                       </span>
                     }
                   </div>
                 </div>
 
-                <div class="form-group">
-                  <label for="email">Email *</label>
-                  <input
-                    type="email"
-                    id="email"
-                    formControlName="email"
-                    placeholder="usuario@ejemplo.com"
-                    [class.error]="isFieldInvalid('email')"
-                  />
-                  @if (isFieldInvalid('email')) {
-                    <span class="error-message">
-                      @if (userForm.get('email')?.hasError('required')) {
-                        El email es requerido
-                      }
-                      @if (userForm.get('email')?.hasError('email')) {
-                        Ingrese un email válido
-                      }
-                      @if (userForm.get('email')?.hasError('emailExists')) {
-                        Este email ya está registrado
-                      }
-                    </span>
-                  }
-                </div>
-              </div>
-
-              <!-- Contraseña (solo para crear) -->
-              @if (!isEditMode()) {
-                <div class="form-section">
-                  <h3>🔑 Contraseña</h3>
-                  
-                  <div class="form-row">
+                <!-- Contraseñas solo en modo creación -->
+                @if (!isEditMode()) {
+                  <div class="form-section">
+                    <h3 class="section-title">🔒 Contraseña</h3>
+                    
                     <div class="form-group">
-                      <label for="password">Contraseña *</label>
+                      <label for="password">Contraseña <span class="required">*</span></label>
                       <input
                         type="password"
                         id="password"
                         formControlName="password"
-                        placeholder="••••••••"
+                        placeholder="Mínimo 6 caracteres"
                         [class.error]="isFieldInvalid('password')"
                       />
                       @if (isFieldInvalid('password')) {
@@ -145,210 +147,185 @@ import { UserRole } from '../../auth/models/auth.models';
                             La contraseña es requerida
                           }
                           @if (userForm.get('password')?.hasError('minlength')) {
-                            La contraseña debe tener al menos 6 caracteres
+                            Mínimo 6 caracteres
                           }
                         </span>
                       }
                     </div>
 
                     <div class="form-group">
-                      <label for="confirmPassword">Confirmar Contraseña *</label>
+                      <label for="confirmPassword">Confirmar Contraseña <span class="required">*</span></label>
                       <input
                         type="password"
                         id="confirmPassword"
                         formControlName="confirmPassword"
-                        placeholder="••••••••"
-                        [class.error]="isFieldInvalid('confirmPassword')"
+                        placeholder="Repite la contraseña"
+                        [class.error]="isFieldInvalid('confirmPassword') || userForm.hasError('passwordMismatch')"
                       />
                       @if (isFieldInvalid('confirmPassword')) {
-                        <span class="error-message">
-                          @if (userForm.get('confirmPassword')?.hasError('required')) {
-                            Confirme la contraseña
-                          }
-                          @if (userForm.hasError('passwordMismatch')) {
-                            Las contraseñas no coinciden
-                          }
-                        </span>
+                        <span class="error-message">Confirma la contraseña</span>
+                      }
+                      @if (userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched) {
+                        <span class="error-message">Las contraseñas no coinciden</span>
                       }
                     </div>
                   </div>
-                </div>
-              }
+                }
+              </div>
 
-              <!-- Rol y Estado -->
-              <div class="form-section">
-                <h3>🔐 Roles y Permisos</h3>
+              <!-- Columna Derecha -->
+              <div class="form-column">
                 
-                <div class="form-row">
+                <div class="form-section">
+                  <h3 class="section-title">🎭 Rol y Permisos</h3>
+                  
                   <div class="form-group">
-                    <label for="rol">Rol *</label>
+                    <label for="rol">Rol <span class="required">*</span></label>
                     <select
                       id="rol"
                       formControlName="rol"
-                      [class.error]="isFieldInvalid('rol')"
                       (change)="onRoleChange()"
+                      [class.error]="isFieldInvalid('rol')"
                     >
-                      <option value="">Seleccionar rol</option>
+                      <option value="">Seleccionar rol...</option>
                       @if (canAssignRole('admin_global')) {
-                        <option value="admin_global">Administrador Global</option>
+                        <option value="admin_global">👑 Administrador Global</option>
                       }
                       @if (canAssignRole('admin_institucion')) {
-                        <option value="admin_institucion">Administrador de Institución</option>
+                        <option value="admin_institucion">🏢 Admin de Institución</option>
                       }
                       @if (canAssignRole('vendedor')) {
-                        <option value="vendedor">Vendedor</option>
+                        <option value="vendedor">💼 Vendedor</option>
                       }
                       @if (canAssignRole('comprador')) {
-                        <option value="comprador">Comprador</option>
+                        <option value="comprador">🛒 Comprador</option>
                       }
                     </select>
                     @if (isFieldInvalid('rol')) {
-                      <span class="error-message">
-                        Seleccione un rol
-                      </span>
+                      <span class="error-message">Selecciona un rol</span>
                     }
                   </div>
 
+                  @if (shouldShowInstitution()) {
+                    <div class="form-group">
+                      <label for="institucion_id">Institución <span class="required">*</span></label>
+                      <select
+                        id="institucion_id"
+                        formControlName="institucion_id"
+                        [class.error]="isFieldInvalid('institucion_id')"
+                      >
+                        <option value="">Seleccionar institución...</option>
+                        <option value="1">Institución 1</option>
+                        <option value="2">Institución 2</option>
+                      </select>
+                      @if (isFieldInvalid('institucion_id')) {
+                        <span class="error-message">Selecciona una institución</span>
+                      }
+                    </div>
+                  }
+
                   <div class="form-group">
                     <label for="estado">Estado</label>
-                    <select
-                      id="estado"
-                      formControlName="estado"
-                      [class.error]="isFieldInvalid('estado')"
-                    >
-                      <option value="activo">Activo</option>
-                      <option value="inactivo">Inactivo</option>
-                      @if (authService.isGlobalAdmin()) {
-                        <option value="suspendido">Suspendido</option>
-                      }
+                    <select id="estado" formControlName="estado">
+                      <option value="activo">✅ Activo</option>
+                      <option value="inactivo">⏸️ Inactivo</option>
+                      <option value="suspendido">🚫 Suspendido</option>
                     </select>
                   </div>
                 </div>
-              </div>
 
-              <!-- Institución (si aplica) -->
-              @if (shouldShowInstitution()) {
-                <div class="form-section">
-                  <h3>🏢 Institución</h3>
-                  
-                  <div class="form-group">
-                    <label for="institucion_id">Institución</label>
-                    <select
-                      id="institucion_id"
-                      formControlName="institucion_id"
-                    >
-                      <option value="">Sin institución asignada</option>
-                      <option value="1">Institución de Ejemplo 1</option>
-                      <option value="2">Institución de Ejemplo 2</option>
-                      <!-- TODO: Cargar instituciones dinámicamente -->
-                    </select>
-                    <small class="form-help">
-                      Solo requerido para administradores de institución y vendedores
-                    </small>
+                @if (isEditMode()) {
+                  <div class="info-box">
+                    <div class="info-icon">ℹ️</div>
+                    <div class="info-content">
+                      <strong>Cambio de contraseña</strong>
+                      <p>Para cambiar la contraseña, el usuario debe usar la opción "Olvidé mi contraseña".</p>
+                    </div>
                   </div>
-                </div>
-              }
-
-              <!-- Botones de acción -->
-              <div class="form-actions">
-                <button
-                  type="button"
-                  (click)="goBack()"
-                  class="btn-cancel"
-                >
-                  ❌ Cancelar
-                </button>
-                
-                <button
-                  type="submit"
-                  class="btn-submit"
-                  [disabled]="userForm.invalid || isSaving()"
-                >
-                  @if (isSaving()) {
-                    <span class="spinner-sm"></span>
-                    {{ isEditMode() ? 'Actualizando...' : 'Creando...' }}
-                  } @else {
-                    {{ isEditMode() ? '💾 Actualizar Usuario' : '➕ Crear Usuario' }}
-                  }
-                </button>
+                }
               </div>
-            </form>
-          </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-actions">
+              <button type="button" (click)="goBack()" class="btn btn-secondary">
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="userForm.invalid || isSaving()"
+              >
+                @if (isSaving()) {
+                  <span class="spinner-sm"></span>
+                  <span>{{ isEditMode() ? 'Actualizando...' : 'Creando...' }}</span>
+                } @else {
+                  <span>{{ isEditMode() ? '💾 Actualizar Usuario' : '➕ Crear Usuario' }}</span>
+                }
+              </button>
+            </div>
+          </form>
         }
-      </main>
+      </div>
     </div>
   `,
   styles: [`
-    .form-container {
+    .page-container {
       min-height: 100vh;
-      background-color: #f5f5f5;
-    }
-
-    .form-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 2rem 0;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-left h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.8rem;
-      font-weight: 600;
-    }
-
-    .header-left p {
-      margin: 0;
-      opacity: 0.9;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 500;
-      transition: background-color 0.2s;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .form-main {
-      max-width: 800px;
-      margin: 0 auto;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
       padding: 2rem 1rem;
     }
 
-    .loading-card, .error-card {
+    .page-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ===== HEADER ===== */
+    .page-header {
       background: white;
-      border-radius: 8px;
-      padding: 3rem;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .header-title h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.75rem;
+      color: #2d3748;
+    }
+
+    .header-title p {
+      margin: 0;
+      color: #718096;
+      font-size: 0.95rem;
+    }
+
+    /* ===== ESTADOS ===== */
+    .loading-container {
+      background: white;
+      border-radius: 12px;
+      padding: 4rem 2rem;
       text-align: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #667eea;
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #667eea;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 0 auto 1rem auto;
+      margin: 0 auto 1rem;
     }
 
     .spinner-sm {
@@ -367,40 +344,63 @@ import { UserRole } from '../../auth/models/auth.models';
       100% { transform: rotate(360deg); }
     }
 
-    .form-card {
+    .error-card {
       background: white;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .user-form {
+    .error-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .error-card h3 {
+      margin: 0 0 0.5rem 0;
+      color: #e53e3e;
+    }
+
+    .error-card p {
+      margin: 0 0 1.5rem 0;
+      color: #718096;
+    }
+
+    /* ===== FORMULARIO ===== */
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-column {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      gap: 1.5rem;
     }
 
     .form-section {
-      border-bottom: 1px solid #e9ecef;
-      padding-bottom: 1.5rem;
-    }
-
-    .form-section:last-of-type {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    .form-section h3 {
-      color: #333;
-      margin: 0 0 1rem 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
+    }
+
+    .section-title {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: #4a5568;
+      font-weight: 600;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e8f0;
     }
 
     .form-group {
@@ -411,115 +411,164 @@ import { UserRole } from '../../auth/models/auth.models';
 
     .form-group label {
       font-weight: 500;
-      color: #333;
+      color: #4a5568;
       font-size: 0.9rem;
     }
 
-    .form-group input, .form-group select {
-      padding: 0.75rem;
-      border: 2px solid #e1e5e9;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
+    .required {
+      color: #e53e3e;
     }
 
-    .form-group input:focus, .form-group select:focus {
+    input, select {
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    input:focus, select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    .form-group input.error, .form-group select.error {
-      border-color: #e74c3c;
+    input.error, select.error {
+      border-color: #fc8181;
     }
 
-    .form-group input.error:focus, .form-group select.error:focus {
-      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    input.error:focus, select.error:focus {
+      box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.1);
     }
 
     .error-message {
-      color: #e74c3c;
-      font-size: 0.8rem;
-      margin-top: 0.25rem;
-    }
-
-    .form-help {
-      color: #6c757d;
-      font-size: 0.8rem;
-      margin-top: 0.25rem;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-      padding-top: 1rem;
-      border-top: 1px solid #e9ecef;
-    }
-
-    .btn-cancel, .btn-submit, .btn-primary {
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
+      color: #e53e3e;
+      font-size: 0.85rem;
       display: flex;
       align-items: center;
+      gap: 0.25rem;
+    }
+
+    .error-message::before {
+      content: '⚠️';
+    }
+
+    /* ===== INFO BOX ===== */
+    .info-box {
+      background: linear-gradient(135deg, #ebf4ff 0%, #e6f7ff 100%);
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .info-content strong {
+      display: block;
+      color: #2c5282;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-content p {
+      margin: 0;
+      color: #4a5568;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* ===== BOTONES ===== */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-    }
-
-    .btn-cancel {
-      background: #6c757d;
-      color: white;
-      border: none;
-    }
-
-    .btn-cancel:hover {
-      background: #5a6268;
-    }
-
-    .btn-submit {
-      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-      color: white;
-      border: none;
-    }
-
-    .btn-submit:hover:not(:disabled) {
-      background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
-      transform: translateY(-1px);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+      gap: 0.5rem;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      border: none;
     }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #4a5568;
+      border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      padding-top: 1rem;
+      border-top: 2px solid #e2e8f0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 968px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
       }
 
-      .form-row {
-        grid-template-columns: 1fr;
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .page-header {
+        padding: 1.25rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .form-card {
+        padding: 1.5rem;
+      }
+
+      .header-title h1 {
+        font-size: 1.5rem;
       }
 
       .form-actions {
         flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
       }
     }
   `]
@@ -531,14 +580,12 @@ export class UserFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  // Signals para estado del componente
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly isEditMode = signal(false);
   readonly currentUser = signal<UserExtended | null>(null);
 
-  // Formulario reactivo
   userForm: FormGroup = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     apellido: ['', [Validators.required, Validators.minLength(2)]],
@@ -551,34 +598,24 @@ export class UserFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Verificar si estamos en modo edición
     const userId = this.route.snapshot.paramMap.get('id');
     if (userId && userId !== 'nuevo') {
       this.isEditMode.set(true);
       this.loadUser(parseInt(userId));
     } else {
-      // Modo creación - agregar validadores de contraseña
       this.addPasswordValidators();
     }
   }
 
-  /**
-   * Agrega validadores de contraseña para modo creación
-   */
   private addPasswordValidators(): void {
     this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
     this.userForm.get('confirmPassword')?.setValidators([Validators.required]);
-    
-    // Validador personalizado para verificar que las contraseñas coincidan
     this.userForm.setValidators(this.passwordMatchValidator);
     
     this.userForm.get('password')?.updateValueAndValidity();
     this.userForm.get('confirmPassword')?.updateValueAndValidity();
   }
 
-  /**
-   * Validador personalizado para verificar que las contraseñas coincidan
-   */
   private passwordMatchValidator(control: AbstractControl): {[key: string]: any} | null {
     const formGroup = control as FormGroup;
     const password = formGroup.get('password');
@@ -591,31 +628,15 @@ export class UserFormComponent implements OnInit {
     return null;
   }
 
-  /**
-   * Carga los datos del usuario en modo edición
-   */
   private loadUser(userId: number): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
-
-    console.log('🔄 UserFormComponent: Cargando usuario ID:', userId);
 
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         this.isLoading.set(false);
         this.currentUser.set(user);
         
-        console.log('📝 UserFormComponent: Usuario recibido:', user);
-        console.log('📝 UserFormComponent: Datos a cargar en formulario:', {
-          nombre: user.nombre,
-          apellido: user.apellido,
-          email: user.email,
-          rol: user.rol,
-          estado: user.estado,
-          institucion_id: user.institucion_id
-        });
-        
-        // Llenar el formulario con los datos del usuario
         this.userForm.patchValue({
           nombre: user.nombre || '',
           apellido: user.apellido || '',
@@ -625,29 +646,17 @@ export class UserFormComponent implements OnInit {
           institucion_id: user.institucion_id || ''
         });
         
-        // Forzar detección de cambios
         this.userForm.markAsPristine();
         this.userForm.markAsUntouched();
-        
-        console.log('✅ UserFormComponent: Formulario actualizado:', this.userForm.value);
       },
       error: (error) => {
         this.isLoading.set(false);
         const errorMsg = error?.message || 'Error desconocido';
         this.errorMessage.set('Error al cargar usuario: ' + errorMsg);
-        console.error('❌ UserFormComponent: Error cargando usuario:', error);
-        console.error('❌ UserFormComponent: Error completo:', {
-          message: error.message,
-          status: error.status,
-          error: error.error
-        });
       }
     });
   }
 
-  /**
-   * Maneja el envío del formulario
-   */
   onSubmit(): void {
     if (this.userForm.invalid) {
       this.markAllFieldsAsTouched();
@@ -663,9 +672,6 @@ export class UserFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Crea un nuevo usuario
-   */
   private createUser(): void {
     const formValue = this.userForm.value;
     const userData: CreateUserRequest = {
@@ -681,20 +687,15 @@ export class UserFormComponent implements OnInit {
     this.userService.createUser(userData).subscribe({
       next: (user) => {
         this.isSaving.set(false);
-        console.log('✅ Usuario creado:', user);
         this.router.navigate(['/usuarios']);
       },
       error: (error) => {
         this.isSaving.set(false);
         this.errorMessage.set('Error al crear usuario: ' + error.message);
-        console.error('❌ Error creando usuario:', error);
       }
     });
   }
 
-  /**
-   * Actualiza un usuario existente
-   */
   private updateUser(): void {
     const formValue = this.userForm.value;
     const currentUser = this.currentUser();
@@ -713,44 +714,31 @@ export class UserFormComponent implements OnInit {
     this.userService.updateUser(currentUser.id, userData).subscribe({
       next: (user) => {
         this.isSaving.set(false);
-        console.log('✅ Usuario actualizado:', user);
         this.router.navigate(['/usuarios']);
       },
       error: (error) => {
         this.isSaving.set(false);
         this.errorMessage.set('Error al actualizar usuario: ' + error.message);
-        console.error('❌ Error actualizando usuario:', error);
       }
     });
   }
 
-  /**
-   * Verifica si un campo específico es inválido
-   */
   isFieldInvalid(fieldName: string): boolean {
     const field = this.userForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  /**
-   * Marca todos los campos como tocados
-   */
   private markAllFieldsAsTouched(): void {
     Object.keys(this.userForm.controls).forEach(key => {
       this.userForm.get(key)?.markAsTouched();
     });
   }
 
-  /**
-   * Verifica si puede asignar un rol específico
-   */
   canAssignRole(role: UserRole): boolean {
     const currentUserRole = this.authService.userRole();
     
-    // Admin global puede asignar cualquier rol
     if (currentUserRole === 'admin_global') return true;
     
-    // Admin de institución solo puede asignar vendedor y comprador
     if (currentUserRole === 'admin_institucion') {
       return role === 'vendedor' || role === 'comprador';
     }
@@ -758,36 +746,23 @@ export class UserFormComponent implements OnInit {
     return false;
   }
 
-  /**
-   * Verifica si debe mostrar el campo de institución
-   */
   shouldShowInstitution(): boolean {
     const rol = this.userForm.get('rol')?.value;
     return rol === 'admin_institucion' || rol === 'vendedor';
   }
 
-  /**
-   * Maneja cambios en el rol
-   */
   onRoleChange(): void {
     const rol = this.userForm.get('rol')?.value;
     
-    // Si no requiere institución, limpiar el campo
     if (!this.shouldShowInstitution()) {
       this.userForm.get('institucion_id')?.setValue('');
     }
   }
 
-  /**
-   * Vuelve a la lista de usuarios
-   */
   goBack(): void {
     this.router.navigate(['/usuarios']);
   }
 
-  /**
-   * Reintenta la operación
-   */
   retry(): void {
     this.errorMessage.set(null);
     
