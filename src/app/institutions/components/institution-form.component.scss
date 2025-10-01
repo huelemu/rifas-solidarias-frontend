@@ -1,4 +1,11 @@
-// src/app/institutions/components/institution-form.component.scss
+/* ========================================
+   INSTITUTION FORM COMPONENT - SCSS
+   Sistema de Rifas Solidarias
+   ======================================== */
+
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
 
 .page-container {
   min-height: 100vh;
@@ -10,6 +17,10 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+
+/* ========================================
+   HEADER DE PÁGINA
+   ======================================== */
 
 .page-header {
   background: white;
@@ -26,17 +37,23 @@
   gap: 2rem;
 }
 
-.header-title h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.75rem;
-  color: #2d3748;
+.header-title {
+  h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    color: #718096;
+    font-size: 0.95rem;
+  }
 }
 
-.header-title p {
-  margin: 0;
-  color: #718096;
-  font-size: 0.95rem;
-}
+/* ========================================
+   ESTADOS DE CARGA
+   ======================================== */
 
 .loading-container {
   background: white;
@@ -46,6 +63,30 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.error-card {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: #e53e3e;
+  }
+
+  p {
+    margin: 0 0 1.5rem 0;
+    color: #718096;
+  }
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Spinners */
 .spinner {
   width: 50px;
   height: 50px;
@@ -57,13 +98,13 @@
 }
 
 .spinner-sm {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
   display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
   margin-right: 0.5rem;
 }
 
@@ -72,28 +113,9 @@
   100% { transform: rotate(360deg); }
 }
 
-.error-card {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem 2rem;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.error-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.error-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #e53e3e;
-}
-
-.error-card p {
-  margin: 0 0 1.5rem 0;
-  color: #718096;
-}
+/* ========================================
+   FORMULARIO
+   ======================================== */
 
 .form-card {
   background: white;
@@ -130,16 +152,20 @@
   border-bottom: 2px solid #e2e8f0;
 }
 
+/* ========================================
+   CAMPOS DEL FORMULARIO
+   ======================================== */
+
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
 
-.form-group label {
-  font-weight: 500;
-  color: #4a5568;
-  font-size: 0.9rem;
+  label {
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 0.9rem;
+  }
 }
 
 .required {
@@ -154,20 +180,20 @@ input, select, textarea {
   font-size: 0.95rem;
   transition: all 0.2s;
   background: white;
-}
 
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
 
-input.error, select.error, textarea.error {
-  border-color: #fc8181;
-}
+  &.error {
+    border-color: #fc8181;
 
-input.error:focus, select.error:focus, textarea.error:focus {
-  box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.1);
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.1);
+    }
+  }
 }
 
 textarea {
@@ -187,10 +213,11 @@ textarea {
   }
 }
 
-// ========================================
-// ESTILOS PARA SUBIDA DE LOGO
-// ========================================
+/* ========================================
+   SECCIÓN DE SUBIDA DE LOGO
+   ======================================== */
 
+/* Logo actual (cuando ya existe) */
 .logo-current {
   display: flex;
   flex-direction: column;
@@ -201,6 +228,7 @@ textarea {
   border-radius: 8px;
 }
 
+/* Preview grande del logo */
 .logo-preview-large {
   max-width: 200px;
   max-height: 200px;
@@ -211,6 +239,7 @@ textarea {
   padding: 0.5rem;
 }
 
+/* Container del preview antes de subir */
 .logo-preview-container {
   display: flex;
   flex-direction: column;
@@ -226,224 +255,7 @@ textarea {
   gap: 0.5rem;
 }
 
-.file-upload-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  border: 2px dashed #cbd5e0;
-  border-radius: 8px;
-  background: #f7fafc;
-  text-align: center;
-}
-
-.btn-upload {
-  background: white;
-  color: #4a5568;
-  border: 2px solid #e2e8f0;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #f7fafc;
-    border-color: #667eea;
-    color: #667eea;
-  }
-}
-
-.upload-hint {
-  margin: 0;
-  color: #718096;
-  font-size: 0.85rem;
-}
-
-.btn-danger-sm {
-  background: #fc8181;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: #f56565;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-// ========================================
-// INFO BOX
-// ========================================
-
-.info-box {
-  background: linear-gradient(135deg, #ebf4ff 0%, #e6f7ff 100%);
-  border: 1px solid #bee3f8;
-  border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  gap: 0.75rem;
-}
-
-.info-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.info-content strong {
-  display: block;
-  color: #2c5282;
-  margin-bottom: 0.25rem;
-}
-
-.info-content p {
-  margin: 0;
-  color: #4a5568;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-// ========================================
-// BOTONES
-// ========================================
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-family: inherit;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.btn-secondary {
-  background: white;
-  color: #4a5568;
-  border: 2px solid #e2e8f0;
-
-  &:hover {
-    background: #f7fafc;
-    border-color: #cbd5e0;
-  }
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #e2e8f0;
-}
-
-// ========================================
-// RESPONSIVE
-// ========================================
-
-@media (max-width: 968px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .page-header {
-    padding: 1.25rem 1.5rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .page-container {
-    padding: 1rem 0.5rem;
-  }
-
-  .form-card {
-    padding: 1.5rem;
-  }
-
-  .header-title h1 {
-    font-size: 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-
-    .btn {
-      width: 100%;
-    }
-  }
-
-  // ========================================
-// ESTILOS PARA SUBIDA DE LOGO
-// ========================================
-
-.logo-current {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.logo-preview-large {
-  max-width: 200px;
-  max-height: 200px;
-  object-fit: contain;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  padding: 0.5rem;
-}
-
-.logo-preview-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.logo-preview-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
+/* Área de selección de archivo */
 .file-upload-area {
   display: flex;
   flex-direction: column;
@@ -507,18 +319,147 @@ textarea {
   }
 }
 
-.spinner-sm {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  margin-right: 0.5rem;
+/* ========================================
+   INFO BOX
+   ======================================== */
+
+.info-box {
+  background: linear-gradient(135deg, #ebf4ff 0%, #e6f7ff 100%);
+  border: 1px solid #bee3f8;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.info-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
+
+.info-content {
+  strong {
+    display: block;
+    color: #2c5282;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: #4a5568;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: white;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+
+  &:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+}
+
+/* ========================================
+   ACCIONES DEL FORMULARIO
+   ======================================== */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+/* ========================================
+   RESPONSIVE - TABLET
+   ======================================== */
+
+@media (max-width: 968px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-header {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+   ======================================== */
+
+@media (max-width: 640px) {
+  .page-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .form-card {
+    padding: 1.5rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .logo-preview-large {
+    max-width: 150px;
+    max-height: 150px;
+  }
+
+  .file-upload-area {
+    padding: 1.5rem;
+  }
 }
