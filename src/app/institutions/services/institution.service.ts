@@ -178,17 +178,33 @@ export class InstitutionService {
  * Subir logo de institución
  */
 uploadLogo(institutionId: number, file: File): Observable<any> {
+  console.log('🔧 Service.uploadLogo: Iniciando para ID:', institutionId);
+  console.log('📎 Service.uploadLogo: Archivo:', file.name, file.type, file.size);
+  
   const formData = new FormData();
   formData.append('logo', file);
+  
+  console.log('📤 Service.uploadLogo: Enviando POST a:', `${this.apiUrl}/instituciones/${institutionId}/logo`);
   
   return this.http.post<any>(`${this.apiUrl}/instituciones/${institutionId}/logo`, formData)
     .pipe(
       map(response => {
-        console.log('✅ Logo subido:', response);
+        console.log('✅ Service.uploadLogo: Respuesta completa del backend:', response);
+        console.log('📦 Service.uploadLogo: response.data:', response.data);
+        
+        // Verificar estructura de respuesta
+        if (!response.data) {
+          console.error('⚠️ Service.uploadLogo: response.data es undefined');
+          throw new Error('Respuesta del servidor inválida: falta data');
+        }
+        
+        console.log('✅ Service.uploadLogo: Retornando:', response.data);
         return response.data;
       }),
       catchError(error => {
-        console.error('❌ Error al subir logo:', error);
+        console.error('❌ Service.uploadLogo: Error completo:', error);
+        console.error('❌ Service.uploadLogo: error.error:', error.error);
+        console.error('❌ Service.uploadLogo: error.status:', error.status);
         throw error;
       })
     );

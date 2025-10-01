@@ -133,31 +133,43 @@
               </div>
             </div>
 
-            <!-- SECCIÓN DE LOGO -->
-            @if (isEditMode()) {
-              <div class="form-section">
-                <h3 class="section-title">🖼️ Logo de la Institución</h3>
-                
-                <!-- Logo actual -->
-                @if (getLogoUrl()) {
-                  <div class="logo-current">
-                    <img [src]="getLogoUrl()" alt="Logo" class="logo-preview-large" />
-                    <button 
-                      type="button" 
-                      (click)="removeLogo()" 
-                      class="btn btn-danger-sm"
-                      [disabled]="isUploadingLogo()"
-                    >
-                      🗑️ Eliminar Logo
-                    </button>
+            <!-- ========================================
+                 SECCIÓN DE LOGO
+                 ======================================== -->
+            <div class="form-section">
+              <h3 class="section-title">🖼️ Logo de la Institución</h3>
+
+              <!-- Info box (solo en modo creación) -->
+              @if (!isEditMode()) {
+                <div class="info-box">
+                  <span class="info-icon">ℹ️</span>
+                  <div class="info-content">
+                    <strong>Opcional:</strong> Puedes seleccionar un logo ahora o agregarlo después editando la institución.
                   </div>
-                }
-                
-                <!-- Preview de nuevo logo -->
-                @if (logoPreview && !getLogoUrl()) {
-                  <div class="logo-preview-container">
-                    <img [src]="logoPreview" alt="Preview" class="logo-preview-large" />
-                    <div class="logo-preview-actions">
+                </div>
+              }
+              
+              <!-- Logo actual (solo en modo edición) -->
+              @if (isEditMode() && getLogoUrl()) {
+                <div class="logo-current">
+                  <img [src]="getLogoUrl()" alt="Logo actual" class="logo-preview-large" />
+                  <button 
+                    type="button" 
+                    (click)="removeLogo()" 
+                    class="btn btn-danger-sm"
+                    [disabled]="isUploadingLogo()"
+                  >
+                    🗑️ Eliminar Logo
+                  </button>
+                </div>
+              }
+              
+              <!-- Preview de nuevo logo seleccionado -->
+              @if (logoPreview && !getLogoUrl()) {
+                <div class="logo-preview-container">
+                  <img [src]="logoPreview" alt="Preview del logo" class="logo-preview-large" />
+                  <div class="logo-preview-actions">
+                    @if (isEditMode()) {
                       <button 
                         type="button" 
                         (click)="uploadLogo()" 
@@ -171,41 +183,49 @@
                           <span>📤 Subir Logo</span>
                         }
                       </button>
-                      <button 
-                        type="button" 
-                        (click)="cancelFileSelection()" 
-                        class="btn btn-secondary"
-                        [disabled]="isUploadingLogo()"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                }
-                
-                <!-- Selector de archivo -->
-                @if (!logoPreview && !getLogoUrl()) {
-                  <div class="file-upload-area">
-                    <input 
-                      type="file" 
-                      #fileInput 
-                      (change)="onFileSelected($event)"
-                      accept="image/*"
-                      style="display: none"
-                    />
+                    }
                     <button 
                       type="button" 
-                      (click)="fileInput.click()" 
-                      class="btn btn-upload"
+                      (click)="cancelFileSelection()" 
+                      class="btn btn-secondary"
+                      [disabled]="isUploadingLogo()"
                     >
-                      📁 Seleccionar Logo
+                      Cancelar
                     </button>
-                    <p class="upload-hint">JPG, PNG, GIF o WEBP - Máx. 5MB</p>
                   </div>
-                }
-              </div>
-            }
+                  @if (!isEditMode()) {
+                    <p class="upload-hint">
+                      El logo se subirá después de crear la institución
+                    </p>
+                  }
+                </div>
+              }
+              
+              <!-- Selector de archivo (cuando no hay preview ni logo) -->
+              @if (!logoPreview && !getLogoUrl()) {
+                <div class="file-upload-area">
+                  <input 
+                    type="file" 
+                    #fileInput 
+                    (change)="onFileSelected($event)"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                  <button 
+                    type="button" 
+                    (click)="fileInput.click()" 
+                    class="btn btn-upload"
+                  >
+                    📁 Seleccionar Logo
+                  </button>
+                  <p class="upload-hint">JPG, PNG, GIF o WEBP - Máx. 5MB</p>
+                </div>
+              }
+            </div>
+            <!-- FIN SECCIÓN DE LOGO -->
+
           </div>
+          <!-- FIN Columna Izquierda -->
 
           <!-- Columna Derecha -->
           <div class="form-column">
@@ -253,7 +273,10 @@
               </div>
             </div>
           </div>
+          <!-- FIN Columna Derecha -->
+
         </div>
+        <!-- FIN form-grid -->
 
         <div class="form-actions">
           <button type="button" (click)="goBack()" class="btn btn-secondary">

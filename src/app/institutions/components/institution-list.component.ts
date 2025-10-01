@@ -397,6 +397,19 @@ export class InstitutionListComponent implements OnInit {
     }
   }
 
+/**
+ * Obtiene la URL completa del logo de una institución
+ */
+getInstitutionLogoUrl(institution: Institution): string {
+  if (!institution.logo_url) return '';
+  
+  if (institution.logo_url.startsWith('http')) {
+    return institution.logo_url;
+  }
+  
+  return `http://localhost:3100${institution.logo_url}`;
+}
+
   /**
    * Navega a la gestión de usuarios de una institución
    */

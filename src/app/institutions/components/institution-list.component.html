@@ -1,4 +1,4 @@
-<!-- src/app/institutions/components/institution-list.component.html - CON NAVEGACIÓN -->
+<!-- src/app/institutions/components/institution-list.component.html -->
 
 <div class="institutions-container">
   <!-- Header -->
@@ -79,21 +79,44 @@
     }
 
     <!-- Lista de instituciones -->
-    @if (!loading() && !error() && institutions() && institutions().length > 0) {
+    @else if (!loading() && !error() && institutions() && institutions().length > 0) {
       <div class="institutions-grid">
         @for (institution of filteredInstitutions(); track institution.id) {
           <div class="institution-card" [class]="getInstitutionCardClass(institution)">
+            
+            <!-- ======================================== 
+                 HEADER CON LOGO 
+                 ======================================== -->
             <div class="institution-header">
+              
+              <!-- Logo o placeholder -->
+              @if (institution.logo_url) {
+                <img 
+                  [src]="getInstitutionLogoUrl(institution)" 
+                  [alt]="institution.nombre"
+                  class="institution-logo-mini"
+                  onerror="this.style.display='none'"
+                />
+              } @else {
+                <div class="institution-logo-placeholder">
+                  {{ getTypeIcon(institution.tipo) }}
+                </div>
+              }
+              
+              <!-- Info (nombre + email) -->
               <div class="institution-info">
                 <h4>{{ institution.nombre }}</h4>
                 <p class="institution-email">{{ institution.email }}</p>
               </div>
+              
+              <!-- Status badge -->
               <div class="institution-status">
                 <span class="status-badge" [class]="getStatusClass(institution.estado)">
                   {{ getStatusLabel(institution.estado) }}
                 </span>
               </div>
             </div>
+            <!-- ======================================== -->
 
             <div class="institution-details">
               <div class="detail-item">
@@ -116,12 +139,6 @@
                 <label>Creada:</label>
                 <span>{{ formatDate(institution.fecha_creacion) }}</span>
               </div>
-              @if (institution.logo_url) {
-                <div class="detail-item">
-                  <label>Sitio Web:</label>
-                  <span><a [href]="institution.logo_url" target="_blank">Logo</a></span>
-                </div>
-              }
               @if (institution.descripcion) {
                 <div class="detail-item">
                   <label>Descripción:</label>
@@ -222,7 +239,7 @@
   </main>
 </div>
 
-<!-- MODAL ELIMINAR INSTITUCIÓN (MANTENER - acción destructiva) -->
+<!-- MODAL ELIMINAR INSTITUCIÓN -->
 @if (showDeleteModal()) {
   <div class="modal-overlay" (click)="closeModals()">
     <div class="modal-content small" (click)="$event.stopPropagation()">
@@ -269,7 +286,7 @@
   </div>
 }
 
-<!-- MODAL DETALLES INSTITUCIÓN (OPCIONAL - puedes mantenerlo o quitarlo) -->
+<!-- MODAL DETALLES INSTITUCIÓN -->
 @if (showDetailModal()) {
   <div class="modal-overlay" (click)="closeModals()">
     <div class="modal-content large" (click)="$event.stopPropagation()">
@@ -335,17 +352,6 @@
                     </span>
                   </div>
                 }
-           
-                @if (institution.logo_url) {
-                  <div class="detail-item">
-                    <label>Sitio Web:</label>
-                    <span>
-                      <a [href]="institution.logo_url" target="_blank">
-                        {{ institution.logo_url }}
-                      </a>
-                    </span>
-                  </div>
-                }
                 @if (institution.direccion) {
                   <div class="detail-item full-width">
                     <label>Dirección:</label>
@@ -355,41 +361,19 @@
               </div>
             </div>
 
-            <!-- Acciones rápidas -->
-            <div class="detail-section">
-              <h4>⚡ Acciones Rápidas</h4>
-              <div class="action-buttons">
-                @if (canEditInstitution(institution)) {
-                  <button class="btn btn-primary" (click)="editInstitution(institution); closeModals()">
-                    ✏️ Editar Institución
-                  </button>
-                }
-                
-                <button class="btn btn-secondary" (click)="goToInstitutionUsers(institution)">
-                  👥 Ver Usuarios
+            <!-- Botones de acción -->
+            <div class="modal-actions">
+              @if (canEditInstitution(institution)) {
+                <button (click)="editInstitution(institution); closeModals()" class="btn btn-primary">
+                  ✏️ Editar
                 </button>
-                
-                @if (institution.logo_url) {
-                  <a [href]="institution.logo_url" target="_blank" class="btn btn-secondary">
-                    🌐 Visitar Sitio Web
-                  </a>
-                }
-                
-                @if (institution.email) {
-                  <a [href]="'mailto:' + institution.email" class="btn btn-secondary">
-                    📧 Enviar Email
-                  </a>
-                }
-              </div>
+              }
+              <button (click)="closeModals()" class="btn btn-secondary">
+                Cerrar
+              </button>
             </div>
           </div>
         }
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModals()">
-          Cerrar
-        </button>
       </div>
     </div>
   </div>

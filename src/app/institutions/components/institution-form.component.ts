@@ -102,62 +102,211 @@ export class InstitutionFormComponent implements OnInit {
     }
   }
 
+
+  //------
+
   private createInstitution(): void {
-    const formValue = this.institutionForm.value;
-    const institutionData: CreateInstitutionRequest = {
-      nombre: formValue.nombre,
-      descripcion: formValue.descripcion,
-      tipo: formValue.tipo,
-      email: formValue.email,
-      telefono: formValue.telefono,
-      direccion: formValue.direccion,
-      cuit: formValue.cuit,
-      logo_url: formValue.logo_url,
-      estado: formValue.estado
-    };
+  const formValue = this.institutionForm.value;
+  const institutionData: CreateInstitutionRequest = {
+    nombre: formValue.nombre,
+    descripcion: formValue.descripcion,
+    tipo: formValue.tipo,
+    email: formValue.email,
+    telefono: formValue.telefono,
+    direccion: formValue.direccion,
+    cuit: formValue.cuit,
+    estado: formValue.estado
+    // ✅ NO incluimos logo_url aquí - se sube por separado
+  };
 
-    this.institutionService.createInstitution(institutionData).subscribe({
-      next: (institution) => {
+  console.log('📝 Creando institución:', institutionData);
+  console.log('📎 Archivo seleccionado?:', this.selectedFile ? 'SÍ' : 'NO');
+  
+  this.institutionService.createInstitution(institutionData).subscribe({
+    next: (institution) => {
+      console.log('✅ Institución creada:', institution);
+      
+      // Si hay un archivo seleccionado, subirlo ahora
+      if (this.selectedFile) {
+        console.log('📤 Subiendo logo para ID:', institution.id);
+        this.uploadLogoAfterCreation(institution.id);
+      } else {
         this.isSaving.set(false);
+        alert('✅ Institución creada exitosamente');
         this.router.navigate(['/instituciones']);
-      },
-      error: (error) => {
-        this.isSaving.set(false);
-        this.errorMessage.set('Error al crear institución: ' + error.message);
       }
-    });
+    },
+    error: (error) => {
+      console.error('❌ Error al crear institución:', error);
+      this.isSaving.set(false);
+      this.errorMessage.set('Error al crear institución: ' + error.message);
+    }
+  });
+}
+
+private updateInstitution(): void {
+  const formValue = this.institutionForm.value;
+  const currentInstitution = this.currentInstitution();
+  
+  if (!currentInstitution) return;
+
+  const institutionData: UpdateInstitutionRequest = {
+    nombre: formValue.nombre,
+    descripcion: formValue.descripcion,
+    tipo: formValue.tipo,
+    email: formValue.email,
+    telefono: formValue.telefono,
+    direccion: formValue.direccion,
+    cuit: formValue.cuit,
+    estado: formValue.estado
+    // ✅ NO incluimos logo_url - se gestiona por separado con uploadLogo/deleteLogo
+  };
+
+  console.log('💾 Actualizando institución ID:', currentInstitution.id);
+  console.log('📝 Datos a actualizar:', institutionData);
+
+  this.institutionService.updateInstitution(currentInstitution.id, institutionData).subscribe({
+    next: (institution) => {
+      console.log('✅ Institución actualizada:', institution);
+      this.isSaving.set(false);
+      alert('✅ Institución actualizada exitosamente');
+      this.router.navigate(['/instituciones']);
+    },
+    error: (error) => {
+      console.error('❌ Error al actualizar institución:', error);
+      this.isSaving.set(false);
+      this.errorMessage.set('Error al actualizar institución: ' + error.message);
+    }
+  });
+}
+
+/**
+ * Sube el logo después de crear una institución nueva
+ */
+private uploadLogoAfterCreation(institutionId: number): void {
+  if (!this.selectedFile) {
+    this.isSaving.set(false);
+    this.router.navigate(['/instituciones']);
+    return;
   }
 
-  private updateInstitution(): void {
-    const formValue = this.institutionForm.value;
-    const currentInstitution = this.currentInstitution();
-    
-    if (!currentInstitution) return;
+  console.log('📤 Subiendo logo para institución ID:', institutionId);
+  
+  this.institutionService.uploadLogo(institutionId, this.selectedFile).subscribe({
+    next: (result) => {
+      console.log('✅ Logo subido exitosamente:', result);
+      this.isSaving.set(false);
+      this.selectedFile = null;
+      this.logoPreview = null;
+      alert('✅ Institución creada con logo exitosamente');
+      this.router.navigate(['/instituciones']);
+    },
+    error: (error) => {
+      console.error('❌ Error al subir logo:', error);
+      this.isSaving.set(false);
+      
+      const mensaje = `Institución creada exitosamente, pero hubo un error al subir el logo.\n\n` +
+                     `Puedes editarla para volver a intentar subir el logo.`;
+      alert(mensaje);
+      
+      this.router.navigate(['/instituciones']);
+    }
+  });
+}
 
-    const institutionData: UpdateInstitutionRequest = {
-      nombre: formValue.nombre,
-      descripcion: formValue.descripcion,
-      tipo: formValue.tipo,
-      email: formValue.email,
-      telefono: formValue.telefono,
-      direccion: formValue.direccion,
-      cuit: formValue.cuit,
-      logo_url: formValue.logo_url,
-      estado: formValue.estado
-    };
+// ========================================
+// MÉTODO uploadLogo MEJORADO (para edición)
+// ========================================
 
-    this.institutionService.updateInstitution(currentInstitution.id, institutionData).subscribe({
-      next: (institution) => {
-        this.isSaving.set(false);
-        this.router.navigate(['/instituciones']);
-      },
-      error: (error) => {
-        this.isSaving.set(false);
-        this.errorMessage.set('Error al actualizar institución: ' + error.message);
-      }
-    });
+uploadLogo(): void {
+  const currentInstitution = this.currentInstitution();
+  
+  if (!currentInstitution || !this.selectedFile) {
+    return;
   }
+  
+  this.isUploadingLogo.set(true);
+  console.log('📤 Subiendo logo para institución ID:', currentInstitution.id);
+  
+  this.institutionService.uploadLogo(currentInstitution.id, this.selectedFile).subscribe({
+    next: (result) => {
+      console.log('✅ Logo subido exitosamente:', result);
+      this.isUploadingLogo.set(false);
+      
+      // Actualizar el signal Y el formulario con la nueva URL
+      const newLogoUrl = result.logo_url;
+      
+      this.currentInstitution.update(inst => {
+        if (inst) {
+          return { ...inst, logo_url: newLogoUrl };
+        }
+        return inst;
+      });
+      
+      // También actualizar el formulario (importante para que no se borre)
+      this.institutionForm.patchValue({
+        logo_url: newLogoUrl
+      });
+      
+      this.selectedFile = null;
+      this.logoPreview = null;
+      
+      console.log('✅ Estado actualizado, logo_url ahora es:', this.currentInstitution()?.logo_url);
+      alert('✅ Logo subido exitosamente');
+    },
+    error: (error) => {
+      console.error('❌ Error al subir logo:', error);
+      this.isUploadingLogo.set(false);
+      alert('Error al subir logo: ' + (error.error?.message || error.message || 'Error desconocido'));
+    }
+  });
+}
 
+// ========================================
+// MÉTODO removeLogo MEJORADO
+// ========================================
+
+removeLogo(): void {
+  const currentInstitution = this.currentInstitution();
+  
+  if (!currentInstitution || !currentInstitution.logo_url) {
+    return;
+  }
+  
+  if (!confirm('¿Estás seguro de eliminar el logo?')) {
+    return;
+  }
+  
+  console.log('🗑️ Eliminando logo de institución ID:', currentInstitution.id);
+  
+  this.institutionService.deleteLogo(currentInstitution.id).subscribe({
+    next: () => {
+      console.log('✅ Logo eliminado exitosamente');
+      
+      // Actualizar signal
+      this.currentInstitution.update(inst => {
+        if (inst) {
+          return { ...inst, logo_url: undefined };
+        }
+        return inst;
+      });
+      
+      // Actualizar formulario
+      this.institutionForm.patchValue({
+        logo_url: ''
+      });
+      
+      this.logoPreview = null;
+      alert('✅ Logo eliminado exitosamente');
+    },
+    error: (error) => {
+      console.error('❌ Error al eliminar logo:', error);
+      alert('Error al eliminar logo: ' + (error.error?.message || error.message || 'Error desconocido'));
+    }
+  });
+}
+
+ 
   // ========================================
   // MÉTODOS PARA SUBIDA DE LOGO
   // ========================================
@@ -184,67 +333,6 @@ export class InstitutionFormComponent implements OnInit {
       };
       reader.readAsDataURL(file);
     }
-  }
-
-  uploadLogo(): void {
-    const currentInstitution = this.currentInstitution();
-    
-    if (!currentInstitution || !this.selectedFile) {
-      return;
-    }
-    
-    this.isUploadingLogo.set(true);
-    
-    this.institutionService.uploadLogo(currentInstitution.id, this.selectedFile).subscribe({
-      next: (result) => {
-        this.isUploadingLogo.set(false);
-        
-        this.currentInstitution.update(inst => {
-          if (inst) {
-            return { ...inst, logo_url: result.logo_url };
-          }
-          return inst;
-        });
-        
-        this.selectedFile = null;
-        this.logoPreview = null;
-        
-        alert('Logo subido exitosamente');
-      },
-      error: (error) => {
-        this.isUploadingLogo.set(false);
-        alert('Error al subir logo: ' + (error.message || 'Error desconocido'));
-      }
-    });
-  }
-
-  removeLogo(): void {
-    const currentInstitution = this.currentInstitution();
-    
-    if (!currentInstitution || !currentInstitution.logo_url) {
-      return;
-    }
-    
-    if (!confirm('¿Estás seguro de eliminar el logo?')) {
-      return;
-    }
-    
-    this.institutionService.deleteLogo(currentInstitution.id).subscribe({
-      next: () => {
-        this.currentInstitution.update(inst => {
-          if (inst) {
-            return { ...inst, logo_url: undefined };
-          }
-          return inst;
-        });
-        
-        this.logoPreview = null;
-        alert('Logo eliminado exitosamente');
-      },
-      error: (error) => {
-        alert('Error al eliminar logo: ' + (error.message || 'Error desconocido'));
-      }
-    });
   }
 
   cancelFileSelection(): void {
