@@ -337,6 +337,37 @@ export class InstitutionListComponent implements OnInit {
   // HELPERS Y UTILIDADES
   // ===================================================
 
+// Agregar esta propiedad privada al inicio de la clase
+private readonly baseUrl = this.getBaseUrl();
+
+/**
+ * Obtiene la URL base según el entorno
+ */
+private getBaseUrl(): string {
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3100';
+  } else {
+    return 'https://apirifas.huelemu.com.ar';
+  }
+}
+
+/**
+ * Obtiene la URL completa del logo de una institución
+ */
+getInstitutionLogoUrl(institution: Institution): string {
+  if (!institution.logo_url) return '';
+  
+  if (institution.logo_url.startsWith('http')) {
+    return institution.logo_url;
+  }
+  
+  return `${this.baseUrl}${institution.logo_url}`;
+}
+
+
+  
   /**
    * Obtiene el total de instituciones
    */
@@ -397,18 +428,6 @@ export class InstitutionListComponent implements OnInit {
     }
   }
 
-/**
- * Obtiene la URL completa del logo de una institución
- */
-getInstitutionLogoUrl(institution: Institution): string {
-  if (!institution.logo_url) return '';
-  
-  if (institution.logo_url.startsWith('http')) {
-    return institution.logo_url;
-  }
-  
-  return `http://localhost:3100${institution.logo_url}`;
-}
 
   /**
    * Navega a la gestión de usuarios de una institución

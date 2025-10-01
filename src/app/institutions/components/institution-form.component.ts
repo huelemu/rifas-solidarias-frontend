@@ -180,6 +180,37 @@ private updateInstitution(): void {
   });
 }
 
+// Agregar esta propiedad privada al inicio de la clase
+private readonly baseUrl = this.getBaseUrl();
+
+/**
+ * Obtiene la URL base según el entorno
+ */
+private getBaseUrl(): string {
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3100';
+  } else {
+    return 'https://apirifas.huelemu.com.ar';
+  }
+}
+
+/**
+ * Obtiene la URL completa del logo
+ */
+getLogoUrl(): string | null {
+  const institution = this.currentInstitution();
+  if (institution?.logo_url) {
+    if (institution.logo_url.startsWith('http')) {
+      return institution.logo_url;
+    }
+    return `${this.baseUrl}${institution.logo_url}`;
+  }
+  return null;
+}
+
+
 /**
  * Sube el logo después de crear una institución nueva
  */
@@ -340,16 +371,7 @@ removeLogo(): void {
     this.logoPreview = null;
   }
 
-  getLogoUrl(): string | null {
-    const institution = this.currentInstitution();
-    if (institution?.logo_url) {
-      if (institution.logo_url.startsWith('http')) {
-        return institution.logo_url;
-      }
-      return `http://localhost:3100${institution.logo_url}`;
-    }
-    return null;
-  }
+
 
   // ========================================
   // MÉTODOS AUXILIARES
