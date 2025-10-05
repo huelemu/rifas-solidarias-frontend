@@ -126,124 +126,29 @@ export class RifasService { // NOMBRE CORRECTO: RifasService
    * Crear rifa - RETORNA ID DIRECTO Y FORMATEA DATOS CORRECTAMENTE + MEJOR DEBUG
    */
   createRifa(rifaData: any): Observable<CreateRifaResponse> {
-    console.log('🔵 RifasService.createRifa - Datos recibidos:', rifaData);
+  console.log('🔵 RifasService.createRifa - Datos recibidos:', rifaData);
 
-    // Validar datos mínimos antes de enviar
-    if (!rifaData.nombre || !rifaData.cantidad_numeros || !rifaData.precio_numero) {
-      console.error('❌ Datos insuficientes para crear rifa:', rifaData);
-      throw new Error('Faltan datos requeridos para crear la rifa');
-    }
-
-    // Formatear datos para el backend
-    const formattedData = {
-      nombre: rifaData.nombre?.trim() || '',
-      descripcion: rifaData.descripcion?.trim() || '',
-      institucion_promotora_id: rifaData.institucion_promotora_id || null,
-      cantidad_numeros: parseInt(rifaData.cantidad_numeros || '0'),
-      precio_numero: parseFloat(rifaData.precio_numero || '0'),
-      fecha_inicio: this.formatDate(rifaData.fecha_inicio),
-      fecha_fin: this.formatDate(rifaData.fecha_fin),
-      fecha_sorteo: rifaData.fecha_sorteo ? this.formatDate(rifaData.fecha_sorteo) : null,
-      fecha_limite_participacion: rifaData.fecha_limite_participacion ? this.formatDate(rifaData.fecha_limite_participacion) : null,
-      max_instituciones_participantes: rifaData.max_instituciones_participantes ? parseInt(rifaData.max_instituciones_participantes) : null,
-      comision_promotora: parseFloat(rifaData.comision_promotora || '10'),
-      requiere_aprobacion: rifaData.requiere_aprobacion === true || rifaData.requiere_aprobacion === 'true',
-      numeros_por_institucion: rifaData.numeros_por_institucion ? parseInt(rifaData.numeros_por_institucion) : null,
-      imagen_url: rifaData.imagen_url?.trim() || null,
-      bases_condiciones: rifaData.bases_condiciones?.trim() || null,
-      observaciones: rifaData.observaciones?.trim() || null
-    };
-
-    console.log('📤 RifasService.createRifa - Datos formateados para backend:', formattedData);
-
-    // Validar datos formateados
-    if (!formattedData.institucion_promotora_id) {
-      console.error('❌ institucion_promotora_id es requerido');
-      throw new Error('ID de institución promotora es requerido');
-    }
-
-    if (formattedData.cantidad_numeros <= 0) {
-      console.error('❌ cantidad_numeros debe ser mayor a 0');
-      throw new Error('La cantidad de números debe ser mayor a 0');
-    }
-
-    if (formattedData.precio_numero <= 0) {
-      console.error('❌ precio_numero debe ser mayor a 0');
-      throw new Error('El precio por número debe ser mayor a 0');
-    }
-
-    if (!formattedData.fecha_inicio) {
-      console.error('❌ fecha_inicio es requerida');
-      throw new Error('La fecha de inicio es requerida');
-    }
-
-    if (!formattedData.fecha_fin) {
-      console.error('❌ fecha_fin es requerida');
-      throw new Error('La fecha de fin es requerida');
-    }
-
-    return this.http.post<any>(`${this.baseUrl}/rifas`, formattedData).pipe(
-      map(response => {
-        console.log('📥 RifasService.createRifa - Respuesta exitosa del backend:', response);
-        return {
-          status: response.status,
-          message: response.message,
-          data: response.data,
-          // PROPIEDADES DIRECTAS PARA TUS COMPONENTES
-          id: response.data?.id || response.id,
-          nombre: response.data?.nombre || response.nombre,
-          estado: response.data?.estado || response.estado,
-          creado_por: response.data?.creado_por || response.creado_por
-        };
-      }),
-      catchError(error => {
-        console.error('❌ RifasService.createRifa - Error del backend:', error);
-        console.error('❌ Status:', error.status);
-        console.error('❌ Error completo:', error.error);
-        
-        // Re-lanzar el error para que lo maneje el componente
-        throw error;
-      })
-    );
-  }
-
-  /**
-   * Formatear fecha para el backend (YYYY-MM-DD HH:MM:SS o YYYY-MM-DD)
-   */
-  private formatDate(dateValue: any): string | null {
-    if (!dateValue) return null;
-
-    try {
-      let date: Date;
-      
-      if (dateValue instanceof Date) {
-        date = dateValue;
-      } else if (typeof dateValue === 'string') {
-        date = new Date(dateValue);
-      } else {
-        return null;
-      }
-
-      if (isNaN(date.getTime())) {
-        console.error('Fecha inválida:', dateValue);
-        return null;
-      }
-
-      // Formatear como YYYY-MM-DD HH:MM:SS para el backend
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    } catch (error) {
-      console.error('Error al formatear fecha:', error, dateValue);
-      return null;
-    }
-  }
-
+  // ✅ ENVIAR DIRECTO - SIN TRANSFORMAR
+  return this.http.post<any>(`${this.baseUrl}/rifas`, rifaData).pipe(
+    map(response => {
+      console.log('📥 Respuesta exitosa:', response);
+      return {
+        status: response.status,
+        message: response.message,
+        data: response.data,
+        id: response.data?.id || response.id,
+        nombre: response.data?.nombre || response.nombre,
+        estado: response.data?.estado || response.estado,
+        creado_por: response.data?.creado_por || response.creado_por
+      };
+    }),
+    catchError(error => {
+      console.error('❌ Error:', error);
+      throw error;
+    })
+  );
+}
+ 
   /**
    * Cambiar estado de rifa - MÉTODO REQUERIDO POR TUS COMPONENTES
    */
