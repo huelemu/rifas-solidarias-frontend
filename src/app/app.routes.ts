@@ -4,25 +4,39 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './auth/guards/auth.guard';
 
 export const routes: Routes = [
-  // ===================================================
+   // ===================================================
   // RUTAS PÚBLICAS (NO REQUIEREN AUTENTICACIÓN)
   // ===================================================
   {
     path: 'login',
     loadComponent: () => import('./auth/components/login.component').then(m => m.LoginComponent),
-    canActivate: [guestGuard], // ✅ Evita acceso si ya está logueado
+    canActivate: [guestGuard],
     title: 'Iniciar Sesión - Rifas Solidarias'
   },
 
-  // ⭐ NUEVA RUTA DE REGISTRO
   {
     path: 'register',
     loadComponent: () => import('./auth/components/register.component').then(m => m.RegisterComponent),
-    canActivate: [guestGuard], // ✅ Evita acceso si ya está logueado
+    canActivate: [guestGuard],
     title: 'Crear Cuenta - Rifas Solidarias'
   },
 
-  // ⭐ NUEVA RUTA PARA CALLBACK DE GOOGLE OAUTH
+  // ⭐ NUEVA RUTA - OLVIDÉ MI CONTRASEÑA
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./auth/components/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    canActivate: [guestGuard],
+    title: 'Recuperar Contraseña - Rifas Solidarias'
+  },
+
+  // ⭐ NUEVA RUTA - RESTABLECER CONTRASEÑA
+  {
+    path: 'reset-password',
+    loadComponent: () => import('./auth/components/reset-password.component').then(m => m.ResetPasswordComponent),
+    canActivate: [guestGuard],
+    title: 'Restablecer Contraseña - Rifas Solidarias'
+  },
+
   {
     path: 'auth/google/callback',
     loadComponent: () => import('./auth/components/google-callback.component').then(m => m.GoogleCallbackComponent),

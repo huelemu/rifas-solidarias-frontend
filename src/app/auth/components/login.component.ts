@@ -1,16 +1,16 @@
-// src/app/auth/components/login.component.ts - ACTUALIZADO
+// src/app/auth/components/login.component.ts - VERSIÓN CORREGIDA
 
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { LoginRequest } from '../models/auth.models';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule], // ✅ Agregado RouterModule
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
     <div class="login-container">
       <div class="login-card">
@@ -21,14 +21,6 @@ import { LoginRequest } from '../models/auth.models';
 
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
           
-
-          <!-- Separador 
-          <div class="separator">
-            <div class="separator-line"></div>
-            <span class="separator-text">o</span>
-            <div class="separator-line"></div>
-          </div>
-          -->
           <!-- Email -->
           <div class="form-group">
             <label for="email">Email</label>
@@ -71,6 +63,11 @@ import { LoginRequest } from '../models/auth.models';
                 }
               </span>
             }
+            
+            <!-- Enlace de olvidé mi contraseña -->
+            <div class="forgot-password-link">
+              <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+            </div>
           </div>
 
           <!-- Error general -->
@@ -91,45 +88,43 @@ import { LoginRequest } from '../models/auth.models';
           <button
             type="submit"
             class="login-button"
-            [disabled]="loginForm.invalid || isLoading()"
+            [disabled]="isLoading()"
           >
             @if (isLoading()) {
               <span class="spinner"></span>
               Iniciando sesión...
             } @else {
-              Iniciar Sesión
+              🚀 Iniciar sesión
             }
           </button>
 
-                    <!-- Botón de Google Login -->
-          <button
-            type="button"
-            class="google-login-btn"
+          <!-- Separador -->
+          <div class="separator">
+            <div class="separator-line"></div>
+            <span class="separator-text">o</span>
+            <div class="separator-line"></div>
+          </div>
+
+          <!-- Google OAuth Button -->
+          <button 
+            type="button" 
+            class="google-button"
             (click)="loginWithGoogle()"
-            [disabled]="isLoading()">
+          >
             <svg class="google-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            @if (isLoading()) {
-              <span class="loading-spinner"></span>
-              Conectando...
-            } @else {
-              Continuar con Google
-            }
+            Continuar con Google
           </button>
-          
-        </form>
 
-        <div class="login-footer">
-          <p>
-            ¿No tienes cuenta?
-            <a routerLink="/register" class="link">Regístrate aquí</a>
-          </p>
-          
-        </div>
+          <!-- Registro -->
+          <div class="register-link">
+            ¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a>
+          </div>
+        </form>
       </div>
     </div>
   `,
@@ -139,17 +134,29 @@ import { LoginRequest } from '../models/auth.models';
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 2rem;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 1rem;
     }
 
     .login-card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      padding: 2.5rem;
       width: 100%;
       max-width: 420px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .login-header {
@@ -158,22 +165,21 @@ import { LoginRequest } from '../models/auth.models';
     }
 
     .login-header h1 {
-      color: #333;
       margin: 0 0 0.5rem 0;
-      font-size: 1.8rem;
-      font-weight: 600;
+      font-size: 2rem;
+      color: #1a202c;
     }
 
     .login-header p {
-      color: #666;
       margin: 0;
+      color: #718096;
       font-size: 1rem;
     }
 
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     .form-group {
@@ -182,115 +188,110 @@ import { LoginRequest } from '../models/auth.models';
       gap: 0.5rem;
     }
 
-    label {
+    .form-group label {
       font-weight: 500;
-      color: #333;
+      color: #2d3748;
       font-size: 0.9rem;
     }
 
-    input {
-      padding: 0.75rem;
-      border: 2px solid #e1e5e9;
+    .form-group input {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
       border-radius: 8px;
       font-size: 1rem;
-      transition: all 0.3s ease;
+      transition: all 0.2s;
     }
 
-    input:focus {
+    .form-group input:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    input.error {
-      border-color: #e74c3c;
-    }
-
-    input.error:focus {
-      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    .form-group input.error {
+      border-color: #fc8181;
     }
 
     .error-message {
-      color: #e74c3c;
-      font-size: 0.8rem;
-      font-weight: 500;
+      color: #e53e3e;
+      font-size: 0.85rem;
+      margin-top: -0.25rem;
+    }
+
+    .forgot-password-link {
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+
+    .forgot-password-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    .forgot-password-link a:hover {
+      color: #764ba2;
+      text-decoration: underline;
     }
 
     .alert {
-      padding: 0.75rem;
-      border-radius: 6px;
+      padding: 0.875rem 1rem;
+      border-radius: 8px;
       font-size: 0.9rem;
-      font-weight: 500;
     }
 
     .alert-error {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
+      background-color: #fff5f5;
+      border: 1px solid #feb2b2;
+      color: #c53030;
     }
 
     .alert-success {
-      background: #f0fdf4;
-      color: #16a34a;
-      border: 1px solid #bbf7d0;
+      background-color: #f0fff4;
+      border: 1px solid #9ae6b4;
+      color: #22543d;
     }
 
-    .login-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.875rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+    .login-button,
+    .google-button {
+      padding: 0.875rem 1.5rem;
       border: none;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .login-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
     }
 
     .login-button:hover:not(:disabled) {
-      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
     .login-button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .google-login-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      padding: 0.875rem 1rem;
-      border: 2px solid #e1e5e9;
-      border-radius: 8px;
+    .google-button {
       background: white;
-      color: #333;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-bottom: 1rem;
+      color: #1a202c;
+      border: 2px solid #e2e8f0;
     }
 
-    .google-login-btn:hover:not(:disabled) {
-      border-color: #4285F4;
-      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.1);
-      transform: translateY(-1px);
-    }
-
-    .google-login-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .google-button:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
     }
 
     .google-icon {
@@ -298,243 +299,112 @@ import { LoginRequest } from '../models/auth.models';
       height: 20px;
     }
 
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .separator {
       display: flex;
       align-items: center;
-      margin: 1rem 0;
       gap: 1rem;
+      margin: 0.5rem 0;
     }
 
     .separator-line {
       flex: 1;
       height: 1px;
-      background: #e1e5e9;
+      background: #e2e8f0;
     }
 
     .separator-text {
-      color: #666;
-      font-size: 0.9rem;
-      font-weight: 500;
+      color: #a0aec0;
+      font-size: 0.875rem;
     }
 
-    .loading-spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(66, 133, 244, 0.3);
-      border-top: 2px solid #4285F4;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .login-footer {
+    .register-link {
       text-align: center;
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid #f0f0f0;
+      color: #4a5568;
+      font-size: 0.9rem;
+      padding-top: 0.5rem;
     }
 
-    .login-footer p {
-      color: #666;
-      margin: 0 0 1rem 0;
-    }
-
-    .link {
+    .register-link a {
       color: #667eea;
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
     }
 
-    .link:hover {
+    .register-link a:hover {
       text-decoration: underline;
     }
 
-    .test-info {
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 1rem;
-      text-align: left;
-    }
+    @media (max-width: 640px) {
+      .login-container {
+        padding: 1rem;
+      }
 
-    .test-info h4, .test-info h5 {
-      margin: 0 0 0.5rem 0;
-      color: #495057;
-      font-size: 0.9rem;
-    }
-
-    .test-info h5 {
-      font-size: 0.8rem;
-      margin-top: 1rem;
-    }
-
-    .test-info p {
-      margin: 0.25rem 0;
-      font-size: 0.8rem;
-      color: #6c757d;
-    }
-
-    .backend-url {
-      font-family: monospace;
-      background: #e9ecef;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-    }
-
-    .test-credentials {
-      margin-top: 1rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid #dee2e6;
-    }
-
-    .btn-test {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-
-    .btn-test:hover {
-      background: #218838;
-    }
-
-    @media (max-width: 480px) {
       .login-card {
-        margin: 1rem;
         padding: 1.5rem;
+      }
+
+      .login-header h1 {
+        font-size: 1.5rem;
       }
     }
   `]
 })
 export class LoginComponent {
-  // Servicios
   private readonly fb = inject(FormBuilder);
-  readonly authService = inject(AuthService);
-  readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  // Signals para estado del componente
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly registrationSuccess = signal<string | null>(null);
 
-  // Formulario reactivo
-  readonly loginForm: FormGroup = this.fb.group({
+  loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
   constructor() {
-    // Si ya está autenticado, redirigir
     if (this.authService.isAuthenticated()) {
-      this.authService.redirectAfterLogin();
+      this.router.navigate(['/dashboard']);
     }
 
-    // Para testing - rellenar formulario automáticamente en desarrollo
-    if (this.isDevelopment()) {
-      this.prefillTestData();
-    }
-
-    // Verificar si viene del registro exitoso
-    this.checkRegistrationSuccess();
-  }
-
-  /**
-   * Maneja el login con Google
-   */
-  loginWithGoogle(): void {
-    console.log('🔐 LoginComponent: Iniciando login con Google...');
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.authService.loginWithGoogle().subscribe({
-      next: (response) => {
-        console.log('✅ LoginComponent: URL de Google obtenida:', response.authUrl);
-        // Redirigir a Google OAuth
-        window.location.href = response.authUrl;
-      },
-      error: (error) => {
-        this.isLoading.set(false);
-        console.error('❌ LoginComponent: Error en login con Google:', error);
-        this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
+    this.route.queryParams.subscribe(params => {
+      if (params['registered'] === 'true') {
+        this.registrationSuccess.set('Cuenta creada exitosamente. Ya puedes iniciar sesión.');
+        const email = params['email'];
+        if (email) {
+          this.loginForm.patchValue({ email });
+        }
+      }
+      if (params['passwordReset'] === 'true') {
+        this.registrationSuccess.set('Contraseña restablecida exitosamente. Ya puedes iniciar sesión.');
+        const email = params['email'];
+        if (email) {
+          this.loginForm.patchValue({ email });
+        }
       }
     });
   }
 
-  /**
-   * Verifica si estamos en entorno de desarrollo
-   */
-  isDevelopment(): boolean {  // ✅ Cambiar de private a public
-    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  }
-
-  /**
-   * Rellena el formulario con datos de test en desarrollo
-   */
-  private prefillTestData(): void {
-    this.loginForm.patchValue({
-      email: 'admin@test.com',
-      password: '123456'
-    });
-  }
-
-  /**
-   * Rellena credenciales de prueba manualmente
-   */
-  fillTestCredentials(): void {
-    this.loginForm.patchValue({
-      email: 'admin@test.com',
-      password: '123456'
-    });
-    this.loginForm.markAllAsTouched();
-  }
-
-  /**
-   * Verifica si viene del registro exitoso
-   */
-  private checkRegistrationSuccess(): void {
-    const urlParams = new URLSearchParams(window.location.search);
-    const registered = urlParams.get('registered');
-    const email = urlParams.get('email');
-    
-    if (registered === 'true') {
-      this.registrationSuccess.set('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
-      if (email) {
-        this.loginForm.patchValue({ email });
-      }
-    }
-  }
-
-  /**
-   * Obtiene la URL del backend para mostrar en la UI
-   */
-  getBackendUrl(): string {
-    if (this.isDevelopment()) {
-      return 'http://localhost:3100';  // Sin /api
-    } else {
-      return 'https://apirifas.huelemu.com.ar';  // Sin /api
-    }
-  }
-
-  /**
-   * Verifica si un campo específico es inválido y ha sido tocado
-   */
   isFieldInvalid(fieldName: string): boolean {
     const field = this.loginForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  /**
-   * Maneja el envío del formulario de login
-   */
   onSubmit(): void {
     if (this.loginForm.invalid) {
       this.markAllFieldsAsTouched();
@@ -557,14 +427,39 @@ export class LoginComponent {
       error: (error) => {
         this.isLoading.set(false);
         console.error('❌ LoginComponent: Error en login:', error);
-        this.errorMessage.set(error.message);
+        
+        if (error.message && error.message.includes('Google')) {
+          this.errorMessage.set('Esta cuenta fue creada con Google. Por favor, usa el botón "Continuar con Google" para iniciar sesión.');
+        } else {
+          this.errorMessage.set(error.message);
+        }
       }
     });
   }
 
   /**
-   * Marca todos los campos como tocados para mostrar errores
+   * Maneja el login con Google
    */
+  loginWithGoogle(): void {
+    console.log('🔐 LoginComponent: Click en botón de Google');
+    console.log('🔐 LoginComponent: Iniciando login con Google...');
+    
+    this.errorMessage.set(null);
+
+    this.authService.loginWithGoogle().subscribe({
+      next: (response) => {
+        console.log('✅ LoginComponent: URL de Google obtenida:', response.authUrl);
+        console.log('🔄 Redirigiendo a Google...');
+        // Redirigir a Google OAuth
+        window.location.href = response.authUrl;
+      },
+      error: (error) => {
+        console.error('❌ LoginComponent: Error en login con Google:', error);
+        this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
+      }
+    });
+  }
+
   private markAllFieldsAsTouched(): void {
     Object.keys(this.loginForm.controls).forEach(key => {
       this.loginForm.get(key)?.markAsTouched();

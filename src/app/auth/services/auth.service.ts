@@ -385,6 +385,62 @@ private processOAuthTokens(accessToken: string, refreshToken: string): void {
       );
   }
 
+
+// Agregar estos métodos al AuthService existente en:
+// src/app/auth/services/auth.service.ts
+
+/**
+ * Solicita el restablecimiento de contraseña (Forgot Password)
+ */
+forgotPassword(email: string): Observable<{success: boolean, message: string}> {
+  console.log('📧 AuthService: Solicitando reset de contraseña para:', email);
+  
+  return this.http.post<{status: string, message: string}>(
+    `${this.apiUrl}/auth/forgot-password`,
+    { email }
+  ).pipe(
+    map(response => ({
+      success: response.status === 'success',
+      message: response.message
+    })),
+    catchError(this.handleError)
+  );
+}
+
+/**
+ * Valida el token de reset de contraseña
+ */
+validateResetToken(token: string): Observable<boolean> {
+  console.log('🔍 AuthService: Validando token de reset');
+  
+  return this.http.post<{status: string, valid: boolean}>(
+    `${this.apiUrl}/auth/validate-reset-token`,
+    { token }
+  ).pipe(
+    map(response => response.valid),
+    catchError(() => of(false))
+  );
+}
+
+/**
+ * Restablece la contraseña con el token
+ */
+resetPassword(token: string, newPassword: string): Observable<{success: boolean, message: string}> {
+  console.log('🔐 AuthService: Restableciendo contraseña');
+  
+  return this.http.post<{status: string, message: string}>(
+    `${this.apiUrl}/auth/reset-password`,
+    { token, newPassword }
+  ).pipe(
+    map(response => ({
+      success: response.status === 'success',
+      message: response.message
+    })),
+    catchError(this.handleError)
+  );
+}
+
+
   /**
    * Obtiene la URL de Google OAuth para login
    */
@@ -618,6 +674,7 @@ getProfile(): Observable<User> {
     return this.authState().user?.role === 'comprador';
   }
 
+ 
   /**
    * Redirige al usuario después del login según su rol
    */
