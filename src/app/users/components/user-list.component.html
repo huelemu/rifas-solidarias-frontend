@@ -1,0 +1,341 @@
+<!-- src/app/users/components/user-list.component.html -->
+<app-navbar></app-navbar>
+
+<div class="page-container">
+  <main class="page-main">
+    
+    <!-- TÍTULO DE PÁGINA
+    <div class="page-title">
+      <h1>👥 Usuarios</h1>
+      <p>Gestión de usuarios del sistema</p>
+    </div> -->
+
+    <!-- ESTADÍSTICAS COMPACTAS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getTotalUsers() }}</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getActiveUsers() }}</div>
+          <div class="stat-label">Activos</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">👑</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getAdminUsers() }}</div>
+          <div class="stat-label">Admins</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🛒</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getVendedorUsers() }}</div>
+          <div class="stat-label">Vendedores</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRA DE CONTROLES -->
+    <div class="controls-section">
+      <div class="controls-left">
+        <!-- Búsqueda -->
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="🔍 Buscar usuario..."
+            [(ngModel)]="filters.search"
+            (keyup)="onFilterChange()"
+            class="search-input"
+          />
+        </div>
+
+        <!-- Filtro por rol -->
+        <select
+          [(ngModel)]="filters.rol"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="todos">👤 Todos los roles</option>
+          <option value="superadmin">👑 Superadmin</option>
+          <option value="admin_institucion">🏢 Admin Institución</option>
+          <option value="vendedor">🛒 Vendedor</option>
+          <option value="comprador">🛍️ Comprador</option>
+        </select>
+
+        <!-- Filtro por estado -->
+        <select
+          [(ngModel)]="filters.estado"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="todos">🔄 Todos los estados</option>
+          <option value="activo">✅ Activo</option>
+          <option value="inactivo">⏸️ Inactivo</option>
+          <option value="suspendido">🚫 Suspendido</option>
+        </select>
+
+        <!-- Botón limpiar filtros -->
+        @if (filters.search || filters.rol !== 'todos' || filters.estado !== 'todos') {
+          <button (click)="clearFilters()" class="btn-clear">
+            🗑️ Limpiar
+          </button>
+        }
+      </div>
+
+      <div class="controls-right">
+        <!-- Toggle Vista -->
+        <app-view-toggle></app-view-toggle>
+
+        <!-- Botón Crear -->
+        @if (canCreateUser()) {
+          <button (click)="createUser()" class="btn-primary">
+            ➕ Nuevo Usuario
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    @if (isLoading()) {
+      <div class="loading-card">
+        <div class="spinner"></div>
+        <p>Cargando usuarios...</p>
+      </div>
+    }
+
+    <!-- ERROR -->
+    @else if (errorMessage()) {
+      <div class="error-card">
+        <h3>❌ Error</h3>
+        <p>{{ errorMessage() }}</p>
+        <button (click)="loadUsers()" class="btn-primary">
+          🔄 Reintentar
+        </button>
+      </div>
+    }
+
+    <!-- GRID O LISTA DE USUARIOS -->
+    @else if (!isLoading() && !errorMessage() && users() && users().length > 0) {
+      
+      <!-- Vista Tarjetas -->
+      @if ((viewMode$ | async) === 'card') {
+        <div class="users-grid">
+          @for (user of users(); track user.id) {
+            <div class="card" [ngClass]="getUserCardClass(user)">
+              
+              <!-- HEADER -->
+              <div class="card-header">
+                <div class="user-avatar">
+                  {{ getInitials(user.nombre, user.apellido) }}
+                </div>
+                
+                <div class="card-header-info">
+                  <h3>{{ user.nombre }} {{ user.apellido }}</h3>
+                  <p class="user-email">{{ user.email }}</p>
+                  <span class="badge" [ngClass]="'estado-' + user.estado">
+                    {{ getStatusLabel(user.estado) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- BODY -->
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="label">ID:</span>
+                  <span class="value">{{ user.id }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Rol:</span>
+                  <span class="value role-badge" [ngClass]="getRoleClass(user.rol)">
+                    {{ getRoleLabel(user.rol) }}
+                  </span>
+                </div>
+                @if (user.institucion_nombre) {
+                  <div class="info-row">
+                    <span class="label">Institución:</span>
+                    <span class="value">{{ user.institucion_nombre }}</span>
+                  </div>
+                }
+                <div class="info-row">
+                  <span class="label">Creado:</span>
+                  <span class="value">{{ formatDate(user.created_at) }}</span>
+                </div>
+                @if (user.ultimo_acceso) {
+                  <div class="info-row">
+                    <span class="label">Último acceso:</span>
+                    <span class="value">{{ formatDate(user.ultimo_acceso) }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- ACTIONS -->
+              <div class="card-actions">
+                <button 
+                  (click)="viewUser(user)" 
+                  class="btn-action btn-view"
+                  title="Ver detalles"
+                >
+                  👁️
+                </button>
+                @if (canEditUser(user)) {
+                  <button 
+                    (click)="editUser(user)" 
+                    class="btn-action btn-edit"
+                    title="Editar"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    (click)="toggleUserStatus(user)" 
+                    class="btn-action"
+                    [ngClass]="user.estado === 'activo' ? 'btn-pause' : 'btn-play'"
+                    [title]="user.estado === 'activo' ? 'Desactivar' : 'Activar'"
+                  >
+                    {{ user.estado === 'activo' ? '⏸️' : '▶️' }}
+                  </button>
+                }
+                @if (canDeleteUser(user)) {
+                  <button 
+                    (click)="deleteUser(user)" 
+                    class="btn-action btn-delete"
+                    title="Eliminar"
+                  >
+                    🗑️
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Vista Lista -->
+      @else {
+        <div class="users-list">
+          @for (user of users(); track user.id) {
+            <div class="list-item" [ngClass]="getUserCardClass(user)">
+              
+              <!-- Avatar -->
+              <div class="list-avatar">
+                {{ getInitials(user.nombre, user.apellido) }}
+              </div>
+
+              <!-- Contenido -->
+              <div class="list-content">
+                <div class="list-header">
+                  <h3>{{ user.nombre }} {{ user.apellido }}</h3>
+                  <span class="badge" [ngClass]="'estado-' + user.estado">
+                    {{ getStatusLabel(user.estado) }}
+                  </span>
+                </div>
+                
+                <div class="list-info">
+                  <span><strong>Email:</strong> {{ user.email }}</span>
+                  <span><strong>Rol:</strong> 
+                    <span class="role-badge" [ngClass]="getRoleClass(user.rol)">
+                      {{ getRoleLabel(user.rol) }}
+                    </span>
+                  </span>
+                  @if (user.institucion_nombre) {
+                    <span><strong>Institución:</strong> {{ user.institucion_nombre }}</span>
+                  }
+                  <span><strong>Creado:</strong> {{ formatDate(user.created_at) }}</span>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="list-actions">
+                <button 
+                  (click)="viewUser(user)" 
+                  class="btn-action btn-view"
+                  title="Ver detalles"
+                >
+                  👁️
+                </button>
+                @if (canEditUser(user)) {
+                  <button 
+                    (click)="editUser(user)" 
+                    class="btn-action btn-edit"
+                    title="Editar"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    (click)="toggleUserStatus(user)" 
+                    class="btn-action"
+                    [ngClass]="user.estado === 'activo' ? 'btn-pause' : 'btn-play'"
+                    [title]="user.estado === 'activo' ? 'Desactivar' : 'Activar'"
+                  >
+                    {{ user.estado === 'activo' ? '⏸️' : '▶️' }}
+                  </button>
+                }
+                @if (canDeleteUser(user)) {
+                  <button 
+                    (click)="deleteUser(user)" 
+                    class="btn-action btn-delete"
+                    title="Eliminar"
+                  >
+                    🗑️
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- PAGINACIÓN -->
+      @if (pagination() && pagination().totalPages > 1) {
+        <div class="pagination">
+          <div class="pagination-info">
+            Mostrando {{ users().length }} de {{ pagination().total }} usuarios
+          </div>
+          
+          <div class="pagination-controls">
+            <button 
+              class="btn-page"
+              [disabled]="pagination().page <= 1"
+              (click)="changePage(pagination().page - 1)"
+            >
+              « Anterior
+            </button>
+            
+            <span class="page-info">
+              Página {{ pagination().page }} de {{ pagination().totalPages }}
+            </span>
+            
+            <button 
+              class="btn-page"
+              [disabled]="pagination().page >= pagination().totalPages"
+              (click)="changePage(pagination().page + 1)"
+            >
+              Siguiente »
+            </button>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- SIN RESULTADOS -->
+    @else if (!isLoading() && !errorMessage() && (!users() || users().length === 0)) {
+      <div class="empty-card">
+        <h3>🔍 No se encontraron usuarios</h3>
+        <p>No hay usuarios que coincidan con tu búsqueda.</p>
+        <button (click)="clearFilters()" class="btn-primary">
+          🗑️ Limpiar Filtros
+        </button>
+      </div>
+    }
+
+  </main>
+</div>

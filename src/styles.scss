@@ -1,5 +1,6 @@
-@import './styles/variables';
-@import './styles/base-components.scss';
+// Usar @use en lugar de @import para evitar warnings
+@use './styles/variables' as *;
+@use './styles/base-components.scss' as *;
 
 * {
   box-sizing: border-box;
@@ -15,7 +16,6 @@ body {
   background: #f8f9fa;
 }
 
-// Estilos globales adicionales si los necesitas
 html, body {
   height: 100%;
 }

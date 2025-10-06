@@ -1,15 +1,23 @@
 <!-- src/app/institutions/components/institution-list.component.html -->
 <app-navbar></app-navbar>
-<div class="institutions-container">
- <main class="institutions-main">
-    <!-- Estadísticas rápidas -->
+
+<div class="page-container">
+  <main class="page-main">
+    
+    <!-- TÍTULO DE PÁGINA -->
+    <!-- <div class="page-title">
+      <h1>🏢 Instituciones</h1>
+      <p>Gestión de instituciones registradas en el sistema</p>
+    </div> -->
+
+    <!-- ESTADÍSTICAS COMPACTAS -->
     @if (stats(); as statistics) {
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">🏢</div>
           <div class="stat-content">
             <div class="stat-number">{{ getTotalInstitutions() }}</div>
-            <div class="stat-label">Total Instituciones</div>
+            <div class="stat-label">Total</div>
           </div>
         </div>
         
@@ -39,7 +47,66 @@
       </div>
     }
 
-    <!-- Loading -->
+    <!-- BARRA DE CONTROLES -->
+    <div class="controls-section">
+      <div class="controls-left">
+        <!-- Búsqueda -->
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="🔍 Buscar institución..."
+            [(ngModel)]="currentFilters().search"
+            (keyup.enter)="applyFilters()"
+            class="search-input"
+          />
+        </div>
+
+        <!-- Filtro por tipo -->
+        <select
+          [(ngModel)]="currentFilters().tipo"
+          (change)="applyFilters()"
+          class="filter-select"
+        >
+          <option value="todas">📁 Todos los tipos</option>
+          @for (tipo of institutionTypes; track tipo.value) {
+            <option [value]="tipo.value">{{ tipo.label }}</option>
+          }
+        </select>
+
+        <!-- Filtro por estado -->
+        <select
+          [(ngModel)]="currentFilters().estado"
+          (change)="applyFilters()"
+          class="filter-select"
+        >
+          <option value="todas">🔄 Todos los estados</option>
+          @for (status of institutionStatuses; track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+
+        <!-- Botón limpiar filtros -->
+        @if (currentFilters().search || currentFilters().tipo !== 'todas' || currentFilters().estado !== 'todas') {
+          <button (click)="clearFilters()" class="btn-clear">
+            🗑️ Limpiar
+          </button>
+        }
+      </div>
+
+      <div class="controls-right">
+        <!-- Toggle Vista -->
+        <app-view-toggle></app-view-toggle>
+
+        <!-- Botón Crear -->
+        @if (canManageInstitutions()) {
+          <button (click)="createInstitution()" class="btn-primary">
+            ➕ Nueva Institución
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- LOADING -->
     @if (loading()) {
       <div class="loading-card">
         <div class="spinner"></div>
@@ -47,7 +114,7 @@
       </div>
     }
 
-    <!-- Error -->
+    <!-- ERROR -->
     @else if (error()) {
       <div class="error-card">
         <h3>❌ Error</h3>
@@ -58,119 +125,194 @@
       </div>
     }
 
-    <!-- Lista de instituciones -->
-    @else if (!loading() && !error() && institutions() && institutions().length > 0) {
-      <div class="institutions-grid">
-        @for (institution of filteredInstitutions(); track institution.id) {
-          <div class="institution-card" [class]="getInstitutionCardClass(institution)">
-            
-            <!-- ======================================== 
-                 HEADER CON LOGO 
-                 ======================================== -->
-            <div class="institution-header">
+    <!-- GRID O LISTA DE INSTITUCIONES -->
+    @else if (!loading() && !error() && hasFilteredResults()) {
+      
+      <!-- Vista Tarjetas -->
+      @if ((viewMode$ | async) === 'card') {
+        <div class="institutions-grid">
+          @for (institution of filteredInstitutions(); track institution.id) {
+            <div class="card" [ngClass]="getInstitutionCardClass(institution)">
               
-              <!-- Logo o placeholder -->
-              @if (institution.logo_url) {
-                <img 
-                  [src]="getInstitutionLogoUrl(institution)" 
-                  [alt]="institution.nombre"
-                  class="institution-logo-mini"
-                  onerror="this.style.display='none'"
-                />
-              } @else {
-                <div class="institution-logo-placeholder">
-                  {{ getTypeIcon(institution.tipo) }}
-                </div>
-              }
-              
-              <!-- Info (nombre + email) -->
-              <div class="institution-info">
-                <h4>{{ institution.nombre }}</h4>
-                <p class="institution-email">{{ institution.email }}</p>
-              </div>
-              
-              <!-- Status badge -->
-              <div class="institution-status">
-                <span class="status-badge" [class]="getStatusClass(institution.estado)">
-                  {{ getStatusLabel(institution.estado) }}
-                </span>
-              </div>
-            </div>
-            <!-- ======================================== -->
-
-            <div class="institution-details">
-              <div class="detail-item">
-                <label>ID:</label>
-                <span>{{ institution.id }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Tipo:</label>
-                <span class="type-badge" [class]="getTypeClass(institution.tipo)">
-                  {{ getTypeLabel(institution.tipo) }}
-                </span>
-              </div>
-              @if (institution.telefono) {
-                <div class="detail-item">
-                  <label>Teléfono:</label>
-                  <span>{{ institution.telefono }}</span>
-                </div>
-              }
-              <div class="detail-item">
-                <label>Creada:</label>
-                <span>{{ formatDate(institution.fecha_creacion) }}</span>
-              </div>
-              @if (institution.descripcion) {
-                <div class="detail-item">
-                  <label>Descripción:</label>
-                  <span>{{ institution.descripcion.slice(0, 30) }}{{ institution.descripcion.length > 30 ? '...' : '' }}</span>
-                </div>
-              }
-            </div>
-
-            <!-- Botones actualizados para usar navegación -->
-            <div class="institution-actions">
-              <button 
-                (click)="openDetailModal(institution)" 
-                class="btn-action btn-view"
-                title="Ver detalles"
-              >
-                👁️
-              </button>
-              @if (canEditInstitution(institution)) {
-                <button 
-                  (click)="editInstitution(institution)" 
-                  class="btn-action btn-edit"
-                  title="Editar institución"
-                >
-                  ✏️
-                </button>
-              }
-              @if (canManageInstitutions()) {
-                <button 
-                  (click)="toggleInstitutionStatus(institution)" 
-                  class="btn-action"
-                  [class.btn-deactivate]="institution.estado === 'activa'"
-                  [class.btn-activate]="institution.estado !== 'activa'"
-                  [title]="institution.estado === 'activa' ? 'Desactivar' : 'Activar'"
-                >
-                  {{ institution.estado === 'activa' ? '⏸️' : '▶️' }}
-                </button>
-                @if (canDeleteInstitution(institution)) {
-                  <button 
-                    (click)="openDeleteModal(institution)" 
-                    class="btn-action btn-delete"
-                    title="Eliminar institución"
-                  >
-                    🗑️
-                  </button>
+              <!-- HEADER -->
+              <div class="card-header">
+                @if (institution.logo_url) {
+                  <div class="card-logo">
+                    <img 
+                      [src]="getInstitutionLogoUrl(institution)" 
+                      [alt]="institution.nombre"
+                      class="logo-img"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                } @else {
+                  <div class="card-logo">
+                    <div class="logo-placeholder">
+                      {{ getTypeIcon(institution.tipo) }}
+                    </div>
+                  </div>
                 }
-              }
-            </div>
-          </div>
-        }
-      </div>
+                
+                <div class="card-header-info">
+                  <h3>{{ institution.nombre }}</h3>
+                  <span class="badge" [ngClass]="'estado-' + institution.estado">
+                    {{ institution.estado }}
+                  </span>
+                </div>
+              </div>
 
-      <!-- Paginación -->
+              <!-- BODY -->
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="label">Tipo:</span>
+                  <span class="value">{{ getTypeIcon(institution.tipo) }} {{ institution.tipo }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Email:</span>
+                  <span class="value">{{ institution.email }}</span>
+                </div>
+                @if (institution.telefono) {
+                  <div class="info-row">
+                    <span class="label">Teléfono:</span>
+                    <span class="value">{{ institution.telefono }}</span>
+                  </div>
+                }
+                @if (institution.direccion) {
+                  <div class="info-row">
+                    <span class="label">Dirección:</span>
+                    <span class="value">{{ institution.direccion }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- ACTIONS -->
+              <div class="card-actions">
+                <button 
+                  (click)="viewInstitution(institution)" 
+                  class="btn-action btn-view"
+                  title="Ver detalles"
+                >
+                  👁️
+                </button>
+                @if (canManageInstitutions()) {
+                  <button 
+                    (click)="editInstitution(institution)" 
+                    class="btn-action btn-edit"
+                    title="Editar"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    (click)="toggleInstitutionStatus(institution)" 
+                    class="btn-action"
+                    [ngClass]="institution.estado === 'activa' ? 'btn-pause' : 'btn-play'"
+                    [title]="institution.estado === 'activa' ? 'Desactivar' : 'Activar'"
+                  >
+                    {{ institution.estado === 'activa' ? '⏸️' : '▶️' }}
+                  </button>
+                  @if (canDeleteInstitution(institution)) {
+                    <button 
+                      (click)="openDeleteModal(institution)" 
+                      class="btn-action btn-delete"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Vista Lista -->
+      @else {
+        <div class="institutions-list">
+          @for (institution of filteredInstitutions(); track institution.id) {
+            <div class="list-item" [ngClass]="getInstitutionCardClass(institution)">
+              
+              <!-- Logo -->
+              @if (institution.logo_url) {
+                <div class="list-logo">
+                  <img 
+                    [src]="getInstitutionLogoUrl(institution)" 
+                    [alt]="institution.nombre"
+                    class="logo-img"
+                    onerror="this.style.display='none'"
+                  />
+                </div>
+              } @else {
+                <div class="list-logo">
+                  <div class="logo-placeholder">
+                    {{ getTypeIcon(institution.tipo) }}
+                  </div>
+                </div>
+              }
+
+              <!-- Contenido -->
+              <div class="list-content">
+                <div class="list-header">
+                  <h3>{{ institution.nombre }}</h3>
+                  <span class="badge" [ngClass]="'estado-' + institution.estado">
+                    {{ institution.estado }}
+                  </span>
+                </div>
+                
+                <div class="list-info">
+                  <span><strong>Tipo:</strong> {{ getTypeIcon(institution.tipo) }} {{ institution.tipo }}</span>
+                  <span><strong>Email:</strong> {{ institution.email }}</span>
+                  @if (institution.telefono) {
+                    <span><strong>Teléfono:</strong> {{ institution.telefono }}</span>
+                  }
+                  @if (institution.direccion) {
+                    <span><strong>Dirección:</strong> {{ institution.direccion }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="list-actions">
+                <button 
+                  (click)="viewInstitution(institution)" 
+                  class="btn-action btn-view"
+                  title="Ver detalles"
+                >
+                  👁️
+                </button>
+                @if (canManageInstitutions()) {
+                  <button 
+                    (click)="editInstitution(institution)" 
+                    class="btn-action btn-edit"
+                    title="Editar"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    (click)="toggleInstitutionStatus(institution)" 
+                    class="btn-action"
+                    [ngClass]="institution.estado === 'activa' ? 'btn-pause' : 'btn-play'"
+                    [title]="institution.estado === 'activa' ? 'Desactivar' : 'Activar'"
+                  >
+                    {{ institution.estado === 'activa' ? '⏸️' : '▶️' }}
+                  </button>
+                  @if (canDeleteInstitution(institution)) {
+                    <button 
+                      (click)="openDeleteModal(institution)" 
+                      class="btn-action btn-delete"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- PAGINACIÓN -->
       @if (pagination(); as pag) {
         <div class="pagination">
           <div class="pagination-info">
@@ -204,22 +346,21 @@
       }
     }
 
-    <!-- Sin instituciones -->
-    @else if (!loading() && !error() && (!institutions() || institutions().length === 0)) {
+    <!-- SIN RESULTADOS -->
+    @else if (!loading() && !error() && !hasFilteredResults()) {
       <div class="empty-card">
-        <h3>🏢 No hay instituciones</h3>
-        <p>Aún no se han registrado instituciones en el sistema.</p>
-        @if (canManageInstitutions()) {
-          <button (click)="createInstitution()" class="btn-primary">
-            ➕ Crear Primera Institución
-          </button>
-        }
+        <h3>🔍 No se encontraron instituciones</h3>
+        <p>No hay instituciones que coincidan con tu búsqueda.</p>
+        <button (click)="clearFilters()" class="btn-primary">
+          🗑️ Limpiar Filtros
+        </button>
       </div>
     }
+
   </main>
 </div>
 
-<!-- MODAL ELIMINAR INSTITUCIÓN -->
+<!-- MODAL ELIMINAR -->
 @if (showDeleteModal()) {
   <div class="modal-overlay" (click)="closeModals()">
     <div class="modal-content small" (click)="$event.stopPropagation()">
@@ -237,123 +378,24 @@
               Estás a punto de eliminar la institución 
               <strong>"{{ institution.nombre }}"</strong>.
             </p>
-            <div class="warning-text">
-              <p>⚠️ <strong>Esta acción no se puede deshacer</strong></p>
-              <p>Se eliminarán todos los datos asociados.</p>
-            </div>
+            <p class="warning-text">
+              Esta acción no se puede deshacer.
+            </p>
           </div>
         }
       </div>
       
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModals()" [disabled]="submitting()">
+        <button (click)="closeModals()" class="btn-secondary" [disabled]="submitting()">
           Cancelar
         </button>
-        <button 
-          class="btn btn-danger" 
-          (click)="deleteInstitution()"
-          [disabled]="submitting()"
-        >
+        <button (click)="deleteInstitution()" class="btn-danger" [disabled]="submitting()">
           @if (submitting()) {
-            <span class="spinner small"></span>
-            Eliminando...
+            <span class="spinner-small"></span> Eliminando...
           } @else {
-            🗑️ Sí, Eliminar
+            🗑️ Eliminar
           }
         </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- MODAL DETALLES INSTITUCIÓN -->
-@if (showDetailModal()) {
-  <div class="modal-overlay" (click)="closeModals()">
-    <div class="modal-content large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>👁️ Detalles de la Institución</h3>
-        <button class="btn-close" (click)="closeModals()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        @if (selectedInstitution(); as institution) {
-          <div class="institution-detail">
-            
-            <!-- Información básica -->
-            <div class="detail-section">
-              <h4>📋 Información General</h4>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <label>Nombre:</label>
-                  <span>{{ institution.nombre }}</span>
-                </div>
-                <div class="detail-item">
-                  <label>Tipo:</label>
-                  <span>{{ getTypeIcon(institution.tipo) }} {{ institution.tipo | titlecase }}</span>
-                </div>
-                <div class="detail-item">
-                  <label>Estado:</label>
-                  <span class="status-badge" [class]="getStatusClass(institution.estado)">
-                    {{ institution.estado | titlecase }}
-                  </span>
-                </div>
-                <div class="detail-item">
-                  <label>Fecha de Creación:</label>
-                  <span>{{ formatDate(institution.fecha_creacion) }}</span>
-                </div>
-                @if (institution.descripcion) {
-                  <div class="detail-item full-width">
-                    <label>Descripción:</label>
-                    <span>{{ institution.descripcion }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Información de contacto -->
-            <div class="detail-section">
-              <h4>📞 Información de Contacto</h4>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <label>Email:</label>
-                  <span>
-                    <a [href]="'mailto:' + institution.email">
-                      {{ institution.email }}
-                    </a>
-                  </span>
-                </div>
-                @if (institution.telefono) {
-                  <div class="detail-item">
-                    <label>Teléfono:</label>
-                    <span>
-                      <a [href]="'tel:' + institution.telefono">
-                        {{ institution.telefono }}
-                      </a>
-                    </span>
-                  </div>
-                }
-                @if (institution.direccion) {
-                  <div class="detail-item full-width">
-                    <label>Dirección:</label>
-                    <span>{{ institution.direccion }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="modal-actions">
-              @if (canEditInstitution(institution)) {
-                <button (click)="editInstitution(institution); closeModals()" class="btn btn-primary">
-                  ✏️ Editar
-                </button>
-              }
-              <button (click)="closeModals()" class="btn btn-secondary">
-                Cerrar
-              </button>
-            </div>
-          </div>
-        }
       </div>
     </div>
   </div>

@@ -1,75 +1,84 @@
 <app-navbar></app-navbar>
 
-<div class="page-container">
-  <div class="page-main">
+<div class="rifas-page-container">
+  <div class="rifas-page-main">
 
-    <!-- Estadísticas compactas -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">🎫</div>
-        <div class="stat-content">
+    <!-- ============================================
+         ESTADÍSTICAS COMPACTAS
+         ============================================ -->
+    <div class="rifas-stats-grid">
+      <div class="rifas-stat-card">
+        <div class="rifas-stat-icon">🎫</div>
+        <div class="rifas-stat-content">
           <div class="stat-number">{{ rifas().length }}</div>
-          <div class="stat-label">Total</div>
+          <div class="stat-label">Total Rifas</div>
         </div>
       </div>
       
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
+      <div class="rifas-stat-card">
+        <div class="rifas-stat-icon">✅</div>
+        <div class="rifas-stat-content">
           <div class="stat-number">{{ getActivasCount() }}</div>
           <div class="stat-label">Activas</div>
         </div>
       </div>
       
-      <div class="stat-card">
-        <div class="stat-icon">🏁</div>
-        <div class="stat-content">
+      <div class="rifas-stat-card">
+        <div class="rifas-stat-icon">🏁</div>
+        <div class="rifas-stat-content">
           <div class="stat-number">{{ getFinalizadasCount() }}</div>
           <div class="stat-label">Finalizadas</div>
         </div>
       </div>
       
-      <div class="stat-card">
-        <div class="stat-icon">📝</div>
-        <div class="stat-content">
+      <div class="rifas-stat-card">
+        <div class="rifas-stat-icon">📝</div>
+        <div class="rifas-stat-content">
           <div class="stat-number">{{ getBorradorCount() }}</div>
           <div class="stat-label">Borradores</div>
         </div>
       </div>
     </div>
 
-    <!-- Controles y filtros -->
-    <div class="controls-section">
-      <div class="controls-left">
+    <!-- ============================================
+         CONTROLES Y FILTROS
+         ============================================ -->
+    <div class="rifas-controls-section">
+      <div class="rifas-controls-left">
+        <!-- Buscador -->
         <input
           type="text"
-          class="search-input"
-          placeholder="Buscar rifas..."
+          class="rifas-search-input"
+          placeholder="🔍 Buscar rifas por nombre..."
           [(ngModel)]="currentFilters().search"
           (ngModelChange)="onFilterChange()">
         
+        <!-- Filtro por estado -->
         <select 
-          class="filter-select"
+          class="rifas-filter-select"
           [(ngModel)]="currentFilters().estado"
           (ngModelChange)="onFilterChange()">
-          <option value="todas">Todos los estados</option>
+          <option value="todas">📊 Todos los estados</option>
           <option *ngFor="let estado of rifaEstados" [value]="estado.value">
             {{ estado.label }}
           </option>
         </select>
       </div>
       
-      <div class="controls-right">
+      <div class="rifas-controls-right">
+        <!-- Toggle vista tarjetas/lista -->
         <app-view-toggle></app-view-toggle>
         
-        <button class="btn btn-secondary" (click)="recargarRifas()">
+        <!-- Botón recargar -->
+        <button class="btn btn-secondary" (click)="recargarRifas()" title="Recargar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.64A9 9 0 0 0 20.49 15"></path>
           </svg>
         </button>
         
+        <!-- Botón crear rifa -->
         <button 
           *ngIf="canCreateRifa()" 
           class="btn btn-primary" 
@@ -83,41 +92,44 @@
       </div>
     </div>
 
-    <!-- Estados de carga -->
-    <div *ngIf="loading()" class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando rifas...</p>
+    <!-- ============================================
+         ESTADO DE CARGA
+         ============================================ -->
+    <div *ngIf="loading()" class="rifas-loading-card">
+      <div class="rifas-spinner"></div>
+      <h3>Cargando rifas...</h3>
+      <p>Por favor espera un momento</p>
     </div>
 
-    <div *ngIf="error()" class="error-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
+    <!-- ============================================
+         ESTADO DE ERROR
+         ============================================ -->
+    <div *ngIf="error() && !loading()" class="rifas-error-card">
+      <h3>⚠️ Error al cargar rifas</h3>
       <p>{{ error() }}</p>
-      <button class="btn btn-secondary" (click)="recargarRifas()">Reintentar</button>
+      <button class="btn btn-primary" (click)="recargarRifas()">
+        Reintentar
+      </button>
     </div>
 
-    <div *ngIf="!loading() && !error() && rifas().length === 0" class="empty-state">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M20 7h-9"></path>
-        <path d="M14 17H5"></path>
-        <circle cx="17" cy="17" r="3"></circle>
-        <circle cx="7" cy="7" r="3"></circle>
-      </svg>
-      <h2>No hay rifas</h2>
+    <!-- ============================================
+         ESTADO VACÍO
+         ============================================ -->
+    <div *ngIf="!loading() && !error() && rifas().length === 0" class="rifas-empty-card">
+      <h3>📭 No hay rifas disponibles</h3>
       <p>{{ currentFilters().search ? 'No se encontraron resultados' : 'Comienza creando tu primera rifa' }}</p>
       <button *ngIf="canCreateRifa()" class="btn btn-primary" (click)="crearRifa()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Crear Rifa
+        Crear Primera Rifa
       </button>
     </div>
 
-    <!-- Vista de tarjetas -->
+    <!-- ============================================
+         VISTA DE TARJETAS
+         ============================================ -->
     <div 
       *ngIf="!loading() && !error() && rifas().length > 0 && (viewMode$ | async) === 'card'" 
       class="rifas-grid">
@@ -129,7 +141,9 @@
       </app-rifa-card>
     </div>
 
-    <!-- Vista de lista -->
+    <!-- ============================================
+         VISTA DE LISTA
+         ============================================ -->
     <div 
       *ngIf="!loading() && !error() && rifas().length > 0 && (viewMode$ | async) === 'list'" 
       class="rifas-list">
@@ -141,19 +155,21 @@
       </app-rifa-card>
     </div>
 
-    <!-- Paginación -->
-    <div *ngIf="pagination() && rifas().length > 0" class="pagination">
+    <!-- ============================================
+         PAGINACIÓN
+         ============================================ -->
+    <div *ngIf="pagination() && rifas().length > 0" class="rifas-pagination">
       <button 
-        class="btn-pagination"
+        class="rifas-btn-pagination"
         [disabled]="pagination().page === 1"
         (click)="cambiarPagina(pagination().page - 1)">
-        Anterior
+        ← Anterior
       </button>
       
-      <div class="pagination-pages">
+      <div class="rifas-pagination-pages">
         <button
           *ngFor="let page of getPaginationPages()"
-          class="btn-page"
+          class="rifas-btn-page"
           [class.active]="page === pagination().page"
           (click)="cambiarPagina(page)">
           {{ page }}
@@ -161,11 +177,12 @@
       </div>
       
       <button 
-        class="btn-pagination"
+        class="rifas-btn-pagination"
         [disabled]="pagination().page === pagination().totalPages"
         (click)="cambiarPagina(pagination().page + 1)">
-        Siguiente
+        Siguiente →
       </button>
     </div>
+
   </div>
 </div>

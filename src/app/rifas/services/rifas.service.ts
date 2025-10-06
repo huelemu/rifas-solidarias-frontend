@@ -3,7 +3,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError } from 'rxjs';
+import { Observable, map, tap, catchError } from 'rxjs';
 
 // INTERFACES COMPATIBLES CON TUS COMPONENTES EXISTENTES
 export interface Rifa {
@@ -224,6 +224,8 @@ getHistorialCompras(): Observable<any> {
   return this.http.get<any>(`${this.baseUrl}/usuario/historial-compras`);
 }
   
+
+
   // ===================================================
   // MÉTODOS PÚBLICOS
   // ===================================================
@@ -247,6 +249,38 @@ getHistorialCompras(): Observable<any> {
   getPublicRifa(id: number): Observable<ApiResponse<Rifa>> {
     return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/publicas/${id}`);
   }
+
+
+/**
+ * Subir imagen de una rifa
+ */
+uploadImagen(rifaId: number, file: File): Observable<any> {
+  const formData = new FormData();
+  formData.append('imagen', file);
+  
+  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/upload-imagen`, formData).pipe(
+    tap(() => console.log('✅ Imagen subida exitosamente')),
+    catchError(error => {
+      console.error('❌ Error al subir imagen:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Eliminar imagen de una rifa
+ */
+deleteImagen(rifaId: number): Observable<any> {
+  return this.http.delete<any>(`${this.baseUrl}/rifas/${rifaId}/imagen`).pipe(
+    tap(() => console.log('✅ Imagen eliminada exitosamente')),
+    catchError(error => {
+      console.error('❌ Error al eliminar imagen:', error);
+      throw error;
+    })
+  );
+}
+
+
 
   // ===================================================
   // GESTIÓN DE NÚMEROS

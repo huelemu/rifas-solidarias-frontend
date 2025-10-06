@@ -18,7 +18,7 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent],
   templateUrl: './crear-rifa.component.html',
-  styleUrls: ['./crear-rifa.component.scss', '../../styles/rifas-global.scss']
+  styleUrls: ['./crear-rifa.component.scss']
 })
 export class CrearRifaComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -26,6 +26,10 @@ export class CrearRifaComponent implements OnInit {
   private readonly rifasService = inject(RifasService);
   private readonly institutionService = inject(InstitutionService);
   private readonly router = inject(Router);
+  
+  selectedFile: File | null = null;
+  imagenPreview: string | null = null;
+  readonly isUploadingImagen = signal(false);
 
   readonly submitting = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -154,40 +158,93 @@ export class CrearRifaComponent implements OnInit {
     this.crearRifa();
   }
 
-  private crearRifa(): void {
-    this.submitting.set(true);
-    this.error.set(null);
+  
+private crearRifa(): void {
+  this.submitting.set(true);
+  this.error.set(null);
 
-    const formData = this.rifaForm.value;
+  const formData = this.rifaForm.value;
 
-    const rifaData = {
-      nombre: String(formData.nombre || '').trim(),
-      descripcion: formData.descripcion ? String(formData.descripcion).trim() : '',
-      cantidad_numeros: parseInt(formData.cantidad_numeros) || 100,
-      precio_numero: parseFloat(formData.precio_numero) || 50,
-      fecha_inicio: formData.fecha_inicio,
-      fecha_fin: formData.fecha_fin,
-      fecha_sorteo: formData.fecha_sorteo || '',
-      institucion_promotora_id: parseInt(formData.institucion_promotora_id) || 0,
-      imagen_url: formData.imagen_url || '',
-      reglas_adicionales: formData.reglas_adicionales || ''
-    };
+  const rifaData = {
+    nombre: String(formData.nombre || '').trim(),
+    descripcion: formData.descripcion ? String(formData.descripcion).trim() : '',
+    cantidad_numeros: parseInt(formData.cantidad_numeros) || 100,
+    precio_numero: parseFloat(formData.precio_numero) || 50,
+    fecha_inicio: formData.fecha_inicio,
+    fecha_fin: formData.fecha_fin,
+    fecha_sorteo: formData.fecha_sorteo || null,  // ← null en lugar de ''
+    institucion_promotora_id: parseInt(formData.institucion_promotora_id) || 0,
+    reglas_adicionales: formData.reglas_adicionales || null
+    // ✅ NO incluir imagen_url aquí
+  };
 
-    console.log('Enviando rifa:', rifaData);
+  console.log('📝 Enviando rifa:', rifaData);
+  console.log('📎 Archivo seleccionado:', this.selectedFile ? 'Sí' : 'No');
 
-    this.rifasService.createRifa(rifaData).subscribe({
-      next: (response) => {
-        this.success.set('Rifa creada exitosamente');
+  this.rifasService.createRifa(rifaData).subscribe({
+    next: (response: any) => {
+      console.log('✅ Rifa creada:', response);
+      
+      // Obtener ID de la respuesta (puede venir en diferentes formatos)
+      const rifaId = response.data?.id || response.id;
+      
+      if (!rifaId) {
+        console.error('❌ No se obtuvo ID de la rifa creada');
+        this.error.set('Error: No se obtuvo el ID de la rifa');
         this.submitting.set(false);
-        setTimeout(() => this.router.navigate(['/rifas']), 1500);
-      },
-      error: (error) => {
-        console.error('Error:', error);
-        this.error.set(error.error?.message || 'Error al crear la rifa');
-        this.submitting.set(false);
+        return;
       }
-    });
+      
+      // Si hay archivo seleccionado, subirlo
+      if (this.selectedFile) {
+        this.uploadImagenAfterCreation(rifaId);
+      } else {
+        this.submitting.set(false);
+        this.success.set('Rifa creada exitosamente');
+        setTimeout(() => {
+          this.router.navigate(['/rifas']);
+        }, 1500);
+      }
+    },
+    error: (err) => {
+      console.error('❌ Error al crear rifa:', err);
+      const errorMsg = err?.error?.message || err?.message || 'Error desconocido';
+      this.error.set('Error al crear rifa: ' + errorMsg);
+      this.submitting.set(false);
+    }
+  });
+}
+/**
+ * Sube la imagen después de crear la rifa
+ */
+private uploadImagenAfterCreation(rifaId: number): void {
+  if (!this.selectedFile) {
+    this.submitting.set(false);
+    this.router.navigate(['/rifas']);
+    return;
   }
+
+  console.log('📤 Subiendo imagen para rifa ID:', rifaId);
+  
+  this.rifasService.uploadImagen(rifaId, this.selectedFile).subscribe({
+    next: (result: any) => {  // ← Tipo explícito
+      console.log('✅ Imagen subida:', result);
+      this.submitting.set(false);
+      this.selectedFile = null;
+      this.imagenPreview = null;
+      this.success.set('Rifa creada con imagen exitosamente');
+      setTimeout(() => {
+        this.router.navigate(['/rifas']);
+      }, 1500);
+    },
+    error: (error: any) => {  // ← Tipo explícito
+      console.error('❌ Error al subir imagen:', error);
+      this.submitting.set(false);
+      alert('Rifa creada, pero hubo un error al subir la imagen.\nPuedes editarla para intentar nuevamente.');
+      this.router.navigate(['/rifas']);
+    }
+  });
+}
 
   private formatDateForInput(date: Date): string {
     const year = date.getFullYear();
@@ -221,6 +278,41 @@ export class CrearRifaComponent implements OnInit {
     const field = this.rifaForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
   }
+
+  /**
+ * Maneja la selección de archivo
+ */
+onFileSelected(event: any): void {
+  const file = event.target.files[0];
+  
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Solo se permiten archivos de imagen');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert('El archivo no debe superar 5MB');
+      return;
+    }
+    
+    this.selectedFile = file;
+    
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagenPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+/**
+ * Cancela la selección de archivo
+ */
+cancelFileSelection(): void {
+  this.selectedFile = null;
+  this.imagenPreview = null;
+}
 
   // Métodos para el template
   successMessage() { return this.success(); }

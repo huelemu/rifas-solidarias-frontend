@@ -1,298 +1,46 @@
-@import '../../../../styles/variables';
+/* ===================================================================
+   RIFA CARD COMPONENT - Importa los estilos unificados
+   =================================================================== */
 
-// ===========================
-// VISTA DE TARJETA
-// ===========================
-.card {
-    background: white;
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
+@use '../../styles/rifas-unified.scss' as *;
+
+/* 
+  NOTA: Todos los estilos ya están definidos en rifas-unified.scss
+  Este archivo solo importa esos estilos para mantener la modularidad
+  del componente standalone de Angular.
   
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    border-color: #cbd5e0;
-  }
-}
-
-.card-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.card-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-}
-
-.logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.logo-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 700;
-  font-size: 1.75rem;
-}
-
-.card-header-info {
-  flex: 1;
-  min-width: 0;
-
-  h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #2c3e50;
-    line-height: 1.4;
-  }
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.3rem 0.85rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.estado-borrador {
-    background: #e2e8f0;
-    color: #6c757d;
-  }
-
-  &.estado-activa {
-    background: #c6f6d5;
-    color: #38a169;
-  }
-
-  &.estado-pausada {
-    background: #faf089;
-    color: #d69e2e;
-  }
-
-  &.estado-cerrada {
-    background: #b2f5ea;
-    color: #319795;
-  }
-
-  &.estado-finalizada {
-    background: #cbd5e0;
-    color: #4a5568;
-  }
-
-  &.estado-cancelada {
-    background: #feb2b2;
-    color: #e53e3e;
-  }
-}
-
-.card-body {
-  padding: 1.5rem;
-  flex: 1;
-}
-
-.info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f7fafc;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  .label {
-    font-size: 0.9rem;
-    color: #718096;
-    font-weight: 500;
-  }
-
-  .value {
-    font-size: 0.9rem;
-    color: #2c3e50;
-    font-weight: 600;
-    text-align: right;
-  }
-}
-
-.card-actions {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  background: #fafbfc;
-}
-
-.btn-action {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &.btn-view {
-    background: #e6fffa;
-    color: #319795;
-
-    &:hover {
-      background: #b2f5ea;
-      transform: scale(1.1);
-    }
-  }
-
-  &.btn-edit {
-    background: #fffbeb;
-    color: #d69e2e;
-
-    &:hover {
-      background: #faf089;
-      transform: scale(1.1);
-    }
-  }
-
-  &.btn-delete {
-    background: #fed7d7;
-    color: #e53e3e;
-
-    &:hover {
-      background: #feb2b2;
-      transform: scale(1.1);
-    }
-  }
-}
-
-// ===========================
-// VISTA DE LISTA
-// ===========================
-.list-item {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #cbd5e0;
-  }
-}
-
-.list-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-}
-
-.list-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.list-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-
-  h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-}
-
-.list-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: #718096;
-
-  strong {
-    color: #4a5568;
-    font-weight: 500;
-  }
-}
-
-.list-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-// ===========================
-// RESPONSIVE
-// ===========================
-@media (max-width: 768px) {
-  .list-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .list-logo {
-    align-self: flex-start;
-  }
-
-  .list-info {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .list-actions {
-    justify-content: center;
-  }
-
-  .card-actions {
-    justify-content: center;
-  }
-
-  .card-logo {
-    width: 64px;
-    height: 64px;
-  }
-}
+  Las clases disponibles son:
+  
+  VISTA TARJETA:
+  - .rifa-card
+  - .rifa-card-header
+  - .rifa-card-logo
+  - .rifa-logo-placeholder
+  - .rifa-card-header-info
+  - .rifa-card-badges
+  - .rifa-card-body
+  - .rifa-info-grid
+  - .rifa-info-row
+  - .rifa-progress-section
+  - .rifa-progress-bar
+  - .rifa-progress-fill
+  - .rifa-card-footer
+  
+  VISTA LISTA:
+  - .rifa-list-item
+  - .rifa-list-logo
+  - .rifa-list-content
+  - .rifa-list-header
+  - .rifa-list-info
+  - .rifa-list-actions
+  
+  ESTADOS:
+  - .estado-borrador
+  - .estado-activa
+  - .estado-cerrada
+  - .estado-finalizada
+  - .estado-cancelada
+  
+  Todos heredan de base-components.scss para mantener consistencia
+  con usuarios e instituciones.
+*/

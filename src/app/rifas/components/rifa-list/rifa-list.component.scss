@@ -1,347 +1,46 @@
-@import '../../../../styles/variables';
+/* ===================================================================
+   RIFA CARD COMPONENT - Importa los estilos unificados
+   =================================================================== */
 
-.page-container {
-  min-height: calc(100vh - 64px);
-  background: #f8f9fa;
-}
+@use '../../styles/rifas-unified.scss' as *;
 
-.page-main {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: $spacing-2xl $spacing-xl;
-}
-
-// ====================
-// TÍTULO DE PÁGINA
-// ====================
-.page-title {
-  margin-bottom: $spacing-2xl;
+/* 
+  NOTA: Todos los estilos ya están definidos en rifas-unified.scss
+  Este archivo solo importa esos estilos para mantener la modularidad
+  del componente standalone de Angular.
   
-  h1 {
-    margin: 0 0 $spacing-xs 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: $color-text-primary;
-  }
+  Las clases disponibles son:
   
-  p {
-    margin: 0;
-    color: $color-text-secondary;
-  }
-}
-
-// ====================
-// ESTADÍSTICAS COMPACTAS
-// ====================
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $spacing-lg;
-  margin-bottom: $spacing-2xl;
-}
-
-.stat-card {
-  background: white;
-  padding: $spacing-lg;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
-  border: 1px solid $color-border;
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  transition: all $transition-base;
+  VISTA TARJETA:
+  - .rifa-card
+  - .rifa-card-header
+  - .rifa-card-logo
+  - .rifa-logo-placeholder
+  - .rifa-card-header-info
+  - .rifa-card-badges
+  - .rifa-card-body
+  - .rifa-info-grid
+  - .rifa-info-row
+  - .rifa-progress-section
+  - .rifa-progress-bar
+  - .rifa-progress-fill
+  - .rifa-card-footer
   
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
-  }
-}
-
-.stat-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: $color-text-primary;
-  line-height: 1;
-  margin-bottom: $spacing-xs;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: $color-text-secondary;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// ====================
-// CONTROLES
-// ====================
-.controls-section {
-  background: white;
-  padding: $spacing-lg;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
-  border: 1px solid $color-border;
-  margin-bottom: $spacing-2xl;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: $spacing-lg;
-  flex-wrap: wrap;
-}
-
-.controls-left {
-  display: flex;
-  gap: $spacing-md;
-  flex: 1;
-  min-width: 300px;
-}
-
-.controls-right {
-  display: flex;
-  gap: $spacing-md;
-  align-items: center;
-}
-
-.search-input,
-.filter-select {
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid $color-border;
-  border-radius: $border-radius-sm;
-  font-size: 0.875rem;
-  transition: all $transition-fast;
+  VISTA LISTA:
+  - .rifa-list-item
+  - .rifa-list-logo
+  - .rifa-list-content
+  - .rifa-list-header
+  - .rifa-list-info
+  - .rifa-list-actions
   
-  &:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-}
-
-.search-input {
-  flex: 1;
-  min-width: 200px;
-}
-
-.filter-select {
-  min-width: 180px;
-}
-
-// ====================
-// BOTONES
-// ====================
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-lg;
-  border: none;
-  border-radius: $border-radius-sm;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all $transition-fast;
-  white-space: nowrap;
-  font-family: inherit;
+  ESTADOS:
+  - .estado-borrador
+  - .estado-activa
+  - .estado-cerrada
+  - .estado-finalizada
+  - .estado-cancelada
   
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  &.btn-primary {
-    background: #667eea;
-    color: white;
-    
-    &:hover:not(:disabled) {
-      background: #5a67d8;
-    }
-  }
-  
-  &.btn-secondary {
-    background: white;
-    color: $color-text-primary;
-    border: 1px solid $color-border;
-    
-    &:hover:not(:disabled) {
-      background: #f7fafc;
-      border-color: #cbd5e0;
-    }
-  }
-  
-  svg {
-    flex-shrink: 0;
-  }
-}
-
-// ====================
-// GRIDS
-// ====================
-.rifas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: $spacing-xl;
-  
-  > * {
-    display: flex;
-  }
-}
-
-.rifas-list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-// ====================
-// ESTADOS
-// ====================
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: $spacing-xl * 2;
-  text-align: center;
-  color: $color-text-secondary;
-  background: white;
-  border-radius: $border-radius-md;
-  
-  svg {
-    margin-bottom: $spacing-lg;
-    color: $color-text-light;
-  }
-  
-  h2 {
-    margin: 0 0 $spacing-sm 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: $color-text-primary;
-  }
-  
-  p {
-    margin: 0 0 $spacing-lg 0;
-    font-size: 1rem;
-  }
-}
-
-.error-state svg {
-  color: #e53e3e;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid $color-border;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-// ====================
-// PAGINACIÓN
-// ====================
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: $spacing-sm;
-  margin-top: $spacing-xl;
-  padding: $spacing-md;
-}
-
-.btn-pagination,
-.btn-page {
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid $color-border;
-  background: white;
-  border-radius: $border-radius-sm;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all $transition-fast;
-  
-  &:hover:not(:disabled) {
-    background: #f7fafc;
-    border-color: #cbd5e0;
-  }
-  
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  
-  &.active {
-    background: #667eea;
-    color: white;
-    border-color: #667eea;
-  }
-}
-
-.pagination-pages {
-  display: flex;
-  gap: $spacing-xs;
-}
-
-// ====================
-// RESPONSIVE
-// ====================
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .rifas-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .page-main {
-    padding: $spacing-lg;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .controls-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .controls-left {
-    flex-direction: column;
-  }
-  
-  .controls-right {
-    justify-content: stretch;
-    
-    > * {
-      flex: 1;
-    }
-  }
-  
-  .rifas-grid {
-    grid-template-columns: 1fr;
-  }
-}
+  Todos heredan de base-components.scss para mantener consistencia
+  con usuarios e instituciones.
+*/

@@ -1,0 +1,762 @@
+/* ===================================================================
+   RIFAS - ESTILOS UNIFICADOS Y COMPLETOS
+   Archivo ÚNICO para todos los componentes de rifas
+   Importar ESTE archivo en cada componente de rifas
+   =================================================================== */
+
+/* Importar base de componentes globales usando @use en lugar de @import */
+@use '../../../styles/base-components.scss' as *;
+
+/* ===================================================================
+   1. CONTENEDORES Y LAYOUT PRINCIPAL
+   =================================================================== */
+
+.rifas-page-container {
+  min-height: calc(100vh - 64px);
+  background: var(--bg-page);
+}
+
+.rifas-page-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+}
+
+/* ===================================================================
+   2. ESTADÍSTICAS COMPACTAS (como usuarios/instituciones)
+   =================================================================== */
+
+.rifas-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.rifas-stat-card {
+  @include card-base;
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  
+  &:hover {
+    @include card-hover;
+  }
+}
+
+.rifas-stat-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.rifas-stat-content {
+  flex: 1;
+  
+  .stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* ===================================================================
+   3. CONTROLES Y FILTROS
+   =================================================================== */
+
+.rifas-controls-section {
+  @include card-base;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.rifas-controls-left {
+  display: flex;
+  gap: var(--spacing-md);
+  flex: 1;
+  min-width: 300px;
+}
+
+.rifas-controls-right {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.rifas-search-input {
+  @include input-base;
+  flex: 1;
+  max-width: 400px;
+  min-width: 200px;
+}
+
+.rifas-filter-select {
+  @include input-base;
+  min-width: 180px;
+}
+
+/* ===================================================================
+   4. GRID DE RIFAS - VISTA DE TARJETAS
+   =================================================================== */
+
+.rifas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* ===================================================================
+   5. VISTA DE LISTA
+   =================================================================== */
+
+.rifas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* ===================================================================
+   6. COMPONENTE RIFA-CARD - VISTA TARJETA
+   =================================================================== */
+
+.rifa-card {
+  @include card-base;
+  overflow: hidden; // CRÍTICO: evita que contenido se salga
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative; // Para posicionar elementos absolutos dentro
+  
+  &:hover {
+    @include card-hover;
+  }
+  
+  &.inactive {
+    opacity: 0.7;
+    
+    &::after {
+      content: 'INACTIVA';
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--inactive-bg);
+      color: var(--inactive-color);
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      z-index: 1;
+    }
+  }
+}
+
+.rifa-card-header {
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+.rifa-card-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.rifa-logo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.rifa-card-header-info {
+  flex: 1;
+  min-width: 0;
+  
+  h3 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .institucion-nombre {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.rifa-card-badges {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-xs);
+}
+
+/* Estados de rifas */
+.estado-borrador {
+  @extend .badge-inactive;
+}
+
+.estado-activa {
+  @extend .badge-success;
+}
+
+.estado-cerrada {
+  @extend .badge-warning;
+}
+
+.estado-finalizada {
+  @extend .badge-info;
+}
+
+.estado-cancelada {
+  @extend .badge-error;
+}
+
+.rifa-card-body {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Layout compacto estilo usuarios */
+.rifa-info-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  
+  .icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  
+  .info-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .info-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  
+  .info-value {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Sección de fechas */
+.rifa-dates-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 2px solid var(--bg-tertiary);
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+  
+  .date-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  
+  .date-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  
+  .date-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  
+  .date-value {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  &.date-highlight {
+    background: rgba(102, 126, 234, 0.08);
+    border-color: rgba(102, 126, 234, 0.2);
+    
+    .date-label {
+      color: var(--primary-color);
+    }
+    
+    .date-value {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+  }
+}
+
+/* Barra de progreso */
+.rifa-progress-section {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 2px solid var(--bg-secondary);
+}
+
+.rifa-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+  
+  strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
+
+.rifa-progress-bar {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rifa-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.rifa-card-footer {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0; // Evita que se comprima
+  min-height: 60px; // Altura mínima para los botones
+}
+
+/* ===================================================================
+   7. COMPONENTE RIFA-CARD - VISTA LISTA
+   =================================================================== */
+
+.rifa-list-item {
+  @include card-base;
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  
+  &:hover {
+    @include card-hover;
+  }
+  
+  &.inactive {
+    opacity: 0.7;
+  }
+}
+
+.rifa-list-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.rifa-list-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rifa-list-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.rifa-list-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  
+  strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+}
+
+.rifa-list-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+/* ===================================================================
+   8. BOTONES DE ACCIÓN (para ambas vistas)
+   =================================================================== */
+
+.btn-action {
+  @include button-base;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  
+  &:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.btn-action-view {
+  background: var(--info-bg);
+  color: var(--info-color);
+  border-color: var(--info-border);
+  
+  &:hover:not(:disabled) {
+    background: var(--info-color);
+    color: white;
+  }
+}
+
+.btn-action-edit {
+  background: var(--warning-bg);
+  color: var(--warning-color);
+  border-color: var(--warning-border);
+  
+  &:hover:not(:disabled) {
+    background: var(--warning-color);
+    color: white;
+  }
+}
+
+.btn-action-delete {
+  background: var(--error-bg);
+  color: var(--error-color);
+  border-color: var(--error-border);
+  
+  &:hover:not(:disabled) {
+    background: var(--error-color);
+    color: white;
+  }
+}
+
+/* ===================================================================
+   9. ESTADOS DE CARGA Y MENSAJES
+   =================================================================== */
+
+.rifas-loading-card,
+.rifas-error-card,
+.rifas-empty-card {
+  @include card-base;
+  padding: var(--spacing-2xl);
+  text-align: center;
+  
+  h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-secondary);
+  }
+  
+  p {
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+.rifas-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--bg-tertiary);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto var(--spacing-lg) auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===================================================================
+   10. PAGINACIÓN
+   =================================================================== */
+
+.rifas-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-2xl);
+}
+
+.rifas-pagination-pages {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.rifas-btn-page {
+  @include button-base;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  
+  &:hover:not(:disabled) {
+    background: var(--bg-secondary);
+  }
+  
+  &.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+  }
+}
+
+.rifas-btn-pagination {
+  @include button-base;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  
+  &:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+  }
+}
+
+/* ===================================================================
+   11. FORMULARIOS (Crear/Editar Rifa)
+   =================================================================== */
+
+.rifa-form-container {
+  @include card-base;
+  overflow: hidden;
+}
+
+.rifa-form-body {
+  padding: var(--spacing-2xl);
+}
+
+.rifa-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.rifa-form-field-full {
+  grid-column: 1 / -1;
+}
+
+.rifa-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+/* ===================================================================
+   12. RESPONSIVE
+   =================================================================== */
+
+@media (max-width: 1024px) {
+  .rifas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .rifas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .rifa-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-info-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-dates-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rifas-page-main {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .rifas-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifas-controls-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .rifas-controls-left,
+  .rifas-controls-right {
+    width: 100%;
+  }
+  
+  .rifas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rifa-list-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .rifa-list-logo {
+    align-self: flex-start;
+  }
+  
+  .rifa-list-info {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .rifa-list-actions {
+    justify-content: flex-end;
+  }
+  
+  .rifa-card-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .rifas-pagination {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .rifa-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

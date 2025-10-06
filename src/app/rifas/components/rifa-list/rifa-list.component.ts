@@ -1,4 +1,5 @@
-// src/app/rifas/components/rifa-list/rifa-list.component.ts - VERSIÓN CORREGIDA
+// src/app/rifas/components/rifa-list/rifa-list.component.ts
+
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,6 @@ import {
   Rifa,
   RifaFilters,
   RIFA_ESTADOS,
-  RifaUtils,
   RIFA_CONFIG
 } from '../../models/rifa.models';
 import { ViewToggleComponent } from '../../../shared/components/view-toggle/view-toggle.component';
@@ -17,7 +17,6 @@ import { RifaCardComponent } from '../rifa-card/rifa-card.component';
 import { ViewPreferenceService, ViewMode } from '../../../shared/services/view-preference.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { Observable } from 'rxjs';
-
 
 @Component({
   selector: 'app-rifa-list',
@@ -33,20 +32,22 @@ import { Observable } from 'rxjs';
   styleUrls: ['./rifa-list.component.scss']
 })
 export class RifaListComponent implements OnInit {
-  // Servicios
+  // =====================================================
+  // SERVICIOS INYECTADOS
+  // =====================================================
   private readonly authService = inject(AuthService);
   private readonly rifasService = inject(RifasService);
   private readonly router = inject(Router);
   private readonly viewPreferenceService = inject(ViewPreferenceService);
-  
 
-  // Signals para estado del componente
+  // =====================================================
+  // SIGNALS Y ESTADO
+  // =====================================================
   readonly rifas = signal<any[]>([]);
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
   readonly pagination = signal<any>(null);
   readonly viewMode$: Observable<ViewMode> = this.viewPreferenceService.getViewMode$();
-  
 
   // Filtros
   readonly currentFilters = signal<RifaFilters>({
@@ -62,9 +63,9 @@ export class RifaListComponent implements OnInit {
   readonly rifaEstados = RIFA_ESTADOS;
   readonly Math = Math;
 
-  // Computed properties
-  readonly filteredRifas = computed(() => this.rifas());
-
+  // =====================================================
+  // LIFECYCLE
+  // =====================================================
   ngOnInit() {
     this.loadRifas();
   }
@@ -73,349 +74,119 @@ export class RifaListComponent implements OnInit {
   // MÉTODOS DE CARGA DE DATOS
   // =====================================================
 
+  /**
+   * Carga las rifas desde el backend
+   */
   private loadRifas(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    console.log('📡 Haciendo petición con filtros:', this.currentFilters());
+    console.log('📡 Cargando rifas con filtros:', this.currentFilters());
     
     this.rifasService.getRifas(this.currentFilters()).subscribe({
       next: (result: any) => {
-        console.log('📦 Respuesta completa del backend:', result);
+        console.log('✅ Rifas cargadas:', result);
         
         try {
-          // Extraer rifas del resultado según el formato de respuesta
+          // Extraer rifas del resultado
           const rifasData = result?.rifas || result?.data?.rifas || result?.data || [];
           
           this.rifas.set(Array.isArray(rifasData) ? rifasData : []);
-          this.pagination.set(result?.pagination || null);
-          this.loading.set(false);
           
-          console.log('✅ Rifas cargadas exitosamente:', this.rifas().length);
+          // Actualizar paginación
+          if (result?.pagination) {
+            this.pagination.set(result.pagination);
+          } else if (result?.data?.pagination) {
+            this.pagination.set(result.data.pagination);
+          }
+          
+          this.loading.set(false);
         } catch (err) {
-          console.error('❌ Error procesando respuesta:', err);
-          this.error.set('Error procesando la respuesta del servidor');
-          this.rifas.set([]);
+          console.error('❌ Error procesando rifas:', err);
+          this.error.set('Error procesando los datos');
           this.loading.set(false);
         }
       },
-      error: (error) => {
-        console.error('❌ Error cargando rifas:', error);
-        this.error.set(error?.error?.message || 'Error al cargar las rifas');
-        this.rifas.set([]);
+      error: (err) => {
+        console.error('❌ Error cargando rifas:', err);
+        this.error.set(err?.error?.message || 'Error al cargar las rifas');
         this.loading.set(false);
-      }
-    });
-  }
-
-  // =====================================================
-  // MÉTODOS DE NAVEGACIÓN - LOS QUE FALTABAN
-  // =====================================================
-
-  /**
-   * Ver detalle de una rifa
-   */
-  verDetalle(rifaId: number): void {
-    console.log('👁️ Navegando a ver detalle de rifa:', rifaId);
-    this.router.navigate(['/rifas', rifaId]);
-  }
-
-  /**
-   * Editar una rifa
-   */
-  editarRifa(rifaId: number): void {
-    console.log('✏️ Navegando a editar rifa:', rifaId);
-    this.router.navigate(['/rifas', rifaId, 'editar']);
-  }
-
-  /**
-   * Ver números de una rifa
-   */
-  verNumeros(rifaId: number): void {
-    console.log('🔢 Navegando a números de rifa:', rifaId);
-    this.router.navigate(['/rifas', rifaId, 'numeros']);
-  }
-
-  /**
-   * Crear nueva rifa
-   */
-  crearRifa(): void {
-    console.log('➕ Navegando a crear nueva rifa');
-    this.router.navigate(['/rifas/crear']);
-  }
-
-  // =====================================================
-  // MÉTODOS DE GESTIÓN DE ESTADO - CORREGIDOS
-  // =====================================================
-
-  /**
-   * Activar una rifa
-   */
-  activarRifa(rifaId: number): void {
-    if (!confirm('¿Estás seguro de que deseas activar esta rifa?')) return;
-    
-    console.log('🟢 Activando rifa:', rifaId);
-    this.rifasService.updateRifa(rifaId, { estado: 'activa' }).subscribe({
-      next: () => {
-        console.log('✅ Rifa activada exitosamente');
-        this.loadRifas(); // Recargar lista
-      },
-      error: (error) => {
-        console.error('❌ Error activando rifa:', error);
-        alert('Error al activar la rifa: ' + (error?.error?.message || error.message));
+        this.rifas.set([]);
       }
     });
   }
 
   /**
-   * Pausar una rifa
-   */
-  pausarRifa(rifaId: number): void {
-    if (!confirm('¿Estás seguro de que deseas pausar esta rifa?')) return;
-    
-    console.log('⏸️ Pausando rifa:', rifaId);
-    this.rifasService.updateRifa(rifaId, { estado: 'pausada' }).subscribe({
-      next: () => {
-        console.log('✅ Rifa pausada exitosamente');
-        this.loadRifas(); // Recargar lista
-      },
-      error: (error) => {
-        console.error('❌ Error pausando rifa:', error);
-        alert('Error al pausar la rifa: ' + (error?.error?.message || error.message));
-      }
-    });
-  }
-
-  // =====================================================
-  // MÉTODOS DEL DROPDOWN "MÁS" - LOS QUE FALTABAN
-  // =====================================================
-
-  /**
-   * Duplicar una rifa
-   */
-  duplicarRifa(rifaId: number): void {
-    if (!confirm('¿Deseas crear una copia de esta rifa?')) return;
-    
-    console.log('📋 Duplicando rifa:', rifaId);
-    // TODO: Implementar lógica de duplicación en el servicio
-    alert('Función de duplicar en desarrollo');
-  }
-
-  /**
-   * Exportar datos de una rifa
-   */
-  exportarRifa(rifaId: number): void {
-    console.log('📊 Exportando rifa:', rifaId);
-    // TODO: Implementar lógica de exportación
-    alert('Función de exportar en desarrollo');
-  }
-
-  /**
-   * Eliminar una rifa
-   */
-  eliminarRifa(rifaId: number): void {
-    const motivo = prompt('¿Por qué deseas eliminar esta rifa? (opcional)');
-    if (motivo === null) return; // Usuario canceló
-    
-    console.log('🗑️ Eliminando rifa:', rifaId);
-    this.rifasService.deleteRifa(rifaId, motivo || '').subscribe({
-      next: () => {
-        console.log('✅ Rifa eliminada exitosamente');
-        this.loadRifas(); // Recargar lista
-      },
-      error: (error) => {
-        console.error('❌ Error eliminando rifa:', error);
-        alert('Error al eliminar la rifa: ' + (error?.error?.message || error.message));
-      }
-    });
-  }
-
-  // =====================================================
-  // MÉTODOS DE UTILIDAD - CORREGIDOS
-  // =====================================================
-
-onDeleteRifa(rifaId: number): void {
-  this.eliminarRifa(rifaId);
-}
-
-  /**
-   * Obtener configuración del estado - MÉTODO CORREGIDO
-   */
-getEstadoConfig(estado: string): any {
-  const estadosConfig: { [key: string]: any } = {
-    'borrador': { label: 'Borrador', icon: '📝', class: 'borrador' },
-    'activa': { label: 'Activa', icon: '✅', class: 'activa' },
-    'pausada': { label: 'Pausada', icon: '⏸️', class: 'pausada' },
-    'cerrada': { label: 'Cerrada', icon: '🔒', class: 'cerrada' },
-    'finalizada': { label: 'Finalizada', icon: '🏁', class: 'finalizada' },
-    'cancelada': { label: 'Cancelada', icon: '❌', class: 'cancelada' }
-  };
-
-  return estadosConfig[estado] || { label: 'Desconocido', icon: '❓', class: 'desconocido' };
-}
-
-  /**
-   * Obtener clase CSS del estado
-   */
-  getEstadoClass(estado: string): string {
-    return 'status-' + this.getEstadoConfig(estado).class;
-  }
-
-  /**
-   * Obtener clase CSS de la card según el estado
-   */
-  getCardClass(rifa: any): string {
-    return 'rifa-card-' + this.getEstadoConfig(rifa.estado).class;
-  }
-
-  /**
-   * Verificar si el usuario puede gestionar la rifa
-   */
-  canManageRifa(rifa: any): boolean {
-    const currentUser = this.authService.currentUser();
-    
-    // Admin puede gestionar todas
-    if (currentUser?.role === 'admin_global') return true;
-    
-    // Usuario solo puede gestionar sus rifas
-    return rifa.creado_por === currentUser?.id;
-  }
-
-  /**
-   * Verificar si el usuario puede crear rifas
-   */
-  canCreateRifa(): boolean {
-    const currentUser = this.authService.currentUser();
-    return currentUser?.role === 'admin_global' || currentUser?.role === 'admin_institucion';
-  }
-
-  /**
- * Navegar a comprar números de una rifa
- */
-comprarNumeros(rifaId: number): void {
-  console.log('🛒 Navegando a comprar números de rifa:', rifaId);
-  this.router.navigate(['/rifas', rifaId, 'comprar']);
-}
-
-/**
- * Verificar si el usuario puede comprar números
- */
-puedeComprarNumeros(): boolean {
-  const currentUser = this.authService.currentUser();
-  
-  // Todos los usuarios autenticados pueden comprar números
-  return currentUser !== null;
-}
-
-/**
- * Navegar a "Mis números"
- */
-verMisNumeros(): void {
-  console.log('🎫 Navegando a mis números');
-  this.router.navigate(['/mis-numeros']);
-}
-
-  // =====================================================
-  // MÉTODOS DE FORMATEO
-  // =====================================================
-
-  /**
-   * Formatear precio
-   */
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(price);
-  }
-
-  /**
-   * Formatear fecha
-   */
-  formatDate(dateString: string): string {
-    if (!dateString) return 'No definida';
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return 'Fecha inválida';
-    }
-  }
-
-  /**
-   * Calcular días restantes
-   */
-  getDiasRestantes(fechaFin: string): number {
-    if (!fechaFin) return 0;
-    
-    try {
-      const fin = new Date(fechaFin);
-      const hoy = new Date();
-      const diferencia = fin.getTime() - hoy.getTime();
-      return Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-    } catch {
-      return 0;
-    }
-  }
-
-  // =====================================================
-  // MÉTODOS DE FILTROS Y PAGINACIÓN
-  // =====================================================
-
-  /**
-   * Recargar rifas
+   * Recarga las rifas
    */
   recargarRifas(): void {
-    console.log('🔄 Recargando rifas...');
     this.loadRifas();
   }
 
-  /**
-   * Cambiar filtros
-   */
-onFilterChange(): void {
-  this.currentFilters.update(current => ({
-    ...current,
-    page: 1 // Resetear página al cambiar filtros
-  }));
-  this.loadRifas();
-}
+  // =====================================================
+  // MÉTODOS DE FILTRADO
+  // =====================================================
 
   /**
-   * Cambiar página
+   * Maneja cambios en los filtros
    */
-  cambiarPagina(page: number): void {
-    this.currentFilters.update(current => ({
-      ...current,
-      page
+  onFilterChange(): void {
+    // Resetear a página 1 cuando cambian los filtros
+    this.currentFilters.update(filters => ({
+      ...filters,
+      page: 1
     }));
     this.loadRifas();
   }
 
   /**
-   * Obtener páginas para paginación
+   * Cambia de página
+   */
+  cambiarPagina(page: number): void {
+    this.currentFilters.update(filters => ({
+      ...filters,
+      page
+    }));
+    this.loadRifas();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Genera array de páginas para la paginación
    */
   getPaginationPages(): number[] {
-    const pagination = this.pagination();
-    if (!pagination) return [];
-    
+    const pag = this.pagination();
+    if (!pag) return [];
+
     const pages: number[] = [];
-    const current = pagination.page;
-    const total = pagination.totalPages || pagination.pages;
-    
-    // Mostrar máximo 5 páginas
-    const start = Math.max(1, current - 2);
-    const end = Math.min(total, start + 4);
-    
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
+    const maxPages = 7; // Máximo de páginas a mostrar
+    const current = pag.page;
+    const total = pag.totalPages || pag.pages;
+
+    if (total <= maxPages) {
+      // Mostrar todas las páginas
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar con puntos suspensivos
+      if (current <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push(-1); // Representa "..."
+        pages.push(total);
+      } else if (current >= total - 3) {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = total - 4; i <= total; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(total);
+      }
     }
-    
+
     return pages;
   }
 
@@ -424,23 +195,79 @@ onFilterChange(): void {
   // =====================================================
 
   /**
-   * Contar rifas activas
+   * Cuenta rifas activas
    */
   getActivasCount(): number {
     return this.rifas().filter(r => r.estado === 'activa').length;
   }
 
   /**
-   * Contar rifas finalizadas
+   * Cuenta rifas finalizadas
    */
   getFinalizadasCount(): number {
     return this.rifas().filter(r => r.estado === 'finalizada').length;
   }
 
   /**
-   * Contar rifas en borrador
+   * Cuenta rifas en borrador
    */
   getBorradorCount(): number {
     return this.rifas().filter(r => r.estado === 'borrador').length;
+  }
+
+  // =====================================================
+  // MÉTODOS DE NAVEGACIÓN Y ACCIONES
+  // =====================================================
+
+  /**
+   * Verifica si el usuario puede crear rifas
+   */
+  canCreateRifa(): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    
+    return user.role === 'admin_global' || user.role === 'admin_institucion';
+  }
+
+  /**
+   * Navega a crear nueva rifa
+   */
+  crearRifa(): void {
+    this.router.navigate(['/rifas/crear']);
+  }
+
+  /**
+   * Maneja evento de eliminar rifa
+   */
+  onDeleteRifa(rifaId: number): void {
+    console.log('🗑️ Eliminando rifa:', rifaId);
+    
+    this.rifasService.deleteRifa(rifaId).subscribe({
+      next: () => {
+        console.log('✅ Rifa eliminada exitosamente');
+        // Recargar la lista
+        this.loadRifas();
+      },
+      error: (err) => {
+        console.error('❌ Error al eliminar rifa:', err);
+        alert(err?.error?.message || 'Error al eliminar la rifa');
+      }
+    });
+  }
+
+  /**
+   * Maneja evento de editar rifa
+   */
+  onEditRifa(rifaId: number): void {
+    console.log('✏️ Editando rifa:', rifaId);
+    this.router.navigate(['/rifas', rifaId, 'editar']);
+  }
+
+  /**
+   * Maneja evento de ver detalles
+   */
+  onViewRifa(rifaId: number): void {
+    console.log('👁️ Viendo detalles de rifa:', rifaId);
+    this.router.navigate(['/rifas', rifaId]);
   }
 }
