@@ -1,5 +1,4 @@
 // src/app/rifas/components/rifa-list/rifa-list.component.ts - VERSIÓN CORREGIDA
-
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,11 +12,23 @@ import {
   RifaUtils,
   RIFA_CONFIG
 } from '../../models/rifa.models';
+import { ViewToggleComponent } from '../../../shared/components/view-toggle/view-toggle.component';
+import { RifaCardComponent } from '../rifa-card/rifa-card.component';
+import { ViewPreferenceService, ViewMode } from '../../../shared/services/view-preference.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'app-rifa-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ViewToggleComponent, 
+    RifaCardComponent,
+    NavbarComponent 
+  ],
   templateUrl: './rifa-list.component.html',
   styleUrls: ['./rifa-list.component.scss']
 })
@@ -26,12 +37,16 @@ export class RifaListComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly rifasService = inject(RifasService);
   private readonly router = inject(Router);
+  private readonly viewPreferenceService = inject(ViewPreferenceService);
+  
 
   // Signals para estado del componente
   readonly rifas = signal<any[]>([]);
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
   readonly pagination = signal<any>(null);
+  readonly viewMode$: Observable<ViewMode> = this.viewPreferenceService.getViewMode$();
+  
 
   // Filtros
   readonly currentFilters = signal<RifaFilters>({
@@ -218,6 +233,10 @@ export class RifaListComponent implements OnInit {
   // =====================================================
   // MÉTODOS DE UTILIDAD - CORREGIDOS
   // =====================================================
+
+onDeleteRifa(rifaId: number): void {
+  this.eliminarRifa(rifaId);
+}
 
   /**
    * Obtener configuración del estado - MÉTODO CORREGIDO

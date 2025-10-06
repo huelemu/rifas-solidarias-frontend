@@ -1,25 +1,10 @@
 <!-- src/app/rifas/components/crear-rifa/crear-rifa.component.html -->
 <!-- VERSIÓN CORREGIDA - SOLO CAMPOS QUE ACEPTA EL BACKEND -->
+<app-navbar></app-navbar>
 
 <div class="page-container">
   <div class="page-content">
     
-    <div class="page-header">
-      <div class="header-gradient">
-        <div class="header-content">
-          <div class="header-left">
-            <h1>➕ Crear Nueva Rifa</h1>
-            <p>Complete la información para crear una nueva rifa solidaria</p>
-          </div>
-          <div class="header-actions">
-            <button (click)="goBack()" class="btn-secondary">
-              ← Volver
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     @if (successMessage()) {
       <div class="alert alert-success">
         ✅ {{ successMessage() }}

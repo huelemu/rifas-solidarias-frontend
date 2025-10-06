@@ -11,11 +11,12 @@ import { RifasService } from '../../services/rifas.service';
 import { InstitutionService } from '../../../institutions/services/institution.service';
 import { Institution } from '../../../institutions/models/institution.models';
 import { RIFA_CONFIG } from '../../models/rifa.models';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-crear-rifa',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent],
   templateUrl: './crear-rifa.component.html',
   styleUrls: ['./crear-rifa.component.scss', '../../styles/rifas-global.scss']
 })

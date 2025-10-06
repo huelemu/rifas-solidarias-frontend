@@ -1,0 +1,71 @@
+// ===========================
+// VARIABLES UNIFICADAS
+// ===========================
+
+// Paleta monocromática minimalista
+$color-primary: #667eea;
+$color-primary-dark: #5a67d8;
+$color-secondary: #764ba2;
+$color-accent: #3498db;
+
+// Colores de texto
+$color-text-primary: #1a202c;
+$color-text-secondary: #4a5568;
+$color-text-muted: #718096;
+$color-text-light: #a0aec0;
+
+// Colores de fondo
+$color-bg-primary: #ffffff;
+$color-bg-secondary: #f7fafc;
+$color-bg-tertiary: #edf2f7;
+$color-bg-hover: #ecf0f1;
+$color-bg-page: #f5f5f5;
+
+// Bordes
+$color-border: #e2e8f0;
+$color-border-light: #f0f3f5;
+$color-border-medium: #cbd5e0;
+
+// Estados
+$color-success: #38a169;
+$color-success-bg: #f0fff4;
+$color-success-border: #c6f6d5;
+
+$color-warning: #d69e2e;
+$color-warning-bg: #fffbeb;
+$color-warning-border: #faf089;
+
+$color-danger: #e53e3e;
+$color-danger-bg: #fed7d7;
+$color-danger-border: #feb2b2;
+
+$color-info: #319795;
+$color-info-bg: #e6fffa;
+$color-info-border: #b2f5ea;
+
+$color-inactive: #6c757d;
+$color-inactive-bg: #f8f9fa;
+$color-inactive-border: #e2e8f0;
+
+// Espaciados
+$spacing-xs: 0.25rem;  // 4px
+$spacing-sm: 0.5rem;   // 8px
+$spacing-md: 0.75rem;  // 12px
+$spacing-lg: 1rem;     // 16px
+$spacing-xl: 1.5rem;   // 24px
+$spacing-2xl: 2rem;    // 32px
+
+// Bordes
+$border-radius-sm: 6px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// Sombras
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+// Transiciones
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;

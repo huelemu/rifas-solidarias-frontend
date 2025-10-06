@@ -463,3 +463,14 @@ textarea {
     padding: 1.5rem;
   }
 }
+
+.page-container {
+  min-height: calc(100vh - 64px); // 64px es la altura del navbar
+  background: #f8f9fa;
+}
+
+.page-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}

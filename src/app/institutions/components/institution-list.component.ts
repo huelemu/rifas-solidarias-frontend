@@ -13,11 +13,12 @@ import {
   INSTITUTION_TYPES,
   INSTITUTION_STATUSES
 } from '../models/institution.models';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-institution-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './institution-list.component.html',
   styleUrls: ['./institution-list.component.scss']
 })

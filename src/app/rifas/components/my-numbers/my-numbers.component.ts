@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 
 interface RifaConNumeros {
   rifa_id: number;
@@ -19,30 +20,11 @@ interface RifaConNumeros {
 @Component({
   selector: 'app-my-numbers',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   template: `
+  <app-navbar></app-navbar>
+
     <div class="my-numbers-container">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <div class="header-left">
-            <h1>🎫 Mis Números</h1>
-            <p>Todos los números que has comprado en rifas</p>
-          </div>
-          <div class="header-actions">
-            <button 
-              class="btn btn-secondary"
-              (click)="recargarNumeros()">
-              🔄 Actualizar
-            </button>
-            <button 
-              class="btn btn-primary"
-              (click)="verRifasDisponibles()">
-              🛒 Comprar Más Números
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Estadísticas -->
       <div class="stats-section">

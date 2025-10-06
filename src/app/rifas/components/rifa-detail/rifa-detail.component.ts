@@ -5,46 +5,17 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-rifa-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent],
   template: `
-    <div class="rifa-detail-container">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <div class="header-left">
-            <button 
-              class="btn btn-outline back-btn"
-              (click)="goBack()">
-              ← Volver
-            </button>
-            <div class="header-title">
-              <h1>📋 Detalle de Rifa</h1>
-              @if (rifa()) {
-                <p>{{ rifa().nombre }}</p>
-              }
-            </div>
-          </div>
-          <div class="header-actions">
-            @if (rifa() && canManageRifa(rifa())) {
-              <button 
-                class="btn btn-primary"
-                (click)="editarRifa()">
-                ✏️ Editar
-              </button>
-              <button 
-                class="btn btn-secondary"
-                (click)="verNumeros()">
-                🔢 Números
-              </button>
-            }
-          </div>
-        </div>
-      </div>
+  <app-navbar></app-navbar>
 
+    <div class="rifa-detail-container">
+  
       <!-- Loading -->
       @if (loading()) {
         <div class="loading-container">

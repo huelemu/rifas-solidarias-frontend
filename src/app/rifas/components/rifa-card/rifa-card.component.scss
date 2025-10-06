@@ -1,18 +1,18 @@
-@import '../../../styles/variables.scss';
+@import '../../../../styles/variables';
 
 // ===========================
 // VISTA DE TARJETA
 // ===========================
 .card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  
 
   &:hover {
     transform: translateY(-4px);
@@ -26,13 +26,13 @@
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .card-logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
   background: #f7fafc;
@@ -54,7 +54,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
 }
 
 .card-header-info {
@@ -63,18 +63,16 @@
 
   h3 {
     margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: #2c3e50;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.4;
   }
 }
 
 .badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.3rem 0.85rem;
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -115,6 +113,9 @@
 .card-body {
   padding: 1.5rem;
   flex: 1;
+}
+
+.info-grid {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -124,7 +125,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px solid #f7fafc;
 
   &:last-child {
@@ -132,13 +133,13 @@
   }
 
   .label {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #718096;
     font-weight: 500;
   }
 
   .value {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #2c3e50;
     font-weight: 600;
     text-align: right;
@@ -149,18 +150,18 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid #f1f5f9;
   display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.75rem;
   background: #fafbfc;
 }
 
 .btn-action {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.1rem;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -217,9 +218,9 @@
 }
 
 .list-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
   background: #f7fafc;
@@ -260,7 +261,7 @@
 
 .list-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -283,10 +284,15 @@
   }
 
   .list-actions {
-    justify-content: flex-end;
+    justify-content: center;
   }
 
   .card-actions {
     justify-content: center;
+  }
+
+  .card-logo {
+    width: 64px;
+    height: 64px;
   }
 }

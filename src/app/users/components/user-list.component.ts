@@ -8,29 +8,15 @@ import { UserService } from '../services/user.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { UserExtended, UserFilters } from '../models/user.models';
 import { UserRole } from '../../auth/models/auth.models';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   template: `
     <div class="users-container">
-      <header class="users-header">
-        <div class="header-content">
-          <div class="header-left">
-            <h1>👥 Gestión de Usuarios</h1>
-            <p>Administrar usuarios del sistema</p>
-          </div>
-          <div class="header-actions">
-            <button (click)="goBack()" class="btn-secondary">
-              ← Volver al Dashboard
-            </button>
-            <button (click)="createUser()" class="btn-primary">
-              ➕ Nuevo Usuario
-            </button>
-          </div>
-        </div>
-      </header>
+      <app-navbar></app-navbar>
 
       <main class="users-main">
           <!-- Estadísticas rápidas -->

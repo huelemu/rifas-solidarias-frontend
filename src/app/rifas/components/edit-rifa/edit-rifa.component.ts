@@ -6,52 +6,18 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-edit-rifa',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NavbarComponent],
   template: `
-    <div class="edit-rifa-container">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <div class="header-left">
-            <button 
-              class="btn btn-outline back-btn"
-              (click)="goBack()">
-              ← Volver
-            </button>
-            <div class="header-title">
-              <h1>✏️ Editar Rifa</h1>
-              @if (originalRifa()) {
-                <p>{{ originalRifa().nombre }}</p>
-              }
-            </div>
-          </div>
-          <div class="header-actions">
-            <button 
-              type="button"
-              class="btn btn-secondary"
-              (click)="resetForm()">
-              🔄 Resetear
-            </button>
-            <button 
-              type="submit"
-              form="editRifaForm"
-              class="btn btn-primary"
-              [disabled]="!editForm.valid || saving()">
-              @if (saving()) {
-                ⏳ Guardando...
-              } @else {
-                💾 Guardar Cambios
-              }
-            </button>
-          </div>
-        </div>
-      </div>
+<app-navbar></app-navbar>
 
-      <!-- Loading -->
+    <div class="edit-rifa-container">
+  
+        <!-- Loading -->
       @if (loading()) {
         <div class="loading-container">
           <div class="loading-spinner"></div>
@@ -284,6 +250,21 @@ import { AuthService } from '../../../auth/services/auth.service';
         </form>
       }
     </div>
+
+ <div class="form-section">
+            <button 
+              type="submit"
+              form="editRifaForm"
+              class="btn btn-primary"
+              [disabled]="!editForm.valid || saving()">
+              @if (saving()) {
+                ⏳ Guardando...
+              } @else {
+                💾 Guardar Cambios
+              }
+            </button>
+    </div>
+
   `,
   styles: [`
     .edit-rifa-container {

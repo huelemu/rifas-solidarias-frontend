@@ -8,28 +8,17 @@ import { UserService } from '../services/user.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { UserExtended, CreateUserRequest, UpdateUserRequest } from '../models/user.models';
 import { UserRole } from '../../auth/models/auth.models';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
   template: `
+  <app-navbar></app-navbar>
     <div class="page-container">
       <div class="page-content">
         
-        <!-- Header compacto -->
-        <header class="page-header">
-          <div class="header-content">
-            <div class="header-title">
-              <h1>{{ isEditMode() ? '✏️ Editar Usuario' : '➕ Crear Usuario' }}</h1>
-              <p>{{ isEditMode() ? 'Modificar información del usuario' : 'Agregar nuevo usuario al sistema' }}</p>
-            </div>
-            <button (click)="goBack()" class="btn btn-secondary">
-              <span>← Volver</span>
-            </button>
-          </div>
-        </header>
-
         <!-- Loading state -->
         @if (isLoading()) {
           <div class="loading-container">

@@ -1,425 +1,171 @@
-<div class="rifa-list-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <div class="header-left">
-        <h1>🎫 Gestión de Rifas</h1>
-        <p>Administra las rifas solidarias de tu institución</p>
+<app-navbar></app-navbar>
+
+<div class="page-container">
+  <div class="page-main">
+
+    <!-- Estadísticas compactas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🎫</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ rifas().length }}</div>
+          <div class="stat-label">Total</div>
+        </div>
       </div>
-      <div class="header-actions">
-        @if (canCreateRifa()) {
-          <button 
-            class="btn btn-primary"
-            (click)="crearRifa()">
-            <span class="btn-icon">➕</span>
-            Nueva Rifa
-          </button>
-        }
+      
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getActivasCount() }}</div>
+          <div class="stat-label">Activas</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🏁</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getFinalizadasCount() }}</div>
+          <div class="stat-label">Finalizadas</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getBorradorCount() }}</div>
+          <div class="stat-label">Borradores</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controles y filtros -->
+    <div class="controls-section">
+      <div class="controls-left">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar rifas..."
+          [(ngModel)]="currentFilters().search"
+          (ngModelChange)="onFilterChange()">
+        
+        <select 
+          class="filter-select"
+          [(ngModel)]="currentFilters().estado"
+          (ngModelChange)="onFilterChange()">
+          <option value="todas">Todos los estados</option>
+          <option *ngFor="let estado of rifaEstados" [value]="estado.value">
+            {{ estado.label }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="controls-right">
+        <app-view-toggle></app-view-toggle>
+        
+        <button class="btn btn-secondary" (click)="recargarRifas()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+        
         <button 
-          class="btn btn-secondary"
-          (click)="recargarRifas()">
-          <span class="btn-icon">🔄</span>
-          Actualizar
+          *ngIf="canCreateRifa()" 
+          class="btn btn-primary" 
+          (click)="crearRifa()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Nueva Rifa
         </button>
       </div>
     </div>
-  </div>
-  
-  <!-- Estadísticas en tarjetas como usuarios -->
-  <div class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-icon">🎫</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ rifas().length }}</div>
-            <div class="stat-label">Total</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-icon stat-icon-active">✅</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ getActivasCount() }}</div>
-            <div class="stat-label">Activas</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-icon stat-icon-finished">🏁</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ getFinalizadasCount() }}</div>
-            <div class="stat-label">Finalizadas</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-icon stat-icon-draft">📝</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ getBorradorCount() }}</div>
-            <div class="stat-label">Borradores</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Filtros -->
-  <div class="filters-section">
-    <div class="filters-card">
-      <h3>🔍 Filtros de Búsqueda</h3>
-      <div class="filters-grid">
-        <!-- Búsqueda -->
-        <div class="filter-item">
-          <label for="search">Buscar:</label>
-          <input
-            id="search"
-            type="text"
-            [(ngModel)]="currentFilters().search"
-            (input)="onFilterChange()"
-            placeholder="Nombre de rifa..."
-            class="form-control">
-        </div>
-
-        <!-- Estado -->
-        <div class="filter-item">
-          <label for="estado">Estado:</label>
-          <select
-            id="estado"
-            [(ngModel)]="currentFilters().estado"
-            (change)="onFilterChange()"
-            class="form-control">
-            <option value="todas">Todas</option>
-            @for (estado of rifaEstados; track estado.value) {
-              <option [value]="estado.value">
-                {{ estado.icon }} {{ estado.label }}
-              </option>
-            }
-          </select>
-        </div>
-
-        <!-- Ordenar por -->
-        <div class="filter-item">
-          <label for="ordenar">Ordenar por:</label>
-          <select
-            id="ordenar"
-            [(ngModel)]="currentFilters().ordenar_por"
-            (change)="onFilterChange()"
-            class="form-control">
-            <option value="fecha_creacion">Fecha Creación</option>
-            <option value="nombre">Nombre</option>
-            <option value="fecha_inicio">Fecha Inicio</option>
-            <option value="fecha_fin">Fecha Fin</option>
-            <option value="estado">Estado</option>
-            <option value="porcentaje_vendido">% Vendido</option>
-          </select>
-        </div>
-
-        <!-- Dirección -->
-        <div class="filter-item">
-          <label for="direccion">Dirección:</label>
-          <select
-            id="direccion"
-            [(ngModel)]="currentFilters().direccion_orden"
-            (change)="onFilterChange()"
-            class="form-control">
-            <option value="desc">Descendente</option>
-            <option value="asc">Ascendente</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  @if (loading()) {
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
+    <!-- Estados de carga -->
+    <div *ngIf="loading()" class="loading-state">
+      <div class="spinner"></div>
       <p>Cargando rifas...</p>
     </div>
-  }
 
-  <!-- Error -->
-  @if (error()) {
-    <div class="error-container">
-      <div class="error-message">
-        <span class="error-icon">❌</span>
-        {{ error() }}
-      </div>
-      <button 
-        class="btn btn-primary"
-        (click)="recargarRifas()">
-        Reintentar
+    <div *ngIf="error()" class="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary" (click)="recargarRifas()">Reintentar</button>
+    </div>
+
+    <div *ngIf="!loading() && !error() && rifas().length === 0" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20 7h-9"></path>
+        <path d="M14 17H5"></path>
+        <circle cx="17" cy="17" r="3"></circle>
+        <circle cx="7" cy="7" r="3"></circle>
+      </svg>
+      <h2>No hay rifas</h2>
+      <p>{{ currentFilters().search ? 'No se encontraron resultados' : 'Comienza creando tu primera rifa' }}</p>
+      <button *ngIf="canCreateRifa()" class="btn btn-primary" (click)="crearRifa()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Crear Rifa
       </button>
     </div>
-  }
 
-  <!-- Lista de rifas -->
-  @if (!loading() && !error()) {
-    <div class="rifas-grid">
-      @if (rifas().length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon">🎫</div>
-          <h3>No hay rifas disponibles</h3>
-          <p>
-            @if (canCreateRifa()) {
-              ¡Crea tu primera rifa para comenzar!
-            } @else {
-              No tienes rifas asignadas en este momento.
-            }
-          </p>
-          @if (canCreateRifa()) {
-            <button 
-              class="btn btn-primary"
-              (click)="crearRifa()">
-              <span class="btn-icon">➕</span>
-              Crear Primera Rifa
-            </button>
-          }
-        </div>
-      } @else {
-        @for (rifa of rifas(); track rifa.id) {
-          <div class="rifa-card" [class]="getCardClass(rifa)">
-            <!-- Header de la card -->
-            <div class="card-header">
-              <div class="rifa-title">
-                <h3>{{ rifa.nombre }}</h3>
-                <div class="rifa-meta">
-                  <span class="rifa-id">#{{ rifa.id }}</span>
-                  @if (rifa.institucion_nombre) {
-                    <span class="rifa-institucion">{{ rifa.institucion_nombre }}</span>
-                  }
-                </div>
-              </div>
-              <div class="rifa-status">
-                <span 
-                  class="status-badge"
-                  [class]="getEstadoClass(rifa.estado)"
-                  [title]="getEstadoConfig(rifa.estado).label">
-                  {{ getEstadoConfig(rifa.estado).icon }}
-                </span>
-              </div>
-            </div>
+    <!-- Vista de tarjetas -->
+    <div 
+      *ngIf="!loading() && !error() && rifas().length > 0 && (viewMode$ | async) === 'card'" 
+      class="rifas-grid">
+      <app-rifa-card
+        *ngFor="let rifa of rifas()"
+        [rifa]="rifa"
+        [viewMode]="'card'"
+        (delete)="onDeleteRifa($event)">
+      </app-rifa-card>
+    </div>
 
-            <!-- Información principal -->
-            <div class="card-body">
-              @if (rifa.descripcion) {
-                <p class="rifa-descripcion">{{ rifa.descripcion }}</p>
-              }
-
-              <!-- Estadísticas -->
-              <div class="rifa-stats">
-                <div class="stat-row">
-                  <div class="stat">
-                    <span class="stat-label">Números:</span>
-                    <span class="stat-value">{{ rifa.cantidad_numeros | number }}</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Precio:</span>
-                    <span class="stat-value">{{ formatPrice(rifa.precio_numero) }}</span>
-                  </div>
-                </div>
-                
-                @if (rifa.numeros_vendidos !== undefined) {
-                  <div class="stat-row">
-                    <div class="stat">
-                      <span class="stat-label">Vendidos:</span>
-                      <span class="stat-value success">{{ rifa.numeros_vendidos | number }}</span>
-                    </div>
-                    <div class="stat">
-                      <span class="stat-label">Disponibles:</span>
-                      <span class="stat-value">{{ (rifa.cantidad_numeros - (rifa.numeros_vendidos || 0)) | number }}</span>
-                    </div>
-                  </div>
-                }
-
-                @if (rifa.porcentaje_vendido !== undefined && rifa.porcentaje_vendido > 0) {
-                  <div class="progress-section">
-                    <div class="progress-header">
-                      <span class="progress-label">Progreso de ventas:</span>
-                      <span class="progress-value">{{ rifa.porcentaje_vendido | number:'1.1-1' }}%</span>
-                    </div>
-                    <div class="progress-bar">
-                      <div 
-                        class="progress-fill"
-                        [style.width.%]="rifa.porcentaje_vendido">
-                      </div>
-                    </div>
-                  </div>
-                }
-
-                @if (rifa.total_recaudado) {
-                  <div class="recaudacion">
-                    <span class="recaudacion-label">💰 Recaudado:</span>
-                    <span class="recaudacion-value">{{ formatPrice(rifa.total_recaudado) }}</span>
-                  </div>
-                }
-              </div>
-
-              <!-- Fechas -->
-              <div class="rifa-dates">
-                <div class="date-item">
-                  <span class="date-label">📅 Inicio:</span>
-                  <span class="date-value">{{ formatDate(rifa.fecha_inicio) }}</span>
-                </div>
-                <div class="date-item">
-                  <span class="date-label">🏁 Fin:</span>
-                  <span class="date-value">{{ formatDate(rifa.fecha_fin) }}</span>
-                </div>
-                @if (rifa.fecha_sorteo) {
-                  <div class="date-item">
-                    <span class="date-label">🎲 Sorteo:</span>
-                    <span class="date-value">{{ formatDate(rifa.fecha_sorteo) }}</span>
-                  </div>
-                }
-              </div>
-
-              <!-- Días restantes -->
-              @if (rifa.estado === 'activa') {
-                <div class="dias-restantes">
-                  @if (getDiasRestantes(rifa.fecha_fin) > 0) {
-                    <span class="dias-label">⏰ Quedan:</span>
-                    <span class="dias-value">{{ getDiasRestantes(rifa.fecha_fin) }} días</span>
-                  } @else {
-                    <span class="dias-vencida">🔴 Vencida</span>
-                  }
-                </div>
-              }
-            </div>
-            
-            <!-- Acciones -->
-            <div class="card-actions">
-              <!-- Botón Ver -->
-              <button 
-                class="btn btn-outline"
-                (click)="verDetalle(rifa.id)"
-                title="Ver detalles">
-                <span class="btn-icon">👁️</span>
-                Ver
-              </button>
-
-              <!-- 🛒 BOTÓN COMPRAR - EL QUE FALTABA -->
-              @if (rifa.estado === 'activa' && puedeComprarNumeros()) {
-                <button 
-                  class="btn btn-success"
-                  (click)="comprarNumeros(rifa.id)"
-                  title="Comprar números de esta rifa">
-                  <span class="btn-icon">🛒</span>
-                  Comprar
-                </button>
-              }
-
-              <!-- Botones de gestión para administradores -->
-              @if (canManageRifa(rifa)) {
-                <button 
-                  class="btn btn-outline"
-                  (click)="editarRifa(rifa.id)"
-                  title="Editar rifa">
-                  <span class="btn-icon">✏️</span>
-                  Editar
-                </button>
-
-                <button 
-                  class="btn btn-outline"
-                  (click)="verNumeros(rifa.id)"
-                  title="Gestionar números">
-                  <span class="btn-icon">🔢</span>
-                  Números
-                </button>
-
-                @if (rifa.estado === 'borrador') {
-                  <button 
-                    class="btn btn-success"
-                    (click)="activarRifa(rifa.id)"
-                    title="Activar rifa">
-                    <span class="btn-icon">🟢</span>
-                    Activar
-                  </button>
-                }
-
-                @if (rifa.estado === 'activa') {
-                  <button 
-                    class="btn btn-warning"
-                    (click)="pausarRifa(rifa.id)"
-                    title="Pausar rifa">
-                    <span class="btn-icon">⏸️</span>
-                    Pausar
-                  </button>
-                }
-
-                <div class="dropdown">
-                  <button class="btn btn-outline dropdown-toggle">
-                    <span class="btn-icon">⚙️</span>
-                    Más
-                  </button>
-                  <div class="dropdown-menu">
-                    <button 
-                      class="dropdown-item"
-                      (click)="duplicarRifa(rifa.id)">
-                      📋 Duplicar
-                    </button>
-                    <button 
-                      class="dropdown-item"
-                      (click)="exportarRifa(rifa.id)">
-                      📊 Exportar
-                    </button>
-                    <div class="dropdown-divider"></div>
-                    @if (rifa.estado !== 'finalizada') {
-                      <button 
-                        class="dropdown-item danger"
-                        (click)="eliminarRifa(rifa.id)">
-                        🗑️ Eliminar
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      }
+    <!-- Vista de lista -->
+    <div 
+      *ngIf="!loading() && !error() && rifas().length > 0 && (viewMode$ | async) === 'list'" 
+      class="rifas-list">
+      <app-rifa-card
+        *ngFor="let rifa of rifas()"
+        [rifa]="rifa"
+        [viewMode]="'list'"
+        (delete)="onDeleteRifa($event)">
+      </app-rifa-card>
     </div>
 
     <!-- Paginación -->
-    @if (pagination() && pagination().totalPages > 1) {
-      <div class="pagination-container">
-        <div class="pagination-info">
-          Mostrando {{ (pagination().page - 1) * pagination().limit + 1 }} - 
-          {{ Math.min(pagination().page * pagination().limit, pagination().total) }} 
-          de {{ pagination().total }} rifas
-        </div>
-        
-        <div class="pagination-controls">
-          <button 
-            class="btn btn-outline"
-            [disabled]="pagination().page <= 1"
-            (click)="cambiarPagina(pagination().page - 1)">
-            ← Anterior
-          </button>
-          
-          @for (pageNum of getPaginationPages(); track pageNum) {
-            <button 
-              class="btn"
-              [class]="pageNum === pagination().page ? 'btn-primary' : 'btn-outline'"
-              (click)="cambiarPagina(pageNum)">
-              {{ pageNum }}
-            </button>
-          }
-          
-          <button 
-            class="btn btn-outline"
-            [disabled]="pagination().page >= pagination().totalPages"
-            (click)="cambiarPagina(pagination().page + 1)">
-            Siguiente →
-          </button>
-        </div>
+    <div *ngIf="pagination() && rifas().length > 0" class="pagination">
+      <button 
+        class="btn-pagination"
+        [disabled]="pagination().page === 1"
+        (click)="cambiarPagina(pagination().page - 1)">
+        Anterior
+      </button>
+      
+      <div class="pagination-pages">
+        <button
+          *ngFor="let page of getPaginationPages()"
+          class="btn-page"
+          [class.active]="page === pagination().page"
+          (click)="cambiarPagina(page)">
+          {{ page }}
+        </button>
       </div>
-    }
-  }
+      
+      <button 
+        class="btn-pagination"
+        [disabled]="pagination().page === pagination().totalPages"
+        (click)="cambiarPagina(pagination().page + 1)">
+        Siguiente
+      </button>
+    </div>
+  </div>
 </div>

@@ -7,11 +7,12 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { InstitutionService } from '../services/institution.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { Institution, CreateInstitutionRequest, UpdateInstitutionRequest } from '../models/institution.models';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-institution-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
   templateUrl: './institution-form.component.html',
   styleUrls: ['./institution-form.component.scss']
 })

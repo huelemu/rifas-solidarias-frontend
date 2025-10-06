@@ -1,0 +1,168 @@
+@import '../../../../styles/variables';
+
+.page-header {
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  border: 1px solid $color-border;
+  overflow: hidden;
+  margin-bottom: $spacing-2xl;
+}
+
+.header-gradient {
+  background: linear-gradient(135deg, $color-primary 0%, $color-secondary 100%);
+  color: white;
+  padding: $spacing-2xl;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-xl;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 300px;
+  
+  h1 {
+    margin: 0 0 $spacing-sm 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+  
+  p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+  }
+}
+
+.header-icon {
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  
+  ::ng-deep {
+    .btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+}
+
+.header-stats {
+  background: white;
+  padding: $spacing-lg $spacing-2xl; // Reducido de $spacing-xl
+  border-top: 1px solid $color-border-light;
+  
+  // Estilos para las stats compactas
+  ::ng-deep {
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: $spacing-md; // Reducido
+      width: 100%;
+      margin: 0; // Sin margin extra
+    }
+    
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm; // Reducido
+      padding: $spacing-md; // Reducido de $spacing-lg
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: $border-radius-sm;
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      transition: all $transition-base;
+      
+      &:hover {
+        background: rgba(102, 126, 234, 0.08);
+        transform: translateY(-1px);
+      }
+    }
+    
+    .stat-icon {
+      font-size: 1.5rem; // Reducido de 2rem
+      line-height: 1;
+    }
+    
+    .stat-content {
+      flex: 1;
+    }
+    
+    .stat-number {
+      font-size: 1.25rem; // Reducido de 1.75rem
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: $spacing-xs;
+      color: $color-text-primary;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem; // Reducido de 0.875rem
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: $color-text-secondary;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .header-stats ::ng-deep .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .header-gradient {
+    padding: $spacing-xl;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .header-actions {
+    width: 100%;
+  }
+  
+  .header-stats {
+    padding: $spacing-md;
+    
+    ::ng-deep .stats-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-sm;
+    }
+  }
+}

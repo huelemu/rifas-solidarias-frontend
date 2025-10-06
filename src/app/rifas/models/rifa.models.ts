@@ -20,8 +20,8 @@ export type MetodoPago = 'efectivo' | 'transferencia' | 'tarjeta' | 'mercadopago
  */
 export interface Rifa {
   institucion_id: number | undefined;
-recaudado: number|undefined;
-total_numeros: string|number;
+  recaudado: number|undefined;
+  total_numeros: string|number;
   id: number;
   nombre: string;
   descripcion?: string;
@@ -35,7 +35,15 @@ total_numeros: string|number;
   imagen_url?: string;
   estado: RifaEstado;
   reglas_adicionales?: string;
-  
+  logo_rifa?: string;  // URL del logo de la rifa
+  institucion?: {
+    id: number;
+    nombre: string;
+    logo?: string;  // Logo de la institución
+  };
+
+
+
   // Campos de seguimiento
   creado_por: number;
   creador_nombre?: string;

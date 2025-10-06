@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 
 interface NumeroSeleccionado {
   numero: number;
@@ -16,33 +17,11 @@ interface NumeroSeleccionado {
 @Component({
   selector: 'app-buy-numbers',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NavbarComponent],
   template: `
+<app-navbar></app-navbar>
+
     <div class="buy-numbers-container">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <div class="header-left">
-            <button 
-              class="btn btn-outline back-btn"
-              (click)="goBack()">
-              ← Volver
-            </button>
-            <div class="header-title">
-              <h1>🛒 Comprar Números</h1>
-              @if (rifa()) {
-                <p>{{ rifa().nombre }}</p>
-              }
-            </div>
-          </div>
-          <div class="header-actions">
-            <div class="price-display">
-              <span class="price-label">Precio por número:</span>
-              <span class="price-value">{{ formatPrice(rifa()?.precio_numero || 0) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Resumen de compra -->
       @if (numerosSeleccionados().length > 0) {

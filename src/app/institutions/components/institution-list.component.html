@@ -1,27 +1,7 @@
 <!-- src/app/institutions/components/institution-list.component.html -->
-
+<app-navbar></app-navbar>
 <div class="institutions-container">
-  <!-- Header -->
-  <header class="institutions-header">
-    <div class="header-content">
-      <div class="header-left">
-        <h1>🏢 Gestión de Instituciones</h1>
-        <p>Administrar instituciones participantes del sistema</p>
-      </div>
-      <div class="header-actions">
-        <button (click)="goBack()" class="btn-secondary">
-          ← Volver al Dashboard
-        </button>
-        @if (canManageInstitutions()) {
-          <button (click)="createInstitution()" class="btn-primary">
-            ➕ Nueva Institución
-          </button>
-        }
-      </div>
-    </div>
-  </header>
-
-  <main class="institutions-main">
+ <main class="institutions-main">
     <!-- Estadísticas rápidas -->
     @if (stats(); as statistics) {
       <div class="stats-grid">

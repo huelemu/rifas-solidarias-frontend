@@ -1,20 +1,11 @@
 <!-- src/app/institutions/components/institution-form.component.html -->
 
-<div class="page-container">
-  <div class="page-content">
-    
-    <header class="page-header">
-      <div class="header-content">
-        <div class="header-title">
-          <h1>{{ isEditMode() ? '✏️ Editar Institución' : '➕ Nueva Institución' }}</h1>
-          <p>{{ isEditMode() ? 'Modificar información de la institución' : 'Agregar nueva institución al sistema' }}</p>
-        </div>
-        <button (click)="goBack()" class="btn btn-secondary">
-          <span>← Volver</span>
-        </button>
-      </div>
-    </header>
+<app-navbar></app-navbar>
 
+<div class="page-container">
+  <div class="page-main">
+
+    
     @if (isLoading()) {
       <div class="loading-container">
         <div class="spinner"></div>

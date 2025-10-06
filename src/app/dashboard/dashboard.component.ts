@@ -4,25 +4,15 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
+import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent],
   template: `
+  <app-navbar></app-navbar>
     <div class="dashboard-container">
-      <header class="dashboard-header">
-        <div class="header-content">
-          <h1>🎯 Rifas Solidarias</h1>
-          <div class="user-info">
-            <span class="welcome-text">Bienvenido, {{ authService.currentUser()?.name }}!</span>
-            <button (click)="logout()" class="logout-button">
-              🚪 Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main class="dashboard-main">
         <div class="welcome-card">
           <h2>Dashboard Principal</h2>

@@ -1,0 +1,105 @@
+<!-- Vista de tarjeta -->
+<div *ngIf="viewMode === 'card'" class="card">
+  <div class="card-header">
+    <div class="card-logo">
+      <img 
+        *ngIf="getLogoUrl()" 
+        [src]="getLogoUrl()" 
+        [alt]="rifa.nombre"
+        class="logo-img">
+      <div *ngIf="!getLogoUrl()" class="logo-placeholder">
+        {{ getLogoPlaceholder() }}
+      </div>
+    </div>
+    <div class="card-header-info">
+      <h3>{{ rifa.nombre }}</h3>
+      <span class="badge" [ngClass]="getEstadoClass()">
+        {{ rifa.estado }}
+      </span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="info-row">
+        <span class="label">🏢 Institución:</span>
+        <span class="value">{{ rifa.institucion?.nombre || 'Sin institución' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">💰 Precio:</span>
+        <span class="value">${{ rifa.precio_boleto | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">🎫 Boletos:</span>
+        <span class="value">{{ rifa.boletos_vendidos || 0 }} / {{ rifa.cantidad_boletos }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">📊 Vendidos:</span>
+        <span class="value">{{ getPorcentajeVendido() }}%</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">📅 Sorteo:</span>
+        <span class="value">{{ rifa.fecha_sorteo | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <button class="btn-action btn-view" (click)="verDetalles(); $event.stopPropagation()" title="Ver detalles">
+      👁️
+    </button>
+    <button class="btn-action btn-edit" (click)="editarRifa(); $event.stopPropagation()" title="Editar">
+      ✏️
+    </button>
+    <button class="btn-action btn-delete" (click)="eliminarRifa(); $event.stopPropagation()" title="Eliminar">
+      🗑️
+    </button>
+  </div>
+</div>
+
+<!-- Vista de lista -->
+<div *ngIf="viewMode === 'list'" class="list-item">
+  <div class="list-logo">
+    <img 
+      *ngIf="getLogoUrl()" 
+      [src]="getLogoUrl()" 
+      [alt]="rifa.nombre"
+      class="logo-img">
+    <div *ngIf="!getLogoUrl()" class="logo-placeholder">
+      {{ getLogoPlaceholder() }}
+    </div>
+  </div>
+
+  <div class="list-content">
+    <div class="list-header">
+      <h3>{{ rifa.nombre }}</h3>
+      <span class="badge" [ngClass]="getEstadoClass()">
+        {{ rifa.estado }}
+      </span>
+    </div>
+
+    <div class="list-info">
+      <span><strong>Institución:</strong> {{ rifa.institucion?.nombre || 'N/A' }}</span>
+      <span><strong>Precio:</strong> ${{ rifa.precio_boleto | number:'1.2-2' }}</span>
+      <span><strong>Boletos:</strong> {{ rifa.boletos_vendidos || 0 }}/{{ rifa.cantidad_boletos }}</span>
+      <span><strong>Vendidos:</strong> {{ getPorcentajeVendido() }}%</span>
+      <span><strong>Sorteo:</strong> {{ rifa.fecha_sorteo | date:'dd/MM/yyyy' }}</span>
+    </div>
+  </div>
+
+  <div class="list-actions">
+    <button class="btn-action btn-view" (click)="verDetalles()" title="Ver detalles">
+      👁️
+    </button>
+    <button class="btn-action btn-edit" (click)="editarRifa()" title="Editar">
+      ✏️
+    </button>
+    <button class="btn-action btn-delete" (click)="eliminarRifa()" title="Eliminar">
+      🗑️
+    </button>
+  </div>
+</div>
