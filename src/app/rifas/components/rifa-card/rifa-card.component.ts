@@ -30,15 +30,21 @@ export class RifaCardComponent {
    * Evento para eliminar rifa
    */
   @Output() delete = new EventEmitter<number>();
+  baseUrl: any;
 
   /**
    * Obtiene la URL del logo de la institución o rifa
    * Prioridad: logo_rifa > logo institución > imagen_url rifa > null
    */
-  getLogoUrl(): string {
-    // 1. Logo específico de la rifa
-    if (this.rifa?.imagen_url) {
-      return this.rifa.imagen_url;
+ getLogoUrl(): string | null {
+    // Prioridad 1: Logo de la rifa
+    if (this.rifa.imagen_url_url) {
+      // Si ya es URL completa, retornarla
+      if (this.rifa.imagen_url.startsWith('http')) {
+        return this.rifa.logo_url;
+      }
+      // Si es ruta relativa, agregar baseUrl
+      return `${this.baseUrl}${this.rifa.imagen_url}`;
     }
     
     // 2. Logo de la institución (el backend puede devolverlo de varias formas)

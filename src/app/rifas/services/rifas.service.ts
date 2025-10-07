@@ -3,7 +3,8 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, tap, catchError } from 'rxjs';
+import { Observable, map, tap, catchError, throwError } from 'rxjs';
+
 
 // INTERFACES COMPATIBLES CON TUS COMPONENTES EXISTENTES
 export interface Rifa {
@@ -250,38 +251,104 @@ getHistorialCompras(): Observable<any> {
     return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/publicas/${id}`);
   }
 
+  /**
+   * Subir logo de rifa
+   */
+  uploadLogo(rifaId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    return this.http.post(`${this.baseUrl}/rifas/${rifaId}/logo`, formData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    }).pipe(
+      tap(() => console.log('✅ Logo de rifa subido exitosamente')),
+      catchError(error => {
+        console.error('❌ Error subiendo logo de rifa:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Eliminar logo de rifa
+   */
+  deleteLogo(rifaId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/rifas/${rifaId}/logo`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    }).pipe(
+      tap(() => console.log('✅ Logo de rifa eliminado exitosamente')),
+      catchError(error => {
+        console.error('❌ Error eliminando logo de rifa:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 
 /**
- * Subir imagen de una rifa
+ * Invitar instituciones a participar en una rifa
  */
-uploadImagen(rifaId: number, file: File): Observable<any> {
-  const formData = new FormData();
-  formData.append('imagen', file);
-  
-  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/upload-imagen`, formData).pipe(
-    tap(() => console.log('✅ Imagen subida exitosamente')),
-    catchError(error => {
-      console.error('❌ Error al subir imagen:', error);
-      throw error;
-    })
+/**
+ * Invitar instituciones a participar en una rifa
+ */
+invitarInstituciones(rifaId: number, institucionesIds: number[]): Observable<any> {
+  return this.http.post(
+    `${this.baseUrl}/rifas/${rifaId}/invitar`,
+    { instituciones_ids: institucionesIds }
+  ).pipe(
+    catchError(error => this.handleError(error))
   );
 }
 
 /**
- * Eliminar imagen de una rifa
+ * Obtener participaciones de una rifa
  */
-deleteImagen(rifaId: number): Observable<any> {
-  return this.http.delete<any>(`${this.baseUrl}/rifas/${rifaId}/imagen`).pipe(
-    tap(() => console.log('✅ Imagen eliminada exitosamente')),
-    catchError(error => {
-      console.error('❌ Error al eliminar imagen:', error);
-      throw error;
-    })
+getParticipaciones(rifaId: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/rifas/${rifaId}/participaciones`).pipe(
+    catchError(error => this.handleError(error))
   );
 }
 
+/**
+ * Aprobar participación de institución
+ */
+aprobarParticipacion(rifaId: number, participacionId: number): Observable<any> {
+  return this.http.put(
+    `${this.baseUrl}/rifas/${rifaId}/participaciones/${participacionId}/aprobar`,
+    {}
+  ).pipe(
+    catchError(error => this.handleError(error))
+  );
+}
 
+/**
+ * Rechazar participación de institución
+ */
+rechazarParticipacion(rifaId: number, participacionId: number, motivo?: string): Observable<any> {
+  return this.http.put(
+    `${this.baseUrl}/rifas/${rifaId}/participaciones/${participacionId}/rechazar`,
+    { motivo }
+  ).pipe(
+    catchError(error => this.handleError(error))
+  );
+}
+  handleError(error: any): any {
+    throw new Error('Method not implemented.');
+  }
 
+/**
+ * Retirar participación
+ */
+retirarParticipacion(rifaId: number, participacionId: number): Observable<any> {
+  return this.http.delete(
+    `${this.baseUrl}/rifas/${rifaId}/participaciones/${participacionId}`
+  ).pipe(
+    catchError(error => this.handleError(error))
+  );
+}
   // ===================================================
   // GESTIÓN DE NÚMEROS
   // ===================================================
