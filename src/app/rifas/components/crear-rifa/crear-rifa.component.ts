@@ -18,6 +18,9 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
   styleUrls: ['./crear-rifa.component.scss']
 })
 export class CrearRifaComponent implements OnInit {
+onCompartidaChange() {
+throw new Error('Method not implemented.');
+}
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly rifasService = inject(RifasService);
@@ -30,8 +33,12 @@ export class CrearRifaComponent implements OnInit {
   readonly success = signal<string | null>(null);
   readonly loadingInstituciones = signal<boolean>(false);
   readonly instituciones = signal<Institution[]>([]);
-  readonly imagePreview = signal<string | null>(null);
   readonly institucionesSeleccionadas = signal<number[]>([]);
+  
+  // ✅ LOGO - IGUAL QUE EN EDIT-RIFA
+  selectedFile: File | null = null;
+  logoPreview: string | null = null;
+  private readonly baseUrl: string;
   
   // Formulario
   rifaForm: FormGroup;
@@ -43,6 +50,14 @@ export class CrearRifaComponent implements OnInit {
   });
 
   constructor() {
+    // Configurar baseUrl igual que en edit-rifa
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      this.baseUrl = 'http://localhost:3100';
+    } else {
+      this.baseUrl = 'https://apirifas.huelemu.com.ar';
+    }
+
     this.rifaForm = this.createForm();
   }
 
@@ -72,7 +87,6 @@ export class CrearRifaComponent implements OnInit {
       comision_promotora: [10],
       requiere_aprobacion: [false],
       
-      imagen_url: [''],
       bases_condiciones: ['']
     });
   }
@@ -83,14 +97,18 @@ export class CrearRifaComponent implements OnInit {
   private setupFormValidation(): void {
     this.rifaForm.get('es_compartida')?.valueChanges.subscribe(esCompartida => {
       const comisionControl = this.rifaForm.get('comision_promotora');
+      const maxInstControl = this.rifaForm.get('max_instituciones_participantes');
       
       if (esCompartida) {
         comisionControl?.setValidators([Validators.required, Validators.min(0), Validators.max(100)]);
+        maxInstControl?.setValidators([Validators.required, Validators.min(2)]);
       } else {
         comisionControl?.clearValidators();
+        maxInstControl?.clearValidators();
       }
       
       comisionControl?.updateValueAndValidity();
+      maxInstControl?.updateValueAndValidity();
     });
   }
 
@@ -98,164 +116,31 @@ export class CrearRifaComponent implements OnInit {
  * Cargar instituciones
  */
 private loadInstituciones(): void {
-  console.log('🔄 Iniciando carga de instituciones...');
   this.loadingInstituciones.set(true);
   
-  this.institutionService.getInstitutions().subscribe({
-    next: (result: any) => {
-      console.log('📦 Respuesta de instituciones:', result);
-      
-      // Intentar diferentes estructuras
-      let instituciones: Institution[] = [];
-      
-      // ✅ SOLUCIÓN: El backend devuelve "institutions" (inglés)
-      if (result?.institutions) {
-        console.log('✅ Encontrado en result.institutions');
-        instituciones = result.institutions;
-      } else if (Array.isArray(result)) {
-        console.log('✅ Es un array directo');
-        instituciones = result;
-      } else if (result?.data?.instituciones) {
-        console.log('✅ Encontrado en result.data.instituciones');
-        instituciones = result.data.instituciones;
-      } else if (result?.instituciones) {
-        console.log('✅ Encontrado en result.instituciones');
-        instituciones = result.instituciones;
-      } else if (result?.data?.institutions) {
-        console.log('✅ Encontrado en result.data.institutions');
-        instituciones = result.data.institutions;
-      } else if (result?.data) {
-        console.log('✅ Intentando result.data');
-        instituciones = Array.isArray(result.data) ? result.data : [];
-      } else {
-        console.warn('⚠️ No se encontró estructura conocida');
-      }
-      
-      console.log('✅ Instituciones cargadas:', instituciones);
-      console.log('📊 Total:', instituciones.length);
-      
+  this.institutionService.getInstitutions({ estado: 'activa' }).subscribe({
+    next: (response) => {
+      const instituciones = response.institutions || response.institutions || [];
       this.instituciones.set(instituciones);
       this.loadingInstituciones.set(false);
       
-      // Pre-seleccionar institución del usuario
-      this.preselectInstitution();
+      const currentUser = this.authService.currentUser();
+      if (currentUser?.institucion_id) {
+        this.rifaForm.patchValue({
+          institucion_promotora_id: currentUser.institucion_id
+        });
+      }
     },
     error: (error) => {
-      console.error('❌ Error cargando instituciones:', error);
-      this.error.set('Error al cargar instituciones');
+      console.error('Error cargando instituciones:', error);
+      this.error.set('Error al cargar las instituciones');
       this.loadingInstituciones.set(false);
     }
   });
 }
 
   /**
-   * Pre-seleccionar institución del usuario
-   */
-  private preselectInstitution(): void {
-    const currentUser = this.authService.currentUser();
-    console.log('👤 Usuario actual:', currentUser);
-    
-    if (currentUser?.institucion_id) {
-      this.rifaForm.patchValue({
-        institucion_promotora_id: currentUser.institucion_id
-      });
-      console.log('✅ Institución pre-seleccionada:', currentUser.institucion_id);
-    }
-  }
-
-  /**
-   * Manejo de cambio en "es_compartida"
-   */
-  onCompartidaChange(): void {
-    const esCompartida = this.rifaForm.get('es_compartida')?.value;
-    
-    if (!esCompartida) {
-      this.institucionesSeleccionadas.set([]);
-      this.rifaForm.patchValue({
-        max_instituciones_participantes: null,
-        comision_promotora: 10,
-        requiere_aprobacion: false
-      });
-    }
-  }
-
-  /**
-   * Agregar institución desde el select
-   */
-  onSelectInstitucion(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const institucionId = parseInt(select.value);
-    
-    if (institucionId && !this.institucionesSeleccionadas().includes(institucionId)) {
-      this.institucionesSeleccionadas.set([...this.institucionesSeleccionadas(), institucionId]);
-    }
-    
-    // Reset select
-    select.value = '';
-  }
-
-  /**
-   * Remover institución de seleccionadas
-   */
-  removeInstitucion(institucionId: number): void {
-    this.institucionesSeleccionadas.set(
-      this.institucionesSeleccionadas().filter(id => id !== institucionId)
-    );
-  }
-
-  /**
-   * Obtener nombre de institución por ID
-   */
-  getInstitucionNombre(institucionId: number): string {
-    return this.instituciones().find(i => i.id === institucionId)?.nombre || 'Desconocida';
-  }
-
-  /**
-   * Manejo de imagen
-   */
-  onImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-
-    const file = input.files[0];
-    
-    if (file.size > 5 * 1024 * 1024) {
-      this.error.set('La imagen no puede superar los 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      this.imagePreview.set(e.target?.result as string);
-      this.rifaForm.patchValue({ imagen_url: e.target?.result as string });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeImage(): void {
-    this.imagePreview.set(null);
-    this.rifaForm.patchValue({ imagen_url: '' });
-  }
-
-  /**
-   * Calcular total
-   */
-  calculateTotal(): number {
-    const cantidad = this.rifaForm.get('cantidad_numeros')?.value || 0;
-    const precio = this.rifaForm.get('precio_numero')?.value || 0;
-    return cantidad * precio;
-  }
-
-  /**
-   * Validación de campo
-   */
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.rifaForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  /**
-   * Submit del formulario
+   * Submit del formulario - ✅ UNIFICADO CON EDIT-RIFA
    */
   onSubmit(): void {
     if (this.rifaForm.invalid) {
@@ -278,14 +163,18 @@ private loadInstituciones(): void {
         
         const rifaId = response?.data?.id || response?.id;
         
-        if (this.institucionesSeleccionadas().length > 0 && rifaId) {
+        // ✅ Si hay logo seleccionado, subirlo (IGUAL QUE EDIT-RIFA)
+        if (this.selectedFile && rifaId) {
+          console.log('📤 Subiendo logo de la rifa...');
+          this.uploadLogo(rifaId);
+        } 
+        // Si hay instituciones seleccionadas pero no logo
+        else if (this.institucionesSeleccionadas().length > 0 && rifaId) {
           this.enviarInvitaciones(rifaId);
-        } else {
-          this.success.set('Rifa creada exitosamente');
-          this.submitting.set(false);
-          setTimeout(() => {
-            this.router.navigate(['/rifas', rifaId]);
-          }, 1500);
+        } 
+        // Si no hay ni logo ni invitaciones
+        else {
+          this.finalizarCreacion(rifaId);
         }
       },
       error: (error) => {
@@ -297,7 +186,7 @@ private loadInstituciones(): void {
   }
 
   /**
-   * Preparar datos del formulario
+   * Preparar datos del formulario - SIN imagen_url
    */
   private prepareFormData(): any {
     const formValue = this.rifaForm.value;
@@ -315,10 +204,102 @@ private loadInstituciones(): void {
       max_instituciones_participantes: formValue.es_compartida ? formValue.max_instituciones_participantes : null,
       comision_promotora: formValue.es_compartida ? formValue.comision_promotora : 0,
       requiere_aprobacion: formValue.es_compartida ? formValue.requiere_aprobacion : false,
-      imagen_url: formValue.imagen_url || null,
+      imagen_url: null, // ✅ SIEMPRE NULL, se sube después con uploadLogo()
       bases_condiciones: formValue.bases_condiciones || null
     };
   }
+
+  // ========================================
+  // ✅ MÉTODOS DE LOGO - IGUALES A EDIT-RIFA
+  // ========================================
+
+  /**
+   * Obtener URL del logo para preview
+   */
+  getLogoUrl(): string | null {
+    if (this.logoPreview) {
+      return this.logoPreview;
+    }
+    return null;
+  }
+
+  /**
+   * Cuando se selecciona un archivo
+   */
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        this.error.set('Solo se permiten archivos de imagen');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        this.error.set('El archivo no debe superar 5MB');
+        return;
+      }
+      
+      this.selectedFile = file;
+      
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.logoPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      
+      console.log('📎 Logo seleccionado:', file.name);
+    }
+  }
+
+  /**
+   * Cancelar selección de archivo
+   */
+  cancelFileSelection(): void {
+    this.selectedFile = null;
+    this.logoPreview = null;
+    console.log('❌ Logo cancelado');
+  }
+
+  /**
+   * Subir logo al backend (llamado después de crear la rifa)
+   */
+  private uploadLogo(rifaId: number): void {
+    if (!this.selectedFile) {
+      this.finalizarCreacion(rifaId);
+      return;
+    }
+    
+    console.log('📤 Subiendo logo para rifa ID:', rifaId);
+    
+    this.rifasService.uploadLogo(rifaId, this.selectedFile).subscribe({
+      next: (result) => {
+        console.log('✅ Logo subido exitosamente:', result);
+        
+        // Continuar con invitaciones o finalizar
+        if (this.institucionesSeleccionadas().length > 0) {
+          this.enviarInvitaciones(rifaId);
+        } else {
+          this.finalizarCreacion(rifaId);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al subir logo:', error);
+        this.error.set('Rifa creada pero error al subir logo: ' + (error.error?.message || error.message));
+        
+        // Continuar igual
+        if (this.institucionesSeleccionadas().length > 0) {
+          this.enviarInvitaciones(rifaId);
+        } else {
+          this.finalizarCreacion(rifaId);
+        }
+      }
+    });
+  }
+
+  // ========================================
+  // MÉTODOS AUXILIARES
+  // ========================================
 
   /**
    * Enviar invitaciones a instituciones
@@ -327,11 +308,7 @@ private loadInstituciones(): void {
     const institucionesIds = this.institucionesSeleccionadas();
     
     if (institucionesIds.length === 0) {
-      this.success.set('Rifa creada exitosamente');
-      this.submitting.set(false);
-      setTimeout(() => {
-        this.router.navigate(['/rifas', rifaId]);
-      }, 1500);
+      this.finalizarCreacion(rifaId);
       return;
     }
 
@@ -358,14 +335,84 @@ private loadInstituciones(): void {
       },
       error: (error) => {
         console.error('❌ Error enviando invitaciones:', error);
-        this.success.set('Rifa creada, pero hubo un error al enviar algunas invitaciones');
-        this.submitting.set(false);
-        
-        setTimeout(() => {
-          this.router.navigate(['/rifas', rifaId]);
-        }, 2000);
+        this.finalizarCreacion(rifaId);
       }
     });
+  }
+
+  /**
+   * Finalizar proceso de creación
+   */
+  private finalizarCreacion(rifaId: number): void {
+    this.success.set('Rifa creada exitosamente con sus números');
+    this.submitting.set(false);
+    
+    setTimeout(() => {
+      this.router.navigate(['/rifas', rifaId]);
+    }, 1500);
+  }
+
+  /**
+   * Toggle rifa compartida
+   */
+  onToggleCompartida(): void {
+    const esCompartida = this.rifaForm.get('es_compartida')?.value;
+    
+    if (!esCompartida) {
+      this.institucionesSeleccionadas.set([]);
+      this.rifaForm.patchValue({
+        max_instituciones_participantes: null,
+        comision_promotora: 10,
+        requiere_aprobacion: false
+      });
+    }
+  }
+
+  /**
+   * Agregar institución desde el select
+   */
+  onSelectInstitucion(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const institucionId = parseInt(select.value);
+    
+    if (institucionId && !this.institucionesSeleccionadas().includes(institucionId)) {
+      this.institucionesSeleccionadas.set([...this.institucionesSeleccionadas(), institucionId]);
+    }
+    
+    select.value = '';
+  }
+
+  /**
+   * Remover institución de seleccionadas
+   */
+  removeInstitucion(institucionId: number): void {
+    this.institucionesSeleccionadas.set(
+      this.institucionesSeleccionadas().filter(id => id !== institucionId)
+    );
+  }
+
+  /**
+   * Obtener nombre de institución por ID
+   */
+  getInstitucionNombre(institucionId: number): string {
+    return this.instituciones().find(i => i.id === institucionId)?.nombre || 'Desconocida';
+  }
+
+  /**
+   * Calcular total
+   */
+  calculateTotal(): number {
+    const cantidad = this.rifaForm.get('cantidad_numeros')?.value || 0;
+    const precio = this.rifaForm.get('precio_numero')?.value || 0;
+    return cantidad * precio;
+  }
+
+  /**
+   * Validación de campo
+   */
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.rifaForm.get(fieldName);
+    return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
   /**

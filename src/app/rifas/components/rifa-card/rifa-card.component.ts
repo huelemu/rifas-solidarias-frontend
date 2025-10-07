@@ -30,49 +30,59 @@ export class RifaCardComponent {
    * Evento para eliminar rifa
    */
   @Output() delete = new EventEmitter<number>();
-  baseUrl: any;
+
+  // ✅ BaseUrl configurado correctamente
+  private get baseUrl(): string {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3100';
+    }
+    return 'https://apirifas.huelemu.com.ar';
+  }
 
   /**
-   * Obtiene la URL del logo de la institución o rifa
-   * Prioridad: logo_rifa > logo institución > imagen_url rifa > null
+   * ✅ Obtiene la URL del logo con prioridad correcta
+   * Prioridad: 1) imagen_url de rifa, 2) logo de institución promotora
    */
- getLogoUrl(): string | null {
-    // Prioridad 1: Logo de la rifa
-    if (this.rifa.imagen_url_url) {
+  getLogoUrl(): string | null {
+    // PRIORIDAD 1: Imagen de la rifa
+    if (this.rifa?.imagen_url) {
       // Si ya es URL completa, retornarla
       if (this.rifa.imagen_url.startsWith('http')) {
-        return this.rifa.logo_url;
+        return this.rifa.imagen_url;
       }
       // Si es ruta relativa, agregar baseUrl
       return `${this.baseUrl}${this.rifa.imagen_url}`;
     }
     
-    // 2. Logo de la institución (el backend puede devolverlo de varias formas)
-    if (this.rifa?.institucion_logo) {
-      return this.rifa.institucion_logo;
+    // PRIORIDAD 2: Logo de la institución promotora (varias formas posibles)
+    
+    // Caso 1: institucion_promotora_logo (campo plano del backend)
+    if (this.rifa?.institucion_promotora_logo) {
+      if (this.rifa.institucion_promotora_logo.startsWith('http')) {
+        return this.rifa.institucion_promotora_logo;
+      }
+      return `${this.baseUrl}${this.rifa.institucion_promotora_logo}`;
     }
     
-    if (this.rifa?.institucion_logo_url) {
-      return this.rifa.institucion_logo_url;
-    }
-    
+    // Caso 2: objeto institucion_promotora con logo_url
     if (this.rifa?.institucion_promotora?.logo_url) {
-      return this.rifa.institucion_promotora.logo_url;
+      if (this.rifa.institucion_promotora.logo_url.startsWith('http')) {
+        return this.rifa.institucion_promotora.logo_url;
+      }
+      return `${this.baseUrl}${this.rifa.institucion_promotora.logo_url}`;
     }
     
-    if (this.rifa?.institucion_promotora?.logo) {
-      return this.rifa.institucion_promotora.logo;
-    }
-    
+    // Caso 3: objeto institucion con logo_url
     if (this.rifa?.institucion?.logo_url) {
-      return this.rifa.institucion.logo_url;
+      if (this.rifa.institucion.logo_url.startsWith('http')) {
+        return this.rifa.institucion.logo_url;
+      }
+      return `${this.baseUrl}${this.rifa.institucion.logo_url}`;
     }
     
-    if (this.rifa?.institucion?.logo) {
-      return this.rifa.institucion.logo;
-    }
-    
-    return '';
+    // Sin logo
+    return null;
   }
 
   /**
@@ -84,6 +94,17 @@ export class RifaCardComponent {
   }
 
   /**
+   * Obtiene nombre de la institución
+   */
+  getInstitucionNombre(): string {
+    return this.rifa?.institucion_promotora_nombre || 
+           this.rifa?.institucion_nombre || 
+           this.rifa?.institucion_promotora?.nombre ||
+           this.rifa?.institucion?.nombre ||
+           'Sin institución';
+  }
+
+  /**
    * Obtiene la clase CSS según el estado
    */
   getEstadoClass(): string {
@@ -92,120 +113,105 @@ export class RifaCardComponent {
   }
 
   /**
-   * Calcula el porcentaje de boletos vendidos
+   * Calcula el porcentaje de números vendidos
    */
   getPorcentajeVendido(): number {
-    const vendidos = this.rifa?.numeros_vendidos || this.rifa?.boletos_vendidos || 0;
-    const total = this.rifa?.cantidad_numeros || this.rifa?.cantidad_boletos || 1;
+    const vendidos = this.rifa?.numeros_vendidos || 0;
+    const total = this.rifa?.cantidad_numeros || this.rifa?.total_numeros || 1;
     return Math.round((vendidos / total) * 100);
   }
 
   /**
-   * Obtiene información de números vendidos
-   */
-  getNumerosVendidos(): number {
-    return this.rifa?.numeros_vendidos || this.rifa?.boletos_vendidos || 0;
-  }
-
-  /**
-   * Obtiene total de números disponibles
-   */
-  getTotalNumeros(): number {
-    return this.rifa?.cantidad_numeros || this.rifa?.cantidad_boletos || 0;
-  }
-
-  /**
-   * Obtiene el nombre de la institución promotora
-   * Busca en múltiples posibles ubicaciones del objeto
-   */
-  getInstitucionNombre(): string {
-    // El backend devuelve 'institucion_nombre' (campo plano)
-    const nombre = this.rifa?.institucion_nombre ||
-                   this.rifa?.institucion_promotora?.nombre ||
-                   this.rifa?.institucion_promotora_nombre ||
-                   this.rifa?.institucion?.nombre ||
-                   this.rifa?.institucionPromotora?.nombre ||
-                   'Sin institución';
-    
-    return nombre;
-  }
-
-  /**
-   * Formatea el precio del boleto
+   * Obtiene precio del número
    */
   getPrecioBoleto(): number {
-    return this.rifa?.precio_numero || this.rifa?.precio_boleto || 0;
+    return this.rifa?.precio_numero || 0;
   }
 
   /**
-   * Obtiene el total recaudado
+   * Obtiene números vendidos
+   */
+  getNumerosVendidos(): number {
+    return this.rifa?.numeros_vendidos || 0;
+  }
+
+  /**
+   * Obtiene total de números
+   */
+  getTotalNumeros(): number {
+    return this.rifa?.cantidad_numeros || this.rifa?.total_numeros || 0;
+  }
+
+  /**
+   * Obtiene total recaudado
    */
   getTotalRecaudado(): number {
-    const vendidos = this.getNumerosVendidos();
-    const precio = this.getPrecioBoleto();
-    return vendidos * precio;
+    return this.rifa?.total_recaudado || this.rifa?.recaudado || 0;
   }
 
   /**
-   * Verifica si el usuario puede editar esta rifa
+   * Formatea fecha
    */
-  canEdit(): boolean {
-    const user = this.authService.currentUser();
-    if (!user) return false;
-
-    // Admin puede editar todo
-    if (user.role === 'admin_global') return true;
-
-    // Vendedor solo puede editar sus propias rifas
-    if (user.role === 'admin_institucion') {
-      return this.rifa?.creado_por === user.id;
+  formatFecha(fecha: string): string {
+    if (!fecha) return 'No definida';
+    try {
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-AR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
+    } catch {
+      return 'Fecha inválida';
     }
-
-    return false;
   }
 
-  /**
-   * Verifica si el usuario puede eliminar esta rifa
-   */
-  canDelete(): boolean {
-    const user = this.authService.currentUser();
-    if (!user) return false;
-    
-    // Solo admin puede eliminar
-    return user.role === 'admin_global';
-  }
+  // ==========================================
+  // ACCIONES
+  // ==========================================
 
   /**
-   * Navega a los detalles de la rifa
+   * Ver detalles de la rifa
    */
   verDetalles(): void {
     this.router.navigate(['/rifas', this.rifa.id]);
   }
 
   /**
-   * Navega a editar la rifa
+   * Editar rifa
    */
   editarRifa(): void {
-    if (!this.canEdit()) return;
-    
     this.router.navigate(['/rifas', this.rifa.id, 'editar']);
   }
 
   /**
-   * Emite evento para eliminar rifa
+   * Eliminar rifa
    */
   eliminarRifa(): void {
-    if (!this.canDelete()) return;
-    
-    if (confirm(`¿Estás seguro de eliminar la rifa "${this.rifa.nombre}"?`)) {
+    if (confirm(`¿Estás seguro de que deseas eliminar la rifa "${this.rifa.nombre}"?`)) {
       this.delete.emit(this.rifa.id);
     }
   }
 
   /**
-   * Previene propagación del click
+   * Verificar si puede editar
    */
-  stopPropagation(event: Event): void {
-    event.stopPropagation();
+  canEdit(): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    
+    return user.role === 'admin_global' || 
+           (user.role === 'admin_institucion' && 
+            user.institucion_id === this.rifa.institucion_promotora_id);
+  }
+
+  /**
+   * Verificar si puede eliminar
+   */
+  canDelete(): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    
+    return user.role === 'admin_global';
   }
 }

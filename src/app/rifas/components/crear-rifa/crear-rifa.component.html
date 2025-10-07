@@ -60,39 +60,49 @@
       </div>
 
       <!-- Imagen compacta -->
-      <div class="form-row">
-        <div class="form-group full-width">
-          <label>Imagen de la Rifa (opcional)</label>
-          <div class="image-upload-compact">
-            
-            @if (!imagePreview()) {
-              <div class="upload-area" (click)="fileInput.click()">
-                <span class="upload-icon">🖼️</span>
-                <span class="upload-text">Click para subir imagen</span>
-              </div>
-            } @else {
-              <div class="image-preview-compact">
-                <img [src]="imagePreview()" alt="Preview">
-                <button 
-                  type="button" 
-                  class="btn-remove-compact"
-                  (click)="removeImage()"
-                  title="Quitar imagen">
-                  ✕
-                </button>
-              </div>
-            }
-            
-            <input 
-              #fileInput
-              type="file" 
-              accept="image/*"
-              (change)="onImageSelected($event)"
-              style="display: none;">
-          </div>
+ <div class="form-row">
+  <div class="form-group full-width">
+    <label>Imagen de la Rifa (opcional)</label>
+    
+    <!-- Si hay logo seleccionado, mostrar preview -->
+    @if (getLogoUrl()) {
+      <div class="form-group form-group-full">
+        <label>Logo {{ logoPreview ? '(Nuevo)' : '(Actual)' }}</label>
+        <div class="logo-current">
+          <img [src]="getLogoUrl()" alt="Logo de la rifa" class="logo-preview-large" />
+          <button 
+            type="button" 
+            (click)="cancelFileSelection()" 
+            class="btn btn-danger-sm"
+            [disabled]="submitting()">
+            🗑️ Cancelar selección
+          </button>
         </div>
       </div>
-    </div>
+    }
+    
+    <!-- Si NO hay logo, mostrar selector -->
+    @if (!getLogoUrl()) {
+      <div class="file-upload-area">
+        <input 
+          type="file" 
+          #fileInput 
+          (change)="onFileSelected($event)"
+          accept="image/*"
+          style="display: none"
+        />
+        <button 
+          type="button" 
+          (click)="fileInput.click()" 
+          class="btn btn-upload"
+          [disabled]="submitting()">
+          📁 Seleccionar Imagen
+        </button>
+        <p class="upload-hint">JPG, PNG, GIF o WEBP - Máx. 5MB</p>
+      </div>
+    }
+  </div>
+</div>
 
     <!-- INSTITUCIÓN PROMOTORA -->
     <div class="form-section">
@@ -374,6 +384,4 @@
         }
       </button>
     </div>
-
-  </form>
 </div>

@@ -1,153 +1,145 @@
+<!-- src/app/rifas/components/edit-rifa/edit-rifa.component.html -->
 <app-navbar></app-navbar>
 
 <div class="page-container">
-  <div class="page-content">
+  
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando rifa...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (error() && !currentRifa()) {
+    <div class="alert alert-error">
+      <span>❌ {{ error() }}</span>
+      <button (click)="loadRifa()" class="btn btn-sm">Reintentar</button>
+    </div>
+  }
+
+  <!-- Contenido Principal -->
+  @else if (currentRifa()) {
     
-    <!-- Loading -->
-    @if (loading()) {
-      <div class="loading-container">
-        <div class="spinner"></div>
-        <p>Cargando rifa...</p>
+    <!-- Estadísticas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🎫</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ currentRifa()?.cantidad_numeros || 0 }}</div>
+          <div class="stat-label">Total Números</div>
+        </div>
       </div>
-    }
-
-    <!-- Error -->
-    @if (error() && !loading()) {
-      <div class="alert alert-error">
-        ❌ {{ error() }}
-        <button (click)="loadRifa()" class="btn btn-sm">Reintentar</button>
+      
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ currentRifa()?.numeros_vendidos || 0 }}</div>
+          <div class="stat-label">Vendidos</div>
+        </div>
       </div>
-    }
+      
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getPorcentajeVendido() }}%</div>
+          <div class="stat-label">Avance</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">${{ getTotalRecaudado() | number:'1.0-0' }}</div>
+          <div class="stat-label">Recaudado</div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Success -->
+    <!-- Alerts -->
     @if (success()) {
       <div class="alert alert-success">
         ✅ {{ success() }}
       </div>
     }
 
-    <!-- Formulario -->
-    @if (!loading() && currentRifa()) {
-      <div class="form-container">
-        <div class="form-header">
-          <h1>✏️ Editar Rifa</h1>
-          <button (click)="goBack()" class="btn btn-outline">← Volver</button>
-        </div>
+    @if (error()) {
+      <div class="alert alert-error">
+        ❌ {{ error() }}
+      </div>
+    }
 
-        <div class="form-body">
-          <form [formGroup]="editForm" (ngSubmit)="onSubmit()">
+    <!-- Formulario -->
+    <div class="form-card">
+      <form [formGroup]="editForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Grid Principal: Info + Imagen -->
+        <div class="form-main-grid">
+          
+          <!-- Columna Izquierda: Formulario -->
+          <div class="form-column">
             
             <!-- Información Básica -->
             <div class="form-section">
-              <h3>📋 Información Básica</h3>
-              <div class="form-grid">
-                
-                <div class="form-group form-group-full">
-                  <label for="nombre">Nombre de la Rifa *</label>
+              <div class="section-header">
+                <h3 class="section-title">📋 Información Básica</h3>
+                <button 
+                  type="button"
+                  (click)="goBack()" 
+                  class="btn-back-inline"
+                >
+                  ← Volver
+                </button>
+              </div>
+              
+              <!-- Nombre y Descripción -->
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="nombre">Nombre *</label>
                   <input 
                     type="text" 
                     id="nombre"
                     formControlName="nombre"
                     class="form-control"
                     [class.error]="isFieldInvalid('nombre')"
+                    placeholder="Nombre de la rifa"
                   >
                   @if (isFieldInvalid('nombre')) {
-                    <span class="error-text">El nombre es requerido</span>
+                    <span class="error-text">Requerido (mín. 3 caracteres)</span>
                   }
                 </div>
 
-                <div class="form-group form-group-full">
+                <div class="form-group">
                   <label for="descripcion">Descripción</label>
-                  <textarea 
+                  <input 
+                    type="text" 
                     id="descripcion"
                     formControlName="descripcion"
                     class="form-control"
-                    rows="3"
-                  ></textarea>
+                    placeholder="Descripción breve"
+                  >
                 </div>
-
               </div>
-            </div>
 
-            <!-- Logo -->
-            <div class="form-section">
-              <h3>🖼️ Logo de la Rifa</h3>
-              <div class="form-grid">
-                
-                <!-- Si hay logo (actual o preview) -->
-                @if (getLogoUrl()) {
-                  <div class="form-group form-group-full">
-                    <label>Logo {{ logoPreview ? '(Nuevo)' : '(Actual)' }}</label>
-                    <div class="logo-current">
-                      <img [src]="getLogoUrl()" alt="Logo de la rifa" class="logo-preview-large" />
-                      <button 
-                        type="button" 
-                        (click)="cancelFileSelection()" 
-                        class="btn btn-danger-sm"
-                        [disabled]="saving()"
-                      >
-                        🗑️ {{ logoPreview ? 'Cancelar cambio' : 'Quitar logo' }}
-                      </button>
-                    </div>
-                  </div>
-                }
-                
-                <!-- Si NO hay logo, mostrar selector -->
-                @if (!getLogoUrl()) {
-                  <div class="form-group form-group-full">
-                    <label>Agregar Logo</label>
-                    <div class="file-upload-area">
-                      <input 
-                        type="file" 
-                        #fileInput 
-                        (change)="onFileSelected($event)"
-                        accept="image/*"
-                        style="display: none"
-                      />
-                      <button 
-                        type="button" 
-                        (click)="fileInput.click()" 
-                        class="btn btn-upload"
-                        [disabled]="saving()"
-                      >
-                        📁 Seleccionar Logo
-                      </button>
-                      <p class="upload-hint">JPG, PNG, GIF o WEBP - Máx. 5MB</p>
-                    </div>
-                  </div>
-                }
-
-                <!-- Botón para cambiar logo si ya hay uno -->
-                @if (getLogoUrl() && !logoPreview) {
-                  <div class="form-group form-group-full">
-                    <input 
-                      type="file" 
-                      #fileInputChange 
-                      (change)="onFileSelected($event)"
-                      accept="image/*"
-                      style="display: none"
-                    />
-                    <button 
-                      type="button" 
-                      (click)="fileInputChange.click()" 
-                      class="btn btn-secondary"
-                      [disabled]="saving()"
-                    >
-                      🔄 Cambiar Logo
-                    </button>
-                  </div>
-                }
-
+              <!-- Institución Promotora (Solo lectura) -->
+              <div class="form-group">
+                <label>Institución Promotora</label>
+                <div class="readonly-field">
+                  <span class="institution-badge">
+                    🏢 {{ getInstitucionPromotoraNombre() }}
+                  </span>
+                </div>
               </div>
             </div>
 
             <!-- Fechas -->
             <div class="form-section">
-              <h3>📅 Fechas</h3>
-              <div class="form-grid">
-                
+              <h3 class="section-title">📅 Fechas</h3>
+              
+              <div class="form-row-2">
                 <div class="form-group">
-                  <label for="fecha_fin">Fecha de Fin *</label>
+                  <label for="fecha_fin">Fecha de Cierre *</label>
                   <input 
                     type="date" 
                     id="fecha_fin"
@@ -156,7 +148,7 @@
                     [class.error]="isFieldInvalid('fecha_fin')"
                   >
                   @if (isFieldInvalid('fecha_fin')) {
-                    <span class="error-text">La fecha de fin es requerida</span>
+                    <span class="error-text">Requerido</span>
                   }
                 </div>
 
@@ -169,81 +161,156 @@
                     class="form-control"
                   >
                 </div>
-
               </div>
             </div>
 
             <!-- Estado -->
             <div class="form-section">
-              <h3>📊 Estado</h3>
-              <div class="form-grid">
-                
+              <h3 class="section-title">⚙️ Estado y Reglas</h3>
+              
+              <div class="form-row-2">
                 <div class="form-group">
-                  <label for="estado">Estado de la Rifa</label>
-                  <select
+                  <label for="estado">Estado *</label>
+                  <select 
                     id="estado"
                     formControlName="estado"
-                    class="form-control">
+                    class="form-control"
+                  >
                     <option value="borrador">📝 Borrador</option>
                     <option value="activa">✅ Activa</option>
-                    <option value="pausada">⏸️ Pausada</option>
                     <option value="cerrada">🔒 Cerrada</option>
                     <option value="finalizada">🏁 Finalizada</option>
                     <option value="cancelada">❌ Cancelada</option>
                   </select>
                 </div>
 
-              </div>
-            </div>
-
-            <!-- Información Adicional -->
-            <div class="form-section">
-              <h3>📋 Información Adicional</h3>
-              <div class="form-grid">
-                
-                <div class="form-group form-group-full">
+                <div class="form-group">
                   <label for="reglas_adicionales">Reglas Adicionales</label>
-                  <textarea
+                  <input 
+                    type="text" 
                     id="reglas_adicionales"
                     formControlName="reglas_adicionales"
                     class="form-control"
-                    rows="4"
-                    placeholder="Términos y condiciones de la rifa..."
-                  ></textarea>
+                    placeholder="Reglas o condiciones especiales"
+                  >
                 </div>
-
               </div>
             </div>
 
-            <!-- Botones -->
-            <div class="form-actions">
-              <button 
-                type="button" 
-                (click)="goBack()" 
-                class="btn btn-outline"
-                [disabled]="saving()"
-              >
-                Cancelar
-              </button>
+            <!-- Instituciones Participantes (si las hay) -->
+            @if (getInstitucionesParticipantes().length > 0) {
+              <div class="form-section">
+                <h3 class="section-title">🤝 Instituciones Participantes</h3>
+                
+                <div class="institutions-list">
+                  @for (inst of getInstitucionesParticipantes(); track inst.id) {
+                    <div class="institution-item">
+                      <span class="institution-name">{{ inst.nombre }}</span>
+                      <span class="institution-status" [class]="'status-' + inst.estado_participacion">
+                        {{ getEstadoParticipacionLabel(inst.estado_participacion) }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+          </div>
+
+          <!-- Columna Derecha: Imagen tipo perfil -->
+          <div class="image-column">
+            <div class="image-section">
+              <h3 class="section-title">🖼️ Imagen de la Rifa</h3>
               
-              <button 
-                type="submit" 
-                class="btn btn-primary"
-                [disabled]="editForm.invalid || saving()"
-              >
-                @if (saving()) {
-                  <span class="spinner-sm"></span>
-                  <span>Guardando...</span>
-                } @else {
-                  <span>💾 Guardar Cambios</span>
+              <div class="profile-image-container">
+                <!-- Imagen actual o preview -->
+                <div class="profile-image-wrapper">
+                  @if (getLogoUrl() || logoPreview) {
+                    <img 
+                      [src]="logoPreview || getLogoUrl()" 
+                      alt="Imagen de la rifa" 
+                      class="profile-image"
+                    />
+                  } @else {
+                    <div class="profile-image-placeholder">
+                      <span class="placeholder-icon">🎫</span>
+                      <span class="placeholder-text">Sin imagen</span>
+                    </div>
+                  }
+                  
+                  <!-- Overlay con acciones -->
+                  <div class="image-overlay">
+                    <input 
+                      type="file" 
+                      #fileInput 
+                      (change)="onFileSelected($event)"
+                      accept="image/*"
+                      style="display: none"
+                    />
+                    
+                    <button 
+                      type="button"
+                      (click)="fileInput.click()" 
+                      class="btn-image-action"
+                      [disabled]="saving()"
+                      title="Cambiar imagen"
+                    >
+                      📷
+                    </button>
+                    
+                    @if (getLogoUrl() || logoPreview) {
+                      <button 
+                        type="button"
+                        (click)="removeImage()" 
+                        class="btn-image-action btn-remove"
+                        [disabled]="saving()"
+                        title="Quitar imagen"
+                      >
+                        🗑️
+                      </button>
+                    }
+                  </div>
+                </div>
+                
+                <p class="image-hint">JPG, PNG o WEBP · Máx. 5MB</p>
+                
+                @if (logoPreview) {
+                  <div class="image-status">
+                    ✨ Nueva imagen seleccionada
+                  </div>
                 }
-              </button>
+              </div>
             </div>
+          </div>
 
-          </form>
         </div>
-      </div>
-    }
 
-  </div>
+        <!-- Acciones del formulario -->
+        <div class="form-actions">
+          <button 
+            type="button"
+            (click)="goBack()" 
+            class="btn btn-secondary"
+            [disabled]="saving()"
+          >
+            Cancelar
+          </button>
+          
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving() || editForm.invalid"
+          >
+            @if (saving()) {
+              <span class="spinner-sm"></span>
+              Guardando...
+            } @else {
+              💾 Guardar Cambios
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
 </div>

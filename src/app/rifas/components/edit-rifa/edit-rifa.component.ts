@@ -261,6 +261,73 @@ export class EditRifaComponent implements OnInit {
   // MÉTODOS AUXILIARES
   // ========================================
 
+
+  /**
+ * Obtener porcentaje vendido
+ */
+getPorcentajeVendido(): number {
+  const rifa = this.currentRifa();
+  if (!rifa) return 0;
+  
+  const vendidos = rifa.numeros_vendidos || 0;
+  const total = rifa.cantidad_numeros || 1;
+  return Math.round((vendidos / total) * 100);
+}
+
+/**
+ * Obtener total recaudado
+ */
+getTotalRecaudado(): number {
+  const rifa = this.currentRifa();
+  if (!rifa) return 0;
+  
+  return rifa.total_recaudado || rifa.recaudado || 0;
+}
+
+/**
+ * Obtener nombre de institución promotora
+ */
+getInstitucionPromotoraNombre(): string {
+  const rifa = this.currentRifa();
+  return rifa?.institucion_promotora_nombre || 
+         rifa?.institucion_nombre || 
+         'No especificada';
+}
+
+/**
+ * Obtener instituciones participantes
+ */
+getInstitucionesParticipantes(): any[] {
+  const rifa = this.currentRifa();
+  return rifa?.instituciones_participantes || [];
+}
+
+/**
+ * Obtener label de estado de participación
+ */
+getEstadoParticipacionLabel(estado: string): string {
+  const labels: any = {
+    'solicitada': '⏳ Pendiente',
+    'aprobada': '✅ Aprobada',
+    'rechazada': '❌ Rechazada',
+    'retirada': '🚫 Retirada'
+  };
+  return labels[estado] || estado;
+}
+
+/**
+ * Remover imagen
+ */
+removeImage(): void {
+  if (confirm('¿Estás seguro de quitar la imagen de la rifa?')) {
+    this.selectedFile = null;
+    this.logoPreview = null;
+    this.logoChanged = true;
+  }
+}
+
+
+
   private formatDateForInput(date: string | Date | null): string {
     if (!date) return '';
     const d = new Date(date);
