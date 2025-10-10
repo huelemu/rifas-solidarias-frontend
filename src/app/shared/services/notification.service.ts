@@ -28,6 +28,21 @@ export interface PersistentNotification {
   providedIn: 'root'
 })
 export class NotificationService {
+  showWarning(arg0: string, arg1: string) {
+      throw new Error('Method not implemented.');
+  }
+  showError(arg0: string) {
+      throw new Error('Method not implemented.');
+  }
+  showInfo(arg0: string, arg1: string) {
+    throw new Error('Method not implemented.');
+  }
+  showNotification(arg0: string, arg1: string) {
+    throw new Error('Method not implemented.');
+  }
+  showSuccess(arg0: string, arg1: string) {
+    throw new Error('Method not implemented.');
+  }
   // Signals para toasts (notificaciones temporales)
   private readonly toasts = signal<ToastNotification[]>([]);
   

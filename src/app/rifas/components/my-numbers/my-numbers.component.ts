@@ -1,20 +1,38 @@
-// src/app/rifas/components/my-numbers/my-numbers.component.ts
+// src/app/rifas/components/my-numbers/my-numbers.component.ts - MEJORADO
 
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { NotificationService } from '../../../shared/services/notification.service';
 
-interface RifaConNumeros {
+interface MisNumerosRifa {
   rifa_id: number;
   rifa_nombre: string;
-  fecha_sorteo?: string;
+  rifa_descripcion: string;
   rifa_estado: string;
-  numero_ganador?: number;
-  numeros: any[];
+  fecha_sorteo: string | null;
+  numero_ganador: number | null;
+  precio_numero: number;
+  numeros: NumeroComprado[];
+  total_invertido: number;
+  tiene_ganador: boolean;
+}
+
+interface NumeroComprado {
+  id: number;
+  numero: number;
+  fecha_compra: string;
+  metodo_pago: string;
+  es_ganador: boolean;
+}
+
+interface FiltrosNumeros {
+  estado: 'todas' | 'activas' | 'finalizadas' | 'ganadas';
+  ordenar: 'fecha' | 'numero' | 'monto';
 }
 
 @Component({
@@ -22,217 +40,153 @@ interface RifaConNumeros {
   standalone: true,
   imports: [CommonModule, FormsModule, NavbarComponent],
   template: `
-  <app-navbar></app-navbar>
-
+    <app-navbar></app-navbar>
+    
     <div class="my-numbers-container">
-
-      <!-- Estadísticas -->
-      <div class="stats-section">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">🎫</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ getTotalNumeros() }}</div>
-              <div class="stat-label">Números Comprados</div>
-            </div>
+      <!-- Header -->
+      <header class="page-header">
+        <div class="header-content">
+          <div class="title-section">
+            <h1>🎁 Mis Números</h1>
+            <p class="subtitle">Números que has comprado en rifas</p>
           </div>
           
-          <div class="stat-card">
-            <div class="stat-icon">🎯</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ getRifasParticipando() }}</div>
-              <div class="stat-label">Rifas Participando</div>
-            </div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ formatPrice(getTotalInvertido()) }}</div>
-              <div class="stat-label">Total Invertido</div>
-            </div>
-          </div>
-          
-          <div class="stat-card success">
-            <div class="stat-icon">🏆</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ getPremiosGanados() }}</div>
-              <div class="stat-label">Premios Ganados</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filtros -->
-      <div class="filters-section">
-        <div class="filters-grid">
-          <div class="filter-group">
-            <label>Estado de la rifa:</label>
-            <select 
-              [(ngModel)]="filtroEstado"
-              (ngModelChange)="aplicarFiltros()"
-              class="form-control">
-              <option value="">Todas las rifas</option>
-              <option value="activa">🟢 Activas</option>
-              <option value="finalizada">🏁 Finalizadas</option>
-              <option value="cerrada">🔒 Cerradas</option>
-              <option value="cancelada">❌ Canceladas</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Buscar rifa:</label>
-            <input 
-              type="text"
-              [(ngModel)]="filtroBusqueda"
-              (ngModelChange)="aplicarFiltros()"
-              class="form-control"
-              placeholder="Nombre de la rifa...">
-          </div>
-
-          <div class="filter-group">
-            <label>Ordenar por:</label>
-            <select 
-              [(ngModel)]="ordenamiento"
-              (ngModelChange)="aplicarFiltros()"
-              class="form-control">
-              <option value="fecha_compra_desc">Fecha de compra (más reciente)</option>
-              <option value="fecha_compra_asc">Fecha de compra (más antigua)</option>
-              <option value="nombre_rifa_asc">Nombre de rifa (A-Z)</option>
-              <option value="nombre_rifa_desc">Nombre de rifa (Z-A)</option>
-              <option value="cantidad_desc">Más números primero</option>
-            </select>
-          </div>
-        </div>
-        
-        @if (hasActiveFilters()) {
-          <button 
-            class="btn btn-outline"
-            (click)="limpiarFiltros()">
-            🧹 Limpiar Filtros
+          <button class="btn-back" (click)="volverDashboard()">
+            ← Volver al Dashboard
           </button>
-        }
-      </div>
-
-      <!-- Loading -->
-      @if (loading()) {
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>Cargando tus números...</p>
         </div>
-      }
+      </header>
 
-      <!-- Error -->
-      @if (error()) {
-        <div class="error-container">
-          <div class="error-message">
-            <h3>❌ Error</h3>
-            <p>{{ error() }}</p>
-            <button 
-              class="btn btn-primary"
-              (click)="recargarNumeros()">
-              🔄 Reintentar
-            </button>
+      <main class="page-main">
+        
+        <!-- Resumen general -->
+        <section class="summary-section">
+          <div class="summary-grid">
+            <div class="summary-card primary">
+              <div class="summary-icon">🎫</div>
+              <div class="summary-content">
+                <div class="summary-value">{{ getTotalNumeros() }}</div>
+                <div class="summary-label">Números Comprados</div>
+              </div>
+            </div>
+
+            <div class="summary-card success">
+              <div class="summary-icon">🎰</div>
+              <div class="summary-content">
+                <div class="summary-value">{{ getRifasParticipando() }}</div>
+                <div class="summary-label">Rifas Participando</div>
+              </div>
+            </div>
+
+            <div class="summary-card info">
+              <div class="summary-icon">💰</div>
+              <div class="summary-content">
+                <div class="summary-value">{{ formatCurrency(getTotalInvertido()) }}</div>
+                <div class="summary-label">Total Invertido</div>
+              </div>
+            </div>
+
+            <div class="summary-card warning">
+              <div class="summary-icon">🏆</div>
+              <div class="summary-content">
+                <div class="summary-value">{{ getPremiosGanados() }}</div>
+                <div class="summary-label">Premios Ganados</div>
+              </div>
+            </div>
           </div>
-        </div>
-      }
+        </section>
 
-      <!-- Contenido -->
-      @if (!loading() && !error()) {
-        @if (rifasFiltradas().length === 0 && !hasActiveFilters()) {
+        <!-- Filtros -->
+        <section class="filters-section">
+          <div class="filters-container">
+            <div class="filter-group">
+              <label>Estado:</label>
+              <select 
+                [(ngModel)]="filtros.estado"
+                (change)="aplicarFiltros()"
+                class="filter-select">
+                <option value="todas">Todas las rifas</option>
+                <option value="activas">Rifas activas</option>
+                <option value="finalizadas">Rifas finalizadas</option>
+                <option value="ganadas">Rifas ganadas 🏆</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Ordenar por:</label>
+              <select 
+                [(ngModel)]="filtros.ordenar"
+                (change)="aplicarFiltros()"
+                class="filter-select">
+                <option value="fecha">Fecha de compra</option>
+                <option value="numero">Número</option>
+                <option value="monto">Monto invertido</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lista de rifas con mis números -->
+        @if (cargando()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando tus números...</p>
+          </div>
+        } @else if (rifasFiltradas().length === 0) {
           <div class="empty-state">
             <div class="empty-icon">🎫</div>
             <h3>No tienes números comprados</h3>
-            <p>Aún no has comprado números en ninguna rifa. ¡Es hora de participar!</p>
-            <button 
-              class="btn btn-primary"
-              (click)="verRifasDisponibles()">
-              🛒 Ver Rifas Disponibles
-            </button>
-          </div>
-        } @else if (rifasFiltradas().length === 0 && hasActiveFilters()) {
-          <div class="empty-state">
-            <div class="empty-icon">🔍</div>
-            <h3>No se encontraron resultados</h3>
-            <p>No hay rifas que coincidan con los filtros aplicados.</p>
-            <button 
-              class="btn btn-outline"
-              (click)="limpiarFiltros()">
-              🧹 Limpiar Filtros
+            <p>Explora las rifas activas y compra tus números de la suerte</p>
+            <button class="btn-primary" (click)="irARifas()">
+              Ver Rifas Disponibles
             </button>
           </div>
         } @else {
-          <div class="rifas-section">
-            @for (rifaData of rifasFiltradas(); track rifaData.rifa_id) {
-              <div class="rifa-card" [class]="getRifaCardClass(rifaData.rifa_estado)">
+          <div class="rifas-list">
+            @for (rifa of rifasFiltradas(); track rifa.rifa_id) {
+              <div class="rifa-card" [class.ganadora]="rifa.tiene_ganador">
+                
                 <!-- Header de la rifa -->
                 <div class="rifa-header">
-                  <div class="rifa-info">
-                    <h3>{{ rifaData.rifa_nombre }}</h3>
-                    <div class="rifa-meta">
-                      <span class="rifa-id">#{{ rifaData.rifa_id }}</span>
-                      <span 
-                        class="rifa-status"
-                        [class]="getEstadoClass(rifaData.rifa_estado)">
-                        {{ getEstadoIcon(rifaData.rifa_estado) }} {{ getEstadoLabel(rifaData.rifa_estado) }}
-                      </span>
-                    </div>
+                  <div class="rifa-title-section">
+                    <h3>{{ rifa.rifa_nombre }}</h3>
+                    <span class="estado-badge" [class]="getEstadoClass(rifa.rifa_estado)">
+                      {{ getEstadoLabel(rifa.rifa_estado) }}
+                    </span>
+                    @if (rifa.tiene_ganador) {
+                      <span class="ganador-badge">🏆 ¡GANASTE!</span>
+                    }
                   </div>
                   
-                  @if (rifaData.fecha_sorteo) {
-                    <div class="sorteo-info">
-                      <span class="sorteo-label">🎲 Sorteo:</span>
-                      <span class="sorteo-fecha">{{ formatDate(rifaData.fecha_sorteo) }}</span>
-                    </div>
-                  }
+                  <div class="rifa-stats-mini">
+                    <span class="stat">{{ rifa.numeros.length }} números</span>
+                    <span class="stat">{{ formatCurrency(rifa.total_invertido) }}</span>
+                  </div>
                 </div>
 
-                <!-- Números ganadores -->
-                @if (rifaData.numero_ganador && rifaData.rifa_estado === 'finalizada') {
-                  <div class="winner-section">
-                    <div class="winner-announcement">
-                      🏆 <strong>Número ganador: {{ rifaData.numero_ganador }}</strong>
-                      @if (esGanador(rifaData)) {
-                        <span class="you-won">¡FELICITACIONES! ¡GANASTE!</span>
-                      }
-                    </div>
+                <!-- Info de sorteo -->
+                @if (rifa.fecha_sorteo) {
+                  <div class="sorteo-info">
+                    <span class="sorteo-label">📅 Sorteo:</span>
+                    <span class="sorteo-fecha">{{ formatDate(rifa.fecha_sorteo) }}</span>
+                    @if (rifa.numero_ganador) {
+                      <span class="numero-ganador-badge">
+                        Número ganador: {{ rifa.numero_ganador }}
+                      </span>
+                    }
                   </div>
                 }
 
-                <!-- Resumen de números -->
-                <div class="numeros-summary">
-                  <div class="summary-stats">
-                    <div class="summary-item">
-                      <span class="summary-label">Números comprados:</span>
-                      <span class="summary-value">{{ rifaData.numeros.length }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="summary-label">Total invertido:</span>
-                      <span class="summary-value">{{ formatPrice(getTotalInvertidoRifa(rifaData)) }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="summary-label">Números:</span>
-                      <span class="summary-value numbers-list">{{ getNumerosList(rifaData.numeros) }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Grid de números -->
+                <!-- Grid de números comprados -->
                 <div class="numeros-grid">
-                  @for (numero of rifaData.numeros; track numero.id) {
+                  @for (numero of rifa.numeros; track numero.id) {
                     <div 
-                      class="numero-card"
-                      [class]="getNumeroCardClass(numero, rifaData)">
+                      class="numero-badge"
+                      [class.ganador]="numero.es_ganador"
+                      [title]="getNumeroTooltip(numero, rifa)">
                       <div class="numero-value">{{ numero.numero }}</div>
-                      <div class="numero-status">
-                        @if (numero.numero === rifaData.numero_ganador) {
-                          🏆
-                        } @else {
-                          {{ getNumeroStatusIcon(numero, rifaData) }}
-                        }
-                      </div>
-                      @if (numero.fecha_venta) {
-                        <div class="numero-date">{{ formatShortDate(numero.fecha_venta) }}</div>
+                      @if (numero.es_ganador) {
+                        <div class="numero-icon">🏆</div>
                       }
                     </div>
                   }
@@ -241,24 +195,24 @@ interface RifaConNumeros {
                 <!-- Acciones -->
                 <div class="rifa-actions">
                   <button 
-                    class="btn btn-outline"
-                    (click)="verDetalleRifa(rifaData.rifa_id)">
+                    class="btn-outline"
+                    (click)="verDetalleRifa(rifa.rifa_id)">
                     👁️ Ver Rifa
                   </button>
                   
-                  @if (rifaData.rifa_estado === 'activa') {
+                  @if (rifa.rifa_estado === 'activa') {
                     <button 
-                      class="btn btn-primary"
-                      (click)="comprarMasNumeros(rifaData.rifa_id)">
-                      🛒 Comprar Más
+                      class="btn-primary"
+                      (click)="comprarMasNumeros(rifa.rifa_id)">
+                      ➕ Comprar Más Números
                     </button>
                   }
-                  
-                  @if (esGanador(rifaData)) {
+
+                  @if (rifa.tiene_ganador) {
                     <button 
-                      class="btn btn-success"
-                      (click)="reclamarPremio(rifaData.rifa_id)">
-                      🎁 Reclamar Premio
+                      class="btn-success"
+                      (click)="contactarOrganizador(rifa.rifa_id)">
+                      📞 Contactar Organizador
                     </button>
                   }
                 </div>
@@ -266,775 +220,642 @@ interface RifaConNumeros {
             }
           </div>
         }
-      }
+      </main>
     </div>
   `,
   styles: [`
     .my-numbers-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+      min-height: calc(100vh - 64px);
+      background: var(--bg-page);
     }
 
+    /* Header */
     .page-header {
-      margin-bottom: 24px;
-      
-      .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-      }
-      
-      .header-left h1 {
-        margin: 0;
-        color: #1f2937;
-      }
-      
-      .header-left p {
-        margin: 4px 0 0 0;
-        color: #6b7280;
-      }
-      
-      .header-actions {
-        display: flex;
-        gap: 12px;
-      }
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      padding: 2rem;
     }
 
-    .stats-section {
-      margin-bottom: 24px;
-      
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-      }
-      
-      .stat-card {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid #e5e7eb;
-        
-        &.success {
-          border-left-color: #10b981;
-        }
-        
-        .stat-icon {
-          font-size: 24px;
-          margin-bottom: 8px;
-        }
-        
-        .stat-number {
-          font-size: 24px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 4px;
-        }
-        
-        .stat-label {
-          font-size: 14px;
-          color: #6b7280;
-        }
-      }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
+    .title-section h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      margin: 0.5rem 0 0 0;
+      color: var(--text-secondary);
+    }
+
+    .btn-back {
+      padding: 0.75rem 1.5rem;
+      background: var(--gray-100);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .btn-back:hover {
+      background: var(--gray-200);
+    }
+
+    /* Main */
+    .page-main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Summary */
+    .summary-section {
+      margin-bottom: 2rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .summary-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid;
+    }
+
+    .summary-card.primary { border-color: var(--primary); }
+    .summary-card.success { border-color: var(--success); }
+    .summary-card.info { border-color: var(--info); }
+    .summary-card.warning { border-color: var(--warning); }
+
+    .summary-icon {
+      font-size: 2.5rem;
+    }
+
+    .summary-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .summary-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* Filtros */
     .filters-section {
       background: white;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      
-      .filters-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 16px;
-        margin-bottom: 16px;
-      }
-      
-      .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        
-        label {
-          font-weight: 600;
-          color: #374151;
-          font-size: 14px;
-        }
-      }
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
     }
 
-    .rifas-section {
+    .filters-container {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .filter-group label {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .filter-select {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+    }
+
+    /* Lista de rifas */
+    .rifas-list {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 1.5rem;
     }
 
     .rifa-card {
       background: white;
       border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border-left: 4px solid #e5e7eb;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-      
-      &.activa { border-left-color: #10b981; }
-      &.finalizada { border-left-color: #3b82f6; }
-      &.cerrada { border-left-color: #6b7280; }
-      &.cancelada { border-left-color: #ef4444; }
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .rifa-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .rifa-card.ganadora {
+      border-color: #ffd700;
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
     }
 
     .rifa-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 16px;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .rifa-title-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
       flex-wrap: wrap;
-      gap: 12px;
-      
-      .rifa-info h3 {
-        margin: 0 0 8px 0;
-        color: #1f2937;
-        font-size: 20px;
-      }
-      
-      .rifa-meta {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        
-        .rifa-id {
-          font-size: 14px;
-          color: #6b7280;
-          font-family: monospace;
-        }
-        
-        .rifa-status {
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 600;
-          
-          &.status-activa { background: #dcfce7; color: #16a34a; }
-          &.status-finalizada { background: #dbeafe; color: #2563eb; }
-          &.status-cerrada { background: #f3f4f6; color: #6b7280; }
-          &.status-cancelada { background: #fef2f2; color: #dc2626; }
-        }
-      }
-      
-      .sorteo-info {
-        text-align: right;
-        
-        .sorteo-label {
-          display: block;
-          font-size: 12px;
-          color: #6b7280;
-        }
-        
-        .sorteo-fecha {
-          font-weight: 600;
-          color: #1f2937;
-        }
-      }
     }
 
-    .winner-section {
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    .rifa-title-section h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+    }
+
+    .estado-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .estado-badge.activa {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .estado-badge.finalizada {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .ganador-badge {
+      padding: 0.25rem 0.75rem;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #744210;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      animation: pulseGold 2s infinite;
+    }
+
+    @keyframes pulseGold {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .rifa-stats-mini {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .stat {
+      font-weight: 500;
+    }
+
+    /* Info de sorteo */
+    .sorteo-info {
+      background: var(--gray-50);
+      padding: 1rem;
       border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      
-      .winner-announcement {
-        text-align: center;
-        color: white;
-        font-size: 16px;
-        
-        .you-won {
-          display: block;
-          font-size: 18px;
-          font-weight: 700;
-          margin-top: 8px;
-          animation: pulse 2s infinite;
-        }
-      }
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    .sorteo-label {
+      font-weight: 600;
+      color: var(--text-secondary);
     }
 
-    .numeros-summary {
-      background: #f9fafb;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      
-      .summary-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 12px;
-      }
-      
-      .summary-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        
-        .summary-label {
-          font-size: 14px;
-          color: #6b7280;
-        }
-        
-        .summary-value {
-          font-weight: 600;
-          color: #1f2937;
-          
-          &.numbers-list {
-            font-family: monospace;
-            font-size: 13px;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-        }
-      }
+    .sorteo-fecha {
+      color: var(--text-primary);
+      font-weight: 500;
     }
 
+    .numero-ganador-badge {
+      margin-left: auto;
+      padding: 0.5rem 1rem;
+      background: var(--success);
+      color: white;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* Grid de números */
     .numeros-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
     }
 
-    .numero-card {
-      background: #f3f4f6;
-      border-radius: 6px;
-      padding: 8px;
+    .numero-badge {
+      background: var(--gray-100);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
       text-align: center;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
-      
-      &.winner {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: white;
-        border-color: #d97706;
-        animation: glow 2s infinite alternate;
-      }
-      
-      &.normal {
-        background: #e0f2fe;
-        border-color: #0284c7;
-      }
-      
-      .numero-value {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 2px;
-      }
-      
-      .numero-status {
-        font-size: 12px;
-      }
-      
-      .numero-date {
-        font-size: 10px;
-        color: #6b7280;
-        margin-top: 2px;
-      }
+      transition: var(--transition);
+      cursor: pointer;
+      position: relative;
     }
 
-    @keyframes glow {
-      0% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.5); }
-      100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
+    .numero-badge:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
     }
 
+    .numero-badge.ganador {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      border-color: #ffd700;
+      animation: winnerPulse 2s infinite;
+    }
+
+    @keyframes winnerPulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+    }
+
+    .numero-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .numero-badge.ganador .numero-value {
+      color: #744210;
+    }
+
+    .numero-icon {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 1.5rem;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    }
+
+    /* Acciones */
     .rifa-actions {
       display: flex;
-      gap: 8px;
+      gap: 1rem;
       flex-wrap: wrap;
     }
 
+    .btn-outline,
+    .btn-primary,
+    .btn-success {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      opacity: 0.9;
+    }
+
+    /* Estados */
+    .loading-state,
     .empty-state {
       text-align: center;
-      padding: 60px 20px;
-      
-      .empty-icon {
-        font-size: 64px;
-        margin-bottom: 16px;
-      }
-      
-      h3 {
-        color: #1f2937;
-        margin-bottom: 8px;
-      }
-      
-      p {
-        color: #6b7280;
-        margin-bottom: 24px;
-      }
+      padding: 4rem 2rem;
     }
 
-    .form-control {
-      padding: 8px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-      
-      &:focus {
-        outline: none;
-        border-color: #10b981;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-      }
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-      
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-    }
-
-    .btn-primary { 
-      background: #10b981; 
-      color: white;
-      &:hover:not(:disabled) { background: #059669; }
-    }
-    
-    .btn-secondary { 
-      background: #6b7280; 
-      color: white;
-      &:hover:not(:disabled) { background: #374151; }
-    }
-    
-    .btn-success { 
-      background: #10b981; 
-      color: white;
-      &:hover:not(:disabled) { background: #059669; }
-    }
-    
-    .btn-outline { 
-      background: transparent; 
-      border: 1px solid #d1d5db; 
-      color: #374151;
-      &:hover:not(:disabled) { background: #f9fafb; }
-    }
-
-    .loading-container, .error-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 200px;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f4f6;
-      border-top: 4px solid #10b981;
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
 
-    .error-message {
-      text-align: center;
-      
-      h3 {
-        color: #dc2626;
-        margin-bottom: 8px;
+    .empty-icon {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-primary);
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .numeros-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
       }
     }
 
     @media (max-width: 768px) {
-      .my-numbers-container {
-        padding: 12px;
-      }
-      
       .header-content {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
+        gap: 1rem;
       }
-      
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .filters-grid {
+
+      .summary-grid {
         grid-template-columns: 1fr;
       }
-      
+
+      .filters-container {
+        flex-direction: column;
+      }
+
       .rifa-header {
         flex-direction: column;
-        align-items: stretch;
+        gap: 1rem;
       }
-      
+
       .numeros-grid {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
       }
-      
-      .numero-card .numero-value {
-        font-size: 14px;
+
+      .rifa-actions {
+        flex-direction: column;
       }
-      
-      .summary-stats {
-        grid-template-columns: 1fr;
+
+      .rifa-actions button {
+        width: 100%;
       }
     }
   `]
 })
 export class MyNumbersComponent implements OnInit {
-  private readonly router = inject(Router);
-  private readonly rifasService = inject(RifasService);
-  private readonly authService = inject(AuthService);
+  private rifasService = inject(RifasService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   // Signals
-  readonly misRifas = signal<RifaConNumeros[]>([]);
-  readonly loading = signal<boolean>(true);
-  readonly error = signal<string | null>(null);
-
+  cargando = signal(true);
+  misRifas = signal<MisNumerosRifa[]>([]);
+  rifasFiltradas = signal<MisNumerosRifa[]>([]);
+  
   // Filtros
-  filtroEstado = '';
-  filtroBusqueda = '';
-  ordenamiento = 'fecha_compra_desc';
+  filtros: FiltrosNumeros = {
+    estado: 'todas',
+    ordenar: 'fecha'
+  };
 
-  // Computed properties
-  readonly rifasFiltradas = computed(() => {
-    let rifas = this.misRifas();
+  ngOnInit(): void {
+    this.cargarMisNumeros();
+  }
+
+  /**
+   * Carga los números del usuario
+   */
+  private async cargarMisNumeros(): Promise<void> {
+    try {
+      this.cargando.set(true);
+      
+      // TODO: Implementar llamada real al backend
+      // Por ahora, datos mock
+      const mockData: MisNumerosRifa[] = [
+        {
+          rifa_id: 1,
+          rifa_nombre: 'Rifa Solidaria Cruz Roja 2024',
+          rifa_descripcion: 'Gran sorteo benéfico',
+          rifa_estado: 'activa',
+          fecha_sorteo: '2025-12-31T20:00:00',
+          numero_ganador: null,
+          precio_numero: 1500,
+          numeros: [
+            { id: 1, numero: 15, fecha_compra: '2025-01-15', metodo_pago: 'transferencia', es_ganador: false },
+            { id: 2, numero: 28, fecha_compra: '2025-01-16', metodo_pago: 'efectivo', es_ganador: false },
+            { id: 3, numero: 42, fecha_compra: '2025-01-17', metodo_pago: 'mercadopago', es_ganador: false }
+          ],
+          total_invertido: 4500,
+          tiene_ganador: false
+        },
+        {
+          rifa_id: 2,
+          rifa_nombre: 'Rifa Solidaria Cruz Roja 2024 - DEMO FINALIZADA',
+          rifa_descripcion: 'Rifa finalizada con ganador',
+          rifa_estado: 'finalizada',
+          fecha_sorteo: '2024-03-01T20:00:00',
+          numero_ganador: 42,
+          precio_numero: 1500,
+          numeros: [
+            { id: 4, numero: 42, fecha_compra: '2024-01-20', metodo_pago: 'transferencia', es_ganador: true },
+            { id: 5, numero: 77, fecha_compra: '2024-01-21', metodo_pago: 'efectivo', es_ganador: false }
+          ],
+          total_invertido: 3000,
+          tiene_ganador: true
+        }
+      ];
+
+      this.misRifas.set(mockData);
+      this.rifasFiltradas.set(mockData);
+      
+          } catch (error) {
+      console.error('Error cargando mis números:', error);
+      this.notificationService.showError('No se pudieron cargar tus números');
+    } finally {
+      this.cargando.set(false);
+    }
+  }
+
+  /**
+   * Aplica filtros a las rifas
+   */
+  aplicarFiltros(): void {
+    let rifas = [...this.misRifas()];
 
     // Filtrar por estado
-    if (this.filtroEstado) {
-      rifas = rifas.filter(r => r.rifa_estado === this.filtroEstado);
-    }
-
-    // Filtrar por búsqueda
-    if (this.filtroBusqueda) {
-      const busqueda = this.filtroBusqueda.toLowerCase();
-      rifas = rifas.filter(r => 
-        r.rifa_nombre.toLowerCase().includes(busqueda)
-      );
+    if (this.filtros.estado !== 'todas') {
+      if (this.filtros.estado === 'ganadas') {
+        rifas = rifas.filter(r => r.tiene_ganador);
+      } else {
+        rifas = rifas.filter(r => r.rifa_estado === this.filtros.estado);
+      }
     }
 
     // Ordenar
-    switch (this.ordenamiento) {
-      case 'fecha_compra_desc':
-        rifas.sort((a, b) => {
-          const fechaA = Math.max(...a.numeros.map(n => new Date(n.fecha_venta || 0).getTime()));
-          const fechaB = Math.max(...b.numeros.map(n => new Date(n.fecha_venta || 0).getTime()));
-          return fechaB - fechaA;
-        });
+    switch (this.filtros.ordenar) {
+      case 'numero':
+        rifas.sort((a, b) => a.numeros[0].numero - b.numeros[0].numero);
         break;
-      case 'fecha_compra_asc':
-        rifas.sort((a, b) => {
-          const fechaA = Math.max(...a.numeros.map(n => new Date(n.fecha_venta || 0).getTime()));
-          const fechaB = Math.max(...b.numeros.map(n => new Date(n.fecha_venta || 0).getTime()));
-          return fechaA - fechaB;
-        });
+      case 'monto':
+        rifas.sort((a, b) => b.total_invertido - a.total_invertido);
         break;
-      case 'nombre_rifa_asc':
-        rifas.sort((a, b) => a.rifa_nombre.localeCompare(b.rifa_nombre));
-        break;
-      case 'nombre_rifa_desc':
-        rifas.sort((a, b) => b.rifa_nombre.localeCompare(a.rifa_nombre));
-        break;
-      case 'cantidad_desc':
-        rifas.sort((a, b) => b.numeros.length - a.numeros.length);
-        break;
+      case 'fecha':
+      default:
+        rifas.sort((a, b) => 
+          new Date(b.numeros[0].fecha_compra).getTime() - 
+          new Date(a.numeros[0].fecha_compra).getTime()
+        );
     }
 
-    return rifas;
-  });
-
-  ngOnInit() {
-    this.recargarNumeros();
+    this.rifasFiltradas.set(rifas);
   }
 
   /**
-   * Cargar números del usuario
-   */
-  recargarNumeros(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    console.log('📡 Cargando mis números...');
-
-    this.rifasService.getMisNumeros().subscribe({
-      next: (response) => {
-        console.log('📦 Mis números cargados:', response);
-        
-        const rifasData = response?.data || [];
-        this.misRifas.set(Array.isArray(rifasData) ? rifasData : []);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('❌ Error cargando mis números:', error);
-        this.error.set(error?.error?.message || 'Error al cargar tus números');
-        this.misRifas.set([]);
-        this.loading.set(false);
-      }
-    });
-  }
-
-  /**
-   * Aplicar filtros
-   */
-  aplicarFiltros(): void {
-    // Los filtros se aplican automáticamente gracias a computed()
-    console.log('🔍 Aplicando filtros:', {
-      estado: this.filtroEstado,
-      busqueda: this.filtroBusqueda,
-      ordenamiento: this.ordenamiento
-    });
-  }
-
-  /**
-   * Limpiar filtros
-   */
-  limpiarFiltros(): void {
-    this.filtroEstado = '';
-    this.filtroBusqueda = '';
-    this.ordenamiento = 'fecha_compra_desc';
-  }
-
-  /**
-   * Verificar si hay filtros activos
-   */
-  hasActiveFilters(): boolean {
-    return !!(this.filtroEstado || this.filtroBusqueda || this.ordenamiento !== 'fecha_compra_desc');
-  }
-
-  /**
-   * Ver rifas disponibles
-   */
-  verRifasDisponibles(): void {
-    this.router.navigate(['/rifas']);
-  }
-
-  /**
-   * Ver detalle de una rifa
-   */
-  verDetalleRifa(rifaId: number): void {
-    this.router.navigate(['/rifas', rifaId]);
-  }
-
-  /**
-   * Comprar más números en una rifa
-   */
-  comprarMasNumeros(rifaId: number): void {
-    this.router.navigate(['/rifas', rifaId, 'comprar']);
-  }
-
-  /**
-   * Reclamar premio
-   */
-  reclamarPremio(rifaId: number): void {
-    alert('🎁 ¡Felicitaciones por ganar! Por favor contacta con la organización para reclamar tu premio.');
-    // TODO: Implementar lógica de reclamo de premio
-  }
-
-  /**
-   * Verificar si el usuario es ganador de una rifa
-   */
-  esGanador(rifaData: RifaConNumeros): boolean {
-    if (!rifaData.numero_ganador || rifaData.rifa_estado !== 'finalizada') {
-      return false;
-    }
-
-    return rifaData.numeros.some(numero => numero.numero === rifaData.numero_ganador);
-  }
-
-  /**
-   * Obtener total de números comprados
+   * Helpers para el resumen
    */
   getTotalNumeros(): number {
-    return this.misRifas().reduce((total, rifa) => total + rifa.numeros.length, 0);
+    return this.misRifas().reduce((sum, rifa) => sum + rifa.numeros.length, 0);
   }
 
-  /**
-   * Obtener cantidad de rifas en las que participa
-   */
   getRifasParticipando(): number {
     return this.misRifas().length;
   }
 
-  /**
-   * Obtener total invertido
-   */
   getTotalInvertido(): number {
-    return this.misRifas().reduce((total, rifa) => {
-      return total + rifa.numeros.reduce((subtotal, numero) => {
-        return subtotal + (numero.monto_pagado || 0);
-      }, 0);
-    }, 0);
+    return this.misRifas().reduce((sum, rifa) => sum + rifa.total_invertido, 0);
   }
 
-  /**
-   * Obtener premios ganados
-   */
   getPremiosGanados(): number {
-    return this.misRifas().filter(rifa => this.esGanador(rifa)).length;
+    return this.misRifas().filter(r => r.tiene_ganador).length;
   }
 
   /**
-   * Obtener total invertido en una rifa específica
+   * Helpers de estado
    */
-  getTotalInvertidoRifa(rifaData: RifaConNumeros): number {
-    return rifaData.numeros.reduce((total, numero) => {
-      return total + (numero.monto_pagado || 0);
-    }, 0);
-  }
-
-  /**
-   * Obtener lista de números como string
-   */
-  getNumerosList(numeros: any[]): string {
-    const numerosOrdenados = numeros
-      .map(n => n.numero)
-      .sort((a, b) => a - b);
-
-    if (numerosOrdenados.length <= 5) {
-      return numerosOrdenados.join(', ');
-    } else {
-      return `${numerosOrdenados.slice(0, 3).join(', ')}, ... +${numerosOrdenados.length - 3}`;
-    }
-  }
-
-  /**
-   * Obtener clase CSS de la rifa
-   */
-  getRifaCardClass(estado: string): string {
+  getEstadoClass(estado: string): string {
     return estado;
   }
 
-  /**
-   * Obtener clase CSS del estado
-   */
-  getEstadoClass(estado: string): string {
-    return 'status-' + estado;
-  }
-
-  /**
-   * Obtener icono del estado
-   */
-  getEstadoIcon(estado: string): string {
-    const iconos: { [key: string]: string } = {
-      'activa': '🟢',
-      'finalizada': '🏁',
-      'cerrada': '🔒',
-      'cancelada': '❌',
-      'borrador': '📝'
-    };
-    return iconos[estado] || '❓';
-  }
-
-  /**
-   * Obtener label del estado
-   */
   getEstadoLabel(estado: string): string {
-    const labels: { [key: string]: string } = {
+    const labels: Record<string, string> = {
       'activa': 'Activa',
       'finalizada': 'Finalizada',
-      'cerrada': 'Cerrada',
-      'cancelada': 'Cancelada',
+      'pausada': 'Pausada',
       'borrador': 'Borrador'
     };
-    return labels[estado] || 'Desconocido';
+    return labels[estado] || estado;
   }
 
   /**
-   * Obtener clase CSS del número
+   * Tooltip para números
    */
-  getNumeroCardClass(numero: any, rifaData: RifaConNumeros): string {
-    if (numero.numero === rifaData.numero_ganador && rifaData.rifa_estado === 'finalizada') {
-      return 'winner';
+  getNumeroTooltip(numero: NumeroComprado, rifa: MisNumerosRifa): string {
+    if (numero.es_ganador) {
+      return `🏆 ¡GANADOR! Número ${numero.numero} - Compraste el ${this.formatDate(numero.fecha_compra)}`;
     }
-    return 'normal';
+    return `Número ${numero.numero} - Comprado: ${this.formatDate(numero.fecha_compra)} - ${numero.metodo_pago}`;
   }
 
   /**
-   * Obtener icono del estado del número
+   * Navegación
    */
-  getNumeroStatusIcon(numero: any, rifaData: RifaConNumeros): string {
-    if (rifaData.rifa_estado === 'finalizada') {
-      return numero.numero === rifaData.numero_ganador ? '🏆' : '📋';
-    } else if (rifaData.rifa_estado === 'activa') {
-      return '⏳';
-    } else {
-      return '📋';
-    }
+  volverDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  irARifas(): void {
+    this.router.navigate(['/rifas']);
+  }
+
+  verDetalleRifa(rifaId: number): void {
+    this.router.navigate(['/rifas', rifaId]);
+  }
+
+  comprarMasNumeros(rifaId: number): void {
+    this.router.navigate(['/rifas', rifaId, 'comprar']);
+  }
+
+  contactarOrganizador(rifaId: number): void {
+    this.notificationService.showInfo(
+      '¡Felicitaciones!',
+      'Contacta con el organizador para reclamar tu premio'
+    );
   }
 
   /**
-   * Formatear precio
+   * Formateo
    */
-  formatPrice(price: number): string {
+  formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: 'ARS'
-    }).format(price);
+      currency: 'ARS',
+      minimumFractionDigits: 0
+    }).format(value);
   }
 
-  /**
-   * Formatear fecha completa
-   */
-  formatDate(dateString: string): string {
-    if (!dateString) return 'No definida';
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return 'Fecha inválida';
-    }
-  }
-
-  /**
-   * Formatear fecha corta
-   */
-  formatShortDate(dateString: string): string {
-    if (!dateString) return '';
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit'
-      });
-    } catch {
-      return '';
-    }
+  formatDate(date: string): string {
+    return new Date(date).toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 }
