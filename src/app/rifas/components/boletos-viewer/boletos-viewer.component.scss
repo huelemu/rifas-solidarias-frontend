@@ -1,0 +1,403 @@
+// src/app/rifas/components/boletos-viewer/boletos-viewer.component.scss
+
+.boletos-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.boletos-header {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  margin-bottom: 1.5rem;
+
+  .btn-back {
+    padding: 0.5rem 1rem;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    
+    &:hover {
+      background: #5a6268;
+    }
+  }
+
+  h1 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.8rem;
+  }
+
+  .institucion-name {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+}
+
+.form-select, .form-control {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.boletos-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border-left: 4px solid #3498db;
+
+  &.disponible { border-left-color: #27ae60; }
+  &.reservado { border-left-color: #f39c12; }
+  &.vendido { border-left-color: #e74c3c; }
+  &.total { border-left-color: #9b59b6; }
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.boletos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.boleto-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 3px solid transparent;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+
+  &.disponible {
+    border-color: #27ae60;
+  }
+
+  &.reservado {
+    border-color: #f39c12;
+    opacity: 0.8;
+  }
+
+  &.vendido {
+    border-color: #e74c3c;
+    opacity: 0.7;
+  }
+}
+
+.boleto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.boleto-numero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  .numero-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .numero-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+}
+
+.estado-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.disponible {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  &.reservado {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  &.vendido {
+    background: #f8d7da;
+    color: #721c24;
+  }
+}
+
+.boleto-qr {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  background: white;
+  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.boleto-info {
+  padding: 1rem 1.5rem;
+  background: white;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #2c3e50;
+  font-weight: 600;
+  text-align: right;
+
+  &.price {
+    color: #27ae60;
+    font-size: 1.1rem;
+  }
+
+  &.small {
+    font-size: 0.85rem;
+    word-break: break-all;
+  }
+}
+
+.boleto-comprador {
+  background: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-top: 2px solid #e9ecef;
+}
+
+.comprador-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.comprador-icon {
+  font-size: 1.2rem;
+}
+
+.comprador-title {
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.comprador-info .info-row {
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+}
+
+.boleto-action {
+  padding: 1rem 1.5rem;
+  background: white;
+}
+
+.btn-vender {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.loading-container, .error-container, .empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .boletos-container {
+    padding: 1rem;
+  }
+
+  .boletos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    margin-left: 0;
+    flex-direction: column;
+  }
+
+.btn-copy-url {
+  padding: 0.25rem 0.75rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #5568d3;
+    transform: scale(1.05);
+  }
+}
+
+.qr-image {
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+}

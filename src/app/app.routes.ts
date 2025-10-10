@@ -165,14 +165,35 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Mis Números - Rifas Solidarias'
   },
- /*
-  // Rifas públicas - accesibles sin autenticación pero mejoradas con auth
-  {
-    path: 'rifas/publicas',
-    loadComponent: () => import('./rifas/components/public-rifas-list/public-rifas-list.component').then(m => m.PublicRifasListComponent),
-    title: 'Rifas Públicas - Rifas Solidarias'
-  },
 
+  {
+  path: 'rifas/:rifaId/boletos',
+  loadComponent: () => 
+    import('./rifas/components/boletos-viewer/boletos-viewer.component')
+      .then(m => m.BoletosViewerComponent),
+  canActivate: [authGuard],
+  title: 'Boletos de Rifa - Rifas Solidarias'
+},
+
+
+
+{
+  path: 'public/rifas/:rifaId/numero/:numero',
+  loadComponent: () => 
+    import('./rifas/components/numero-publico/numero-publico.component')
+      .then(m => m.NumeroPublicoComponent),
+  title: 'Ver Número - Rifas Solidarias'
+},
+
+{
+  path: 'public/rifas/:rifaId',
+  loadComponent: () => 
+    import('./rifas/components/rifa-public-view/rifa-public-view.component')
+      .then(m => m.RifaPublicViewComponent),
+  title: 'Ver Rifa - Rifas Solidarias'
+},
+
+ /*
   {
     path: 'rifas/publicas/:id',
     loadComponent: () => import('./rifas/components/public-rifa-detail/public-rifa-detail.component').then(m => m.PublicRifaDetailComponent),

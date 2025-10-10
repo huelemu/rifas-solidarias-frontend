@@ -225,11 +225,202 @@ getHistorialCompras(): Observable<any> {
   return this.http.get<any>(`${this.baseUrl}/usuario/historial-compras`);
 }
   
+  // ===================================================
+  // MÉTODOS PARA VISUALIZADOR DE BOLETOS
+  // ===================================================
 
+  /**
+   * Obtener números de una rifa (alias mejorado para el visualizador)
+   * Compatible con el componente boletos-viewer
+   */
+  getNumeros(rifaId: number, params?: any): Observable<any> {
+    let httpParams = new HttpParams();
+    
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key] !== null && params[key] !== undefined) {
+          httpParams = httpParams.set(key, params[key].toString());
+        }
+      });
+    }
+
+    console.log(`📡 getNumeros() - Rifa ${rifaId} con params:`, params);
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/numeros`, { params: httpParams }).pipe(
+      tap(response => console.log('✅ Números obtenidos:', response)),
+      map(response => {
+        // Normalizar respuesta para compatibilidad
+        if (response?.data?.numeros) {
+          return {
+            ...response,
+            data: response.data.numeros,
+            pagination: response.pagination || response.data.pagination
+          };
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('❌ Error obteniendo números:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtener detalle de una rifa por ID (alias claro)
+   * Compatible con boletos-viewer y otros componentes
+   */
+  getRifaById(rifaId: number): Observable<any> {
+    console.log(`📡 getRifaById() - Rifa ${rifaId}`);
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}`).pipe(
+      tap(response => console.log('✅ Rifa obtenida:', response)),
+      map(response => {
+        // Si la respuesta tiene formato { status, data }, extraer data
+        if (response?.data) {
+          return { ...response, data: response.data };
+        }
+        // Si viene directo el objeto, envolverlo
+        return { status: 'success', data: response };
+      }),
+      catchError(error => {
+        console.error('❌ Error obteniendo rifa:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 
   // ===================================================
-  // MÉTODOS PÚBLICOS
+  // MÉTODOS DE IMPRESIÓN (OPCIONAL - para futuras funcionalidades)
   // ===================================================
+
+  /**
+   * Generar boleto individual en PDF
+   */
+  generarBoletoIndividual(rifaId: number, numero: number): Observable<Blob> {
+    console.log(`📄 Generando boleto individual - Rifa ${rifaId}, Número ${numero}`);
+
+    return this.http.get(
+      `${this.baseUrl}/impresion/rifas/${rifaId}/numeros/${numero}/boleto`,
+      { 
+        responseType: 'blob',
+        observe: 'response'
+      }
+    ).pipe(
+      map(response => response.body as Blob),
+      tap(() => console.log('✅ Boleto PDF generado')),
+      catchError(error => {
+        console.error('❌ Error generando boleto:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Generar boletos de institución en PDF
+   */
+  generarBoletosInstitucion(rifaId: number, institucionId: number, limite?: number): Observable<Blob> {
+    let url = `${this.baseUrl}/impresion/rifas/${rifaId}/instituciones/${institucionId}/boletos`;
+    if (limite) {
+      url += `?limite=${limite}`;
+    }
+
+    console.log(`📄 Generando boletos institución - Rifa ${rifaId}, Institución ${institucionId}`);
+
+    return this.http.get(url, { 
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map(response => response.body as Blob),
+      tap(() => console.log('✅ Boletos PDF generados')),
+      catchError(error => {
+        console.error('❌ Error generando boletos:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Generar boletos de vendedor en PDF
+   */
+  generarBoletosVendedor(rifaId: number, vendedorId: number): Observable<Blob> {
+    console.log(`📄 Generando boletos vendedor - Rifa ${rifaId}, Vendedor ${vendedorId}`);
+
+    return this.http.get(
+      `${this.baseUrl}/impresion/rifas/${rifaId}/vendedores/${vendedorId}/boletos`,
+      { 
+        responseType: 'blob',
+        observe: 'response'
+      }
+    ).pipe(
+      map(response => response.body as Blob),
+      tap(() => console.log('✅ Boletos PDF generados')),
+      catchError(error => {
+        console.error('❌ Error generando boletos:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Descargar archivo PDF (helper)
+   */
+  descargarPDF(blob: Blob, nombreArchivo: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombreArchivo;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    console.log(`💾 PDF descargado: ${nombreArchivo}`);
+  }
+
+
+// ===================================================
+// MÉTODOS PÚBLICOS (SIN AUTENTICACIÓN)
+// ===================================================
+
+/**
+ * Obtener rifa pública (sin token)
+ */
+getPublicRifa(rifaId: number): Observable<any> {
+  console.log(`📡 getPublicRifa() - Rifa ${rifaId}`);
+
+  return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${rifaId}`).pipe(
+    tap(response => console.log('✅ Rifa pública obtenida:', response)),
+    catchError(error => {
+      console.error('❌ Error obteniendo rifa pública:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
+/**
+ * Obtener números públicos (sin token)
+ */
+getPublicNumeros(rifaId: number, params?: any): Observable<any> {
+  let httpParams = new HttpParams();
+  
+  if (params) {
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined) {
+        httpParams = httpParams.set(key, params[key].toString());
+      }
+    });
+  }
+
+  console.log(`📡 getPublicNumeros() - Rifa ${rifaId} con params:`, params);
+
+  return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${rifaId}/numeros`, { 
+    params: httpParams 
+  }).pipe(
+    tap(response => console.log('✅ Números públicos obtenidos:', response)),
+    catchError(error => {
+      console.error('❌ Error obteniendo números públicos:', error);
+      return throwError(() => error);
+    })
+  );
+}
 
   getPublicRifas(params?: any): Observable<PaginatedRifasResponse> {
     let httpParams = new HttpParams();
@@ -247,9 +438,8 @@ getHistorialCompras(): Observable<any> {
     );
   }
 
-  getPublicRifa(id: number): Observable<ApiResponse<Rifa>> {
-    return this.http.get<ApiResponse<Rifa>>(`${this.baseUrl}/rifas/publicas/${id}`);
-  }
+
+
 
   /**
    * Subir logo de rifa
@@ -288,9 +478,6 @@ getHistorialCompras(): Observable<any> {
     );
   }
 
-/**
- * Invitar instituciones a participar en una rifa
- */
 /**
  * Invitar instituciones a participar en una rifa
  */

@@ -1,0 +1,264 @@
+<!-- src/app/rifas/components/rifa-public-view/rifa-public-view.component.html -->
+
+<div class="public-view-container">
+  
+  <!-- LOADING -->
+  <div *ngIf="loading()" class="loading-overlay">
+    <div class="spinner-large"></div>
+    <p>Cargando rifa...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error()" class="error-container">
+    <div class="error-icon">❌</div>
+    <h2>Error al cargar la rifa</h2>
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="cargarRifaPublica(rifa()?.id || 1)">
+      Reintentar
+    </button>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div *ngIf="!loading() && !error() && rifa()" class="content">
+
+<!-- HEADER -->
+<div class="public-header">
+  <div class="logo-container">
+    <!-- ✅ USAR EL MÉTODO HELPER -->
+    <img 
+      *ngIf="getLogoUrl()" 
+      [src]="getLogoUrl()!" 
+      [alt]="rifa()?.institucion_nombre"
+      class="institucion-logo"
+      (error)="$event.target.src='assets/img/logo-placeholder.png'">
+    <div *ngIf="!getLogoUrl()" class="logo-placeholder">
+      {{ getLogoPlaceholder() }}
+    </div>
+  </div>
+  
+  <div class="header-info">
+    <h1>{{ rifa()?.nombre }}</h1>
+    <p class="institucion-name">{{ rifa()?.institucion_nombre }}</p>
+    <p class="rifa-description" *ngIf="rifa()?.descripcion">
+      {{ rifa()?.descripcion }}
+    </p>
+  </div>
+</div>
+
+<!-- IMAGEN DE LA RIFA -->
+<!-- ✅ USAR EL MÉTODO HELPER -->
+<div *ngIf="getRifaImageUrl()" class="rifa-imagen-container">
+  <img 
+    [src]="getRifaImageUrl()!" 
+    [alt]="rifa()?.nombre" 
+    class="rifa-imagen"
+    (error)="$event.target.style.display='none'">
+</div>
+
+
+
+    <!-- INFORMACIÓN PRINCIPAL -->
+    <div class="info-section">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-icon">💰</div>
+          <div class="info-content">
+            <div class="info-label">Precio del Número</div>
+            <div class="info-value">${{ rifa()?.precio_numero | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">🎫</div>
+          <div class="info-content">
+            <div class="info-label">Números Vendidos</div>
+            <div class="info-value">
+              {{ rifa()?.numeros_vendidos || 0 }} / {{ rifa()?.cantidad_numeros || 0 }}
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">📅</div>
+          <div class="info-content">
+            <div class="info-label">Fecha Sorteo</div>
+            <div class="info-value">
+              {{ rifa()?.fecha_sorteo | date:'dd/MM/yyyy' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">⏰</div>
+          <div class="info-content">
+            <div class="info-label">Estado</div>
+            <div class="info-value">
+              <span class="estado-badge" [ngClass]="rifa()?.estado">
+                {{ rifa()?.estado }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRA DE PROGRESO -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>Progreso de Venta</span>
+          <span class="progress-percentage">{{ getPorcentajeVendido() }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="getPorcentajeVendido()">
+          </div>
+        </div>
+        <div class="progress-stats">
+          <span class="stat-disponibles">
+            🟢 {{ rifa()?.numeros_disponibles || 0 }} Disponibles
+          </span>
+          <span class="stat-vendidos">
+            🔴 {{ rifa()?.numeros_vendidos || 0 }} Vendidos
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES PRINCIPALES -->
+    <div class="actions-section">
+      <h2>¿Qué deseas hacer?</h2>
+      
+      <div class="actions-grid">
+        
+        <!-- VER NÚMEROS DISPONIBLES -->
+        <button 
+          class="action-button view-numbers"
+          (click)="verNumerosDisponibles()"
+          [disabled]="loading()">
+          <div class="action-icon">👀</div>
+          <div class="action-content">
+            <h3>Ver Números</h3>
+            <p>Explora todos los números disponibles</p>
+          </div>
+        </button>
+
+        <!-- COMPRAR -->
+        <button 
+          class="action-button buy"
+          (click)="irAComprar()"
+          [disabled]="loading() || rifa()?.estado !== 'activa'">
+          <div class="action-icon">🛒</div>
+          <div class="action-content">
+            <h3>Comprar Números</h3>
+            <p>Adquiere tu número de la suerte</p>
+          </div>
+        </button>
+
+        <!-- LOGIN (si no está autenticado) -->
+        <button 
+          *ngIf="!estaAutenticado()"
+          class="action-button login"
+          (click)="irALogin()">
+          <div class="action-icon">🔐</div>
+          <div class="action-content">
+            <h3>Iniciar Sesión</h3>
+            <p>Accede para comprar números</p>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- GRILLA DE NÚMEROS -->
+    <div *ngIf="mostrarNumeros()" class="numeros-section">
+      <div class="numeros-header">
+        <h2>Números de la Rifa</h2>
+        <div class="numeros-controles">
+          <input 
+            type="number" 
+            [(ngModel)]="buscarNumero"
+            placeholder="Buscar número..."
+            class="input-buscar">
+          <select [(ngModel)]="filtroEstado" class="select-filtro">
+            <option value="todos">Todos</option>
+            <option value="disponible">Disponibles</option>
+            <option value="vendido">Vendidos</option>
+            <option value="reservado">Reservados</option>
+          </select>
+          <button class="btn-cerrar" (click)="ocultarNumeros()">✕ Cerrar</button>
+        </div>
+      </div>
+
+      <div *ngIf="loadingNumeros()" class="loading-numeros">
+        <div class="spinner"></div>
+        <p>Cargando números...</p>
+      </div>
+
+      <div *ngIf="!loadingNumeros()" class="numeros-grid">
+        <div 
+          *ngFor="let numero of numerosFiltrados()" 
+          class="numero-card"
+          [class.disponible]="numero.estado === 'disponible'"
+          [class.vendido]="numero.estado === 'vendido'"
+          [class.reservado]="numero.estado === 'reservado'"
+          (click)="seleccionarNumero(numero)">
+          
+          <div class="numero-numero">{{ numero.numero }}</div>
+          <div class="numero-estado">
+            <span class="estado-dot" [ngClass]="numero.estado"></span>
+            {{ getEstadoNombre(numero.estado) }}
+          </div>
+          <div class="numero-precio">${{ numero.precio_venta| number:'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div *ngIf="totalPaginas() > 1" class="paginacion">
+        <button 
+          [disabled]="paginaActual() === 1"
+          (click)="cambiarPagina(paginaActual() - 1)">
+          ← Anterior
+        </button>
+        <span class="pagina-actual">
+          Página {{ paginaActual() }} de {{ totalPaginas() }}
+        </span>
+        <button 
+          [disabled]="paginaActual() === totalPaginas()"
+          (click)="cambiarPagina(paginaActual() + 1)">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN ADICIONAL -->
+    <div class="info-adicional">
+      <div class="bases-condiciones" *ngIf="rifa()?.bases_condiciones">
+        <h3>📋 Bases y Condiciones</h3>
+        <p>{{ rifa()?.bases_condiciones }}</p>
+      </div>
+
+      <div class="observaciones" *ngIf="rifa()?.observaciones">
+        <h3>📝 Observaciones</h3>
+        <p>{{ rifa()?.observaciones }}</p>
+      </div>
+    </div>
+
+    <!-- COMPARTIR -->
+    <div class="compartir-section">
+      <h3>🔗 Compartir esta Rifa</h3>
+      <div class="compartir-buttons">
+        <button class="btn-compartir whatsapp" (click)="compartirWhatsApp()">
+          <span class="icon">📱</span> WhatsApp
+        </button>
+        <button class="btn-compartir facebook" (click)="compartirFacebook()">
+          <span class="icon">📘</span> Facebook
+        </button>
+        <button class="btn-compartir link" (click)="copiarLink()">
+          <span class="icon">🔗</span> Copiar Link
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

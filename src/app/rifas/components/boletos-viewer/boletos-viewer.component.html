@@ -1,0 +1,192 @@
+<!-- src/app/rifas/components/boletos-viewer/boletos-viewer.component.html -->
+
+<app-navbar></app-navbar>
+
+<div class="boletos-container">
+  
+  <!-- HEADER CON INFORMACIÓN DE LA RIFA -->
+  <div class="boletos-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="volver()">
+        ← Volver
+      </button>
+      <h1>📋 Boletos de Rifa: {{ rifa()?.nombre }}</h1>
+      <p class="institucion-name">{{ institucion()?.nombre }}</p>
+    </div>
+
+    <!-- CONTROLES -->
+    <div class="header-controls">
+      <div class="filter-group">
+        <label>Filtrar por estado:</label>
+        <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="form-select">
+          <option value="todos">Todos</option>
+          <option value="disponible">Disponibles</option>
+          <option value="reservado">Reservados</option>
+          <option value="vendido">Vendidos</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Buscar número:</label>
+        <input 
+          type="number" 
+          [(ngModel)]="buscarNumero"
+          (ngModelChange)="aplicarFiltros()"
+          placeholder="Número..."
+          class="form-control">
+      </div>
+
+      <div class="action-buttons">
+        <button 
+          class="btn btn-secondary" 
+          (click)="recargarDatos()"
+          [disabled]="loading()">
+          🔄 Recargar
+        </button>
+        
+        <button 
+          class="btn btn-primary" 
+          (click)="generarPDF()"
+          [disabled]="loading() || numerosFiltrados().length === 0">
+          📥 Descargar PDF ({{ numerosFiltrados().length }} boletos)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="boletos-stats">
+    <div class="stat-card disponible">
+      <div class="stat-number">{{ getDisponibles() }}</div>
+      <div class="stat-label">Disponibles</div>
+    </div>
+    <div class="stat-card reservado">
+      <div class="stat-number">{{ getReservados() }}</div>
+      <div class="stat-label">Reservados</div>
+    </div>
+    <div class="stat-card vendido">
+      <div class="stat-number">{{ getVendidos() }}</div>
+      <div class="stat-label">Vendidos</div>
+    </div>
+    <div class="stat-card total">
+      <div class="stat-number">{{ numeros().length }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading()" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando boletos...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error()" class="error-container">
+    <p>❌ {{ error() }}</p>
+    <button class="btn btn-primary" (click)="recargarDatos()">Reintentar</button>
+  </div>
+
+  <!-- GRILLA DE BOLETOS -->
+  <div *ngIf="!loading() && !error() && numerosFiltrados().length > 0" class="boletos-grid">
+    <div 
+      *ngFor="let numero of numerosFiltrados()" 
+      class="boleto-card"
+      [class.disponible]="numero.estado === 'disponible'"
+      [class.reservado]="numero.estado === 'reservado'"
+      [class.vendido]="numero.estado === 'vendido'">
+      
+      <!-- ENCABEZADO DEL BOLETO -->
+      <div class="boleto-header">
+        <div class="boleto-numero">
+          <span class="numero-label">N°</span>
+          <span class="numero-value">{{ numero.numero }}</span>
+        </div>
+        <div class="boleto-estado">
+          <span class="estado-badge" [ngClass]="numero.estado">
+            {{ numero.estado.toUpperCase() }}
+          </span>
+        </div>
+      </div>
+
+      <!-- QR CODE -->
+      <div class="boleto-qr">
+        <img 
+          [src]="numero.qr_code" 
+          [alt]="'QR Número ' + numero.numero"
+          class="qr-image"
+          (click)="verQR(numero)"
+          style="cursor: pointer;"
+          title="Click para ver en grande">
+      </div>
+
+     <!-- INFORMACIÓN DEL BOLETO -->
+      <div class="boleto-info">
+        <div class="info-row">
+          <span class="info-label">Rifa:</span>
+          <span class="info-value">{{ rifa()?.nombre }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Precio:</span>
+          <span class="info-value price">${{ getPrecioNumero(numero) | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-row" *ngIf="numero.estado === 'disponible'">
+          <span class="info-label">URL Pública:</span>
+          <button 
+            class="btn-copy-url" 
+            (click)="copiarURLPublica(numero)"
+            title="Copiar URL pública">
+            📋 Copiar Link
+          </button>
+        </div>
+      </div>
+
+      <!-- DATOS DEL COMPRADOR (solo si está vendido) -->
+      <div *ngIf="numero.estado === 'vendido'" class="boleto-comprador">
+        <div class="comprador-header">
+          <span class="comprador-icon">👤</span>
+          <span class="comprador-title">Comprador</span>
+        </div>
+        <div class="comprador-info">
+          <div class="info-row">
+            <span class="info-label">Nombre:</span>
+            <span class="info-value">{{ numero.comprador_nombre }} {{ numero.comprador_apellido }}</span>
+          </div>
+          <div *ngIf="numero.comprador_telefono" class="info-row">
+            <span class="info-label">Teléfono:</span>
+            <span class="info-value">{{ numero.comprador_telefono }}</span>
+          </div>
+          <div *ngIf="numero.comprador_email" class="info-row">
+            <span class="info-label">Email:</span>
+            <span class="info-value small">{{ numero.comprador_email }}</span>
+          </div>
+          <div *ngIf="numero.vendedor_nombre" class="info-row">
+            <span class="info-label">Vendido por:</span>
+            <span class="info-value">{{ numero.vendedor_nombre }} {{ numero.vendedor_apellido }}</span>
+          </div>
+          <div *ngIf="numero.fecha_venta" class="info-row">
+            <span class="info-label">Fecha:</span>
+            <span class="info-value">{{ numero.fecha_venta | date:'short' }}</span>
+          </div>
+          <div *ngIf="numero.metodo_pago" class="info-row">
+            <span class="info-label">Pago:</span>
+            <span class="info-value">{{ numero.metodo_pago }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCIÓN (solo disponibles) -->
+      <div *ngIf="numero.estado === 'disponible'" class="boleto-action">
+        <button class="btn-vender" (click)="venderNumero(numero)">
+          💳 Vender
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading() && !error() && numerosFiltrados().length === 0" class="empty-state">
+    <p>No se encontraron boletos con los filtros aplicados</p>
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+</div>
