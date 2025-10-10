@@ -2,11 +2,13 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { NotificationCenterComponent } from '../notification-center/notification-center.component';
+
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationCenterComponent],
   template: `
     <div class="navbar">
       <div class="navbar-content">
@@ -31,6 +33,9 @@ import { AuthService } from '../../../auth/services/auth.service';
         </div>
         
         <div class="navbar-right">
+          <!-- ✅ AGREGAR CENTRO DE NOTIFICACIONES AQUÍ -->
+          <app-notification-center/>
+          
           <div class="user-info">
             <span class="user-name">{{ authService.currentUser()?.name }}</span>
             <span class="user-role">{{ getRoleLabel() }}</span>

@@ -32,7 +32,7 @@ import { AuthService } from '../services/auth.service';
           <div class="success">
             <div class="success-icon">✅</div>
             <h2>¡Autenticación Exitosa!</h2>
-            <p>Redirigiendo al dashboard...</p>
+            <p>Redirigiendo...</p>
           </div>
         }
       </div>
@@ -127,52 +127,56 @@ export class GoogleCallbackComponent implements OnInit {
   }
 
   private async processCallback(): Promise<void> {
-    try {
-      // ✅ CORREGIR: Obtener parámetros con tipo correcto
-      const params = await this.route.queryParams.pipe(take(1)).toPromise();
-      
-      // ✅ VERIFICAR QUE params existe y hacer casting
-      if (!params) {
-        this.handleError('No se recibieron parámetros de autenticación.');
-        return;
-      }
-
-      const access_token = params['access_token'] as string | undefined;
-      const refresh_token = params['refresh_token'] as string | undefined;
-      const error = params['error'] as string | undefined;
-
-      if (error) {
-        this.handleError(this.getErrorMessage(error));
-        return;
-      }
-
-      if (access_token && refresh_token) {
-        console.log('✅ OAuth callback exitoso, procesando tokens...');
-        
-        // ✅ PROCESAR TOKENS SÍNCRONAMENTE
-        this.authService.processGoogleCallback({
-          access_token,
-          refresh_token
-        });
-
-        // ✅ ESPERAR A QUE SE COMPLETE EL PROCESO
-        await this.waitForCompleteAuthState();
-
-        this.isProcessing = false;
-        
-        console.log('🔄 Redirigiendo al dashboard...');
-        
-        // ✅ REDIRIGIR DIRECTAMENTE
-        this.router.navigate(['/dashboard']);
-
-      } else {
-        this.handleError('No se recibieron tokens de autenticación.');
-      }
-    } catch (error) {
-      console.error('❌ Error procesando callback OAuth:', error);
-      this.handleError('Error procesando la autenticación.');
+  try {
+    const params = await this.route.queryParams.pipe(take(1)).toPromise();
+    
+    if (!params) {
+      this.handleError('No se recibieron parámetros de autenticación.');
+      return;
     }
+
+    const access_token = params['access_token'] as string | undefined;
+    const refresh_token = params['refresh_token'] as string | undefined;
+    const returnUrl = params['returnUrl'] as string | undefined; // ✅ NUEVO
+    const error = params['error'] as string | undefined;
+
+    if (error) {
+      this.handleError(this.getErrorMessage(error));
+      return;
+    }
+
+    if (access_token && refresh_token) {
+      console.log('✅ OAuth callback exitoso, procesando tokens...');
+      console.log('📍 returnUrl recibido:', returnUrl); // ✅ NUEVO
+      
+      // Procesar tokens
+      this.authService.processGoogleCallback({
+        access_token,
+        refresh_token
+      });
+
+      // Esperar a que se complete el proceso
+      await this.waitForCompleteAuthState();
+
+      this.isProcessing = false;
+      
+      // ✅ USAR returnUrl DE LOS QUERY PARAMS (no de sessionStorage)
+      if (returnUrl) {
+        console.log('🎯 Redirigiendo a returnUrl:', returnUrl);
+        this.router.navigateByUrl(decodeURIComponent(returnUrl));
+      } else {
+        console.log('ℹ️ No hay returnUrl, redirigiendo a dashboard');
+        this.router.navigate(['/dashboard']);
+      }
+
+    } else {
+      this.handleError('No se recibieron tokens de autenticación.');
+    }
+  } catch (error) {
+    console.error('❌ Error procesando callback OAuth:', error);
+    this.handleError('Error procesando la autenticación.');
   }
+}
 
   /**
    * ✅ ESPERAR A QUE SE COMPLETE TODO EL PROCESO DE AUTENTICACIÓN
@@ -180,11 +184,9 @@ export class GoogleCallbackComponent implements OnInit {
   private async waitForCompleteAuthState(): Promise<void> {
     return new Promise((resolve) => {
       const checkAuth = () => {
-        // ✅ USAR MÉTODO PÚBLICO EN LUGAR DE authState() PRIVADO
         const isAuthenticated = this.authService.isAuthenticated();
         const currentUser = this.authService.currentUser();
         
-        // Verificar que esté autenticado Y que tenga la información del usuario
         if (isAuthenticated && currentUser) {
           console.log('✅ Estado de autenticación completo confirmado');
           resolve();
@@ -197,7 +199,6 @@ export class GoogleCallbackComponent implements OnInit {
         }
       };
       
-      // Empezar a verificar después de un pequeño delay
       setTimeout(checkAuth, 50);
     });
   }

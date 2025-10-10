@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-edit-rifa',
@@ -18,6 +19,7 @@ export class EditRifaComponent implements OnInit {
   private readonly rifasService = inject(RifasService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly notificationService = inject(NotificationService);
 
   readonly loading = signal<boolean>(true);
   readonly saving = signal<boolean>(false);

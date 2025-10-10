@@ -64,36 +64,47 @@ export class AuthService {
 
 
 /**
- * Inicia el proceso de autenticación con Google
+ * ✅ ACTUALIZADO: Inicia el proceso de autenticación con Google pasando returnUrl
  */
-loginWithGoogle(): Observable<{authUrl: string}> {
+loginWithGoogle(returnUrl?: string): Observable<{authUrl: string}> {
   console.log('🔐 AuthService: Iniciando login con Google...');
+  console.log('📍 returnUrl:', returnUrl);
   
-  return this.http.get<any>(`${this.apiUrl}/auth/google/login`)
-    .pipe(
-      map((response) => {
-        console.log('📥 AuthService: URL de Google OAuth obtenida:', response.data.authUrl);
-        return { authUrl: response.data.authUrl };
-      }),
-      catchError(this.handleError)
-    );
+  // ✅ Construir URL con returnUrl como query param
+  let url = `${this.apiUrl}/auth/google/login`;
+  if (returnUrl && returnUrl !== '/dashboard') {
+    url += `?returnUrl=${encodeURIComponent(returnUrl)}`;
+  }
+  
+  return this.http.get<any>(url).pipe(
+    map((response) => {
+      console.log('📥 AuthService: URL de Google OAuth obtenida:', response.data.authUrl);
+      return { authUrl: response.data.authUrl };
+    }),
+    catchError(this.handleError)
+  );
 }
 
 /**
- * Inicia el proceso de registro con Google (usa la misma URL que login)
+ * ✅ ACTUALIZADO: Inicia el proceso de registro con Google pasando returnUrl
  */
-registerWithGoogle(): Observable<{authUrl: string}> {
+registerWithGoogle(returnUrl?: string): Observable<{authUrl: string}> {
   console.log('🔐 AuthService: Iniciando registro con Google...');
+  console.log('📍 returnUrl:', returnUrl);
   
-  // ✅ CAMBIO: Usar la misma ruta que login ya que Google maneja ambos casos
-  return this.http.get<any>(`${this.apiUrl}/auth/google/login`)
-    .pipe(
-      map((response) => {
-        console.log('📥 AuthService: URL de Google OAuth para registro obtenida:', response.data.authUrl);
-        return { authUrl: response.data.authUrl };
-      }),
-      catchError(this.handleError)
-    );
+  // ✅ Construir URL con returnUrl como query param
+  let url = `${this.apiUrl}/auth/google/login`;
+  if (returnUrl && returnUrl !== '/dashboard') {
+    url += `?returnUrl=${encodeURIComponent(returnUrl)}`;
+  }
+  
+  return this.http.get<any>(url).pipe(
+    map((response) => {
+      console.log('📥 AuthService: URL de Google OAuth para registro obtenida:', response.data.authUrl);
+      return { authUrl: response.data.authUrl };
+    }),
+    catchError(this.handleError)
+  );
 }
 
 /**
@@ -676,22 +687,39 @@ getProfile(): Observable<User> {
 
  
   /**
-   * Redirige al usuario después del login según su rol
-   */
-  redirectAfterLogin(): void {
-    console.log('🔄 AuthService: Redirigiendo después del login...');
-    
-    // Verificar si hay una URL de retorno guardada
-    const returnUrl = localStorage.getItem('returnUrl');
-    if (returnUrl) {
-      localStorage.removeItem('returnUrl');
-      this.router.navigate([returnUrl]);
-      return;
-    }
-
-    // Redirección por defecto al dashboard
-    this.router.navigate(['/dashboard']);
+ * ✅ MODIFICADO: Redirigir después del login considerando returnUrl
+ */
+redirectAfterLogin(): void {
+  // 1. Intentar obtener returnUrl de sessionStorage
+  const returnUrl = sessionStorage.getItem('returnUrl');
+  
+  if (returnUrl) {
+    console.log('🔗 Redirigiendo a returnUrl guardado:', returnUrl);
+    sessionStorage.removeItem('returnUrl');
+    this.router.navigateByUrl(returnUrl);
+    return;
   }
+
+  // 2. Si no hay returnUrl, usar lógica por defecto según rol
+  const role = this.userRole();
+  
+  switch (role) {
+    case 'admin_global':
+      this.router.navigate(['/admin']);
+      break;
+    case 'admin_institucion':
+      this.router.navigate(['/dashboard']);
+      break;
+    case 'vendedor':
+      this.router.navigate(['/ventas']);
+      break;
+    case 'comprador':
+      this.router.navigate(['/mis-numeros']);
+      break;
+    default:
+      this.router.navigate(['/dashboard']);
+  }
+}
 
   /**
    * Maneja errores de HTTP de manera consistente

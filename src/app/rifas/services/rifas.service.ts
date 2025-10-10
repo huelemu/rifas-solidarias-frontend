@@ -180,13 +180,6 @@ export class RifasService { // NOMBRE CORRECTO: RifasService
   }
 
 /**
- * Comprar números de una rifa
- */
-comprarNumeros(rifaId: number, compraData: any): Observable<any> {
-  return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/comprar`, compraData);
-}
-
-/**
  * Obtener mis números comprados
  */
 getMisNumeros(rifaId?: number): Observable<any> {
@@ -380,20 +373,72 @@ getHistorialCompras(): Observable<any> {
 // MÉTODOS PÚBLICOS (SIN AUTENTICACIÓN)
 // ===================================================
 
-/**
- * Obtener rifa pública (sin token)
- */
-getPublicRifa(rifaId: number): Observable<any> {
-  console.log(`📡 getPublicRifa() - Rifa ${rifaId}`);
+//-----
 
-  return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${rifaId}`).pipe(
-    tap(response => console.log('✅ Rifa pública obtenida:', response)),
-    catchError(error => {
-      console.error('❌ Error obteniendo rifa pública:', error);
-      return throwError(() => error);
-    })
-  );
-}
+ /**
+   * ✅ NUEVO: Obtener rifa pública (sin autenticación)
+   */
+  getPublicRifa(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${id}`);
+  }
+
+  /**
+   * ✅ NUEVO: Obtener números públicos de una rifa
+   */
+  getPublicNumbers(rifaId: number, params: any = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    
+    if (params.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${rifaId}/numeros`, { 
+      params: httpParams 
+    });
+  }
+
+  /**
+   * ✅ MEJORADO: Obtener números de rifa (con autenticación)
+   */
+  getRifaNumbers(rifaId: number, params: any = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    
+    if (params.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params.desde) httpParams = httpParams.set('desde', params.desde.toString());
+    if (params.hasta) httpParams = httpParams.set('hasta', params.hasta.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/numeros`, { 
+      params: httpParams 
+    });
+  }
+
+  /**
+   * ✅ Comprar números de una rifa
+   */
+  comprarNumeros(rifaId: number, compraData: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/rifas/${rifaId}/comprar`, compraData);
+  }
+
+  /**
+   * ✅ NUEVO: Obtener boletos de una rifa
+   */
+  getRifaBoletos(rifaId: number, params: any = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    
+    if (params.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params.numero) httpParams = httpParams.set('numero', params.numero.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/boletos`, { 
+      params: httpParams 
+    });
+  }
+
+
+
+//-----
+
 
 /**
  * Obtener números públicos (sin token)
@@ -540,15 +585,6 @@ retirarParticipacion(rifaId: number, participacionId: number): Observable<any> {
   // GESTIÓN DE NÚMEROS
   // ===================================================
 
-  getRifaNumbers(rifaId: number, params?: any): Observable<any> {
-    let httpParams = new HttpParams();
-    
-    if (params?.estado) httpParams = httpParams.set('estado', params.estado);
-    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
-
-    return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/numeros`, { params: httpParams });
-  }
 
   generateNumbers(rifaId: number): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.baseUrl}/rifas/${rifaId}/numeros/generar`, {});

@@ -5,6 +5,8 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './auth/interceptors/auth.interceptor';
+import { notificationInterceptor } from './core/interceptors/notification.interceptor';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +16,9 @@ export const appConfig: ApplicationConfig = {
     // Configurar HttpClient con interceptor de autenticación
     provideHttpClient(
       withInterceptors([authInterceptor])
+    ),
+    provideHttpClient(
+      withInterceptors([notificationInterceptor]) // ✅ AGREGAR
     )
   ]
 };

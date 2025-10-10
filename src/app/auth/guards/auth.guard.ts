@@ -4,7 +4,6 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-
 /**
  * Guard que requiere que el usuario sea administrador global
  */
@@ -17,11 +16,15 @@ export const adminGuard: CanActivateFn = (route, state) => {
   // Verificar autenticación primero
   if (!authService.isAuthenticated()) {
     console.log('❌ AdminGuard: Usuario no autenticado');
-    return router.createUrlTree(['/login']);
+    // ✅ Guardar returnUrl para admin
+    sessionStorage.setItem('returnUrl', state.url);
+    return router.createUrlTree(['/login'], {
+      queryParams: { returnUrl: state.url }
+    });
   }
 
-  // CORREGIR: usar isAdmin() en lugar de isAdmin() undefined
-  if (authService.isAdmin()) {  // Esto incluye admin_global y admin_institucion
+  // Verificar si es administrador
+  if (authService.isAdmin()) {
     console.log('✅ AdminGuard: Usuario es administrador, acceso permitido');
     return true;
   }
@@ -45,7 +48,11 @@ export const globalAdminGuard: CanActivateFn = (route, state) => {
   // Verificar autenticación primero
   if (!authService.isAuthenticated()) {
     console.log('❌ GlobalAdminGuard: Usuario no autenticado');
-    return router.createUrlTree(['/login']);
+    // ✅ Guardar returnUrl para global admin
+    sessionStorage.setItem('returnUrl', state.url);
+    return router.createUrlTree(['/login'], {
+      queryParams: { returnUrl: state.url }
+    });
   }
 
   // Verificar si es administrador global
@@ -61,11 +68,9 @@ export const globalAdminGuard: CanActivateFn = (route, state) => {
   return router.createUrlTree(['/unauthorized']);
 };
 
-
-
 /**
- * Guard que protege rutas requiriendo autenticación
- * Funcional guard usando la nueva sintaxis de Angular
+ * ✅ MEJORADO: Guard que protege rutas requiriendo autenticación
+ * Ahora maneja returnUrl tanto en sessionStorage como en queryParams
  */
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -81,10 +86,14 @@ export const authGuard: CanActivateFn = (route, state) => {
   console.log('❌ AuthGuard: Usuario no autenticado, redirigiendo al login');
   console.log('📍 Ruta intentada:', state.url);
   
-  // Guardar la ruta intentada para redirigir después del login
+  // ✅ Guardar la ruta intentada para redirigir después del login
+  // Usamos AMBOS métodos para mayor compatibilidad
   sessionStorage.setItem('returnUrl', state.url);
   
-  return router.createUrlTree(['/login']);
+  // ✅ También pasar como queryParam para que sea visible en la URL
+  return router.createUrlTree(['/login'], {
+    queryParams: { returnUrl: state.url }
+  });
 };
 
 /**

@@ -1,4 +1,5 @@
 // src/app/rifas/components/rifa-public-view/rifa-public-view.component.ts
+// ✅ ACTUALIZAR MÉTODO comprarNumero PARA PRE-SELECCIONAR
 
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -6,8 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { ImageUrlHelper } from '../../../shared/utils/image-url.helper'; // ✅ IMPORTAR
-
+import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
 
 interface NumeroPublico {
   numero: number;
@@ -24,12 +24,14 @@ interface NumeroPublico {
   styleUrls: ['./rifa-public-view.component.scss']
 })
 export class RifaPublicViewComponent implements OnInit {
+seleccionarNumero(_t126: NumeroPublico) {
+throw new Error('Method not implemented.');
+}
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly rifasService = inject(RifasService);
   private readonly authService = inject(AuthService);
 
-  // ✅ EXPONER EL HELPER PARA USO EN EL TEMPLATE
   readonly ImageUrlHelper = ImageUrlHelper;
 
   // Signals
@@ -94,31 +96,34 @@ export class RifaPublicViewComponent implements OnInit {
   }
 
   verNumerosDisponibles(): void {
+    if (this.numeros().length === 0) {
+      this.cargarNumeros();
+    }
     this.mostrarNumerosFlag.set(true);
-    this.cargarNumeros();
+  }
+
+  ocultarNumeros(): void {
+    this.mostrarNumerosFlag.set(false);
   }
 
   cargarNumeros(pagina: number = 1): void {
+    this.loadingNumeros.set(true);
     const rifaId = this.rifa()?.id;
+
     if (!rifaId) return;
 
-    this.loadingNumeros.set(true);
-
     const params = {
+      estado: this.filtroEstado === 'todos' ? undefined : this.filtroEstado,
       page: pagina,
       limit: 100
     };
 
-    this.rifasService.getPublicNumeros(rifaId, params).subscribe({
+    this.rifasService.getPublicNumbers(rifaId, params).subscribe({
       next: (response: any) => {
         console.log('✅ Números públicos cargados:', response);
-        this.numeros.set(response.data || []);
-        
-        if (response.pagination) {
-          this.paginaActual.set(response.pagination.page);
-          this.totalPaginas.set(response.pagination.totalPages || response.pagination.pages);
-        }
-        
+        this.numeros.set(response.data?.numeros || []);
+        this.paginaActual.set(response.pagination?.page || 1);
+        this.totalPaginas.set(response.pagination?.totalPages || 1);
         this.loadingNumeros.set(false);
       },
       error: (err) => {
@@ -128,12 +133,8 @@ export class RifaPublicViewComponent implements OnInit {
     });
   }
 
-  ocultarNumeros(): void {
-    this.mostrarNumerosFlag.set(false);
-  }
-
-  mostrarNumeros(): boolean {
-    return this.mostrarNumerosFlag();
+  aplicarFiltros(): void {
+    this.cargarNumeros(1);
   }
 
   cambiarPagina(pagina: number): void {
@@ -141,23 +142,23 @@ export class RifaPublicViewComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  seleccionarNumero(numero: NumeroPublico): void {
+  /**
+   * ✅ MEJORADO: Comprar número específico con pre-selección
+   */
+  comprarNumero(numero: any): void {
     if (numero.estado !== 'disponible') {
-      alert('Este número ya no está disponible');
+      alert('⚠️ Este número no está disponible para compra');
       return;
     }
 
     if (!this.estaAutenticado()) {
-      if (confirm('Debes iniciar sesión para comprar. ¿Deseas ir al login?')) {
+      if (confirm('🔐 Necesitas iniciar sesión para comprar números.\n¿Deseas ir al login?')) {
         this.irALogin();
       }
       return;
     }
 
-
-
-
-    // Redirigir a compra con el número pre-seleccionado
+    // ✅ Redirigir a compra con el número pre-seleccionado
     this.router.navigate(['/rifas', this.rifa()?.id, 'comprar'], {
       queryParams: { numero: numero.numero }
     });
@@ -178,7 +179,6 @@ export class RifaPublicViewComponent implements OnInit {
     return nombres[estado] || estado;
   }
 
-  // ✅ AGREGAR MÉTODO HELPER
   getLogoUrl(): string | null {
     return ImageUrlHelper.getLogoUrl(this.rifa()?.institucion_logo);
   }
@@ -202,6 +202,9 @@ export class RifaPublicViewComponent implements OnInit {
     return usuario?.role === 'comprador' || usuario?.role === 'vendedor';
   }
 
+  /**
+   * ✅ MEJORADO: Ir a comprar con returnUrl
+   */
   irAComprar(): void {
     if (!this.estaAutenticado()) {
       this.irALogin();
@@ -210,9 +213,13 @@ export class RifaPublicViewComponent implements OnInit {
     this.router.navigate(['/rifas', this.rifa()?.id, 'comprar']);
   }
 
+  /**
+   * ✅ MEJORADO: Login con returnUrl
+   */
   irALogin(): void {
+    const returnUrl = this.router.url;
     this.router.navigate(['/login'], {
-      queryParams: { returnUrl: this.router.url }
+      queryParams: { returnUrl }
     });
   }
 

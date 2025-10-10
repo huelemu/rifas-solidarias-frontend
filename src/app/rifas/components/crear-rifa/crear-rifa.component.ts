@@ -9,6 +9,7 @@ import { RifasService } from '../../services/rifas.service';
 import { InstitutionService } from '../../../institutions/services/institution.service';
 import { Institution } from '../../../institutions/models/institution.models';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-crear-rifa',
@@ -26,6 +27,7 @@ throw new Error('Method not implemented.');
   private readonly rifasService = inject(RifasService);
   private readonly institutionService = inject(InstitutionService);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
 
   // Signals
   readonly submitting = signal<boolean>(false);
@@ -148,6 +150,10 @@ private loadInstituciones(): void {
         this.rifaForm.get(key)?.markAsTouched();
       });
       this.error.set('Por favor completá todos los campos obligatorios');
+      this.notificationService.warning(
+        'Por favor completa todos los campos requeridos',
+        'Formulario incompleto'
+      );
       return;
     }
 
@@ -160,6 +166,21 @@ private loadInstituciones(): void {
     this.rifasService.createRifa(formData).subscribe({
       next: (response: any) => {
         console.log('✅ Rifa creada:', response);
+
+         // ✅ Toast de éxito
+        this.notificationService.success(
+          `La rifa "${formData.nombre}" ha sido creada exitosamente`,
+          '¡Rifa creada!'
+        );
+
+        // ✅ Notificación persistente
+        this.notificationService.addNotification(
+          'success',
+          'Nueva rifa creada',
+          `${formData.nombre} - ${formData.cantidad_numeros} números disponibles`,
+          `/rifas/${response.id}`,
+          'Ver rifa'
+        );
         
         const rifaId = response?.data?.id || response?.id;
         
@@ -181,6 +202,12 @@ private loadInstituciones(): void {
         console.error('❌ Error creando rifa:', error);
         this.error.set(error?.error?.message || 'Error al crear la rifa');
         this.submitting.set(false);
+       
+        // ✅ Toast de error
+        this.notificationService.error(
+          error?.error?.message || 'No se pudo crear la rifa',
+          'Error al crear rifa'
+        );
       }
     });
   }

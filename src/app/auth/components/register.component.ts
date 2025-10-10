@@ -3,9 +3,10 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // ✅ AGREGAR ActivatedRoute
 import { AuthService } from '../services/auth.service';
 import { RegisterRequest, UserRole } from '../models/auth.models';
+import { NotificationService } from '../../shared/services/notification.service';
 
 @Component({
   selector: 'app-register',
@@ -286,7 +287,7 @@ import { RegisterRequest, UserRole } from '../models/auth.models';
         <div class="register-footer">
           <p>
             ¿Ya tienes cuenta?
-            <a routerLink="/login" class="link">Inicia sesión aquí</a>
+            <a routerLink="/login" [queryParams]="{ returnUrl: returnUrl }" class="link">Inicia sesión aquí</a>
           </p>
           
           <!-- Información de testing -->
@@ -664,11 +665,16 @@ export class RegisterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute); // ✅ AGREGAR
+   private readonly notificationService = inject(NotificationService); 
 
   // Signals para estado del componente
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+
+  // ✅ NUEVO: Variable para guardar el returnUrl
+  returnUrl: string = '/dashboard';
 
   // Formulario reactivo
   readonly registerForm: FormGroup = this.fb.group({
@@ -694,6 +700,25 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('🚀 RegisterComponent inicializado');
+
+    // ✅ NUEVO: Leer returnUrl de múltiples fuentes
+    this.route.queryParams.subscribe(params => {
+      // 1. Verificar si hay returnUrl en queryParams (prioritario)
+      if (params['returnUrl']) {
+        this.returnUrl = params['returnUrl'];
+        console.log('🔗 returnUrl desde queryParams:', this.returnUrl);
+      } 
+      // 2. Si no, intentar desde sessionStorage
+      else {
+        const storedUrl = sessionStorage.getItem('returnUrl');
+        if (storedUrl) {
+          this.returnUrl = storedUrl;
+          console.log('🔗 returnUrl desde sessionStorage:', this.returnUrl);
+        }
+      }
+
+      console.log('🎯 returnUrl final configurado:', this.returnUrl);
+    });
   }
 
   /**
@@ -770,15 +795,16 @@ export class RegisterComponent implements OnInit {
   }
 
   /**
-   * Maneja el envío del formulario de registro
+   * ✅ MODIFICADO: Maneja el envío del formulario de registro con returnUrl
    */
   onSubmit(): void {
-    console.log('📝 RegisterComponent: Enviando formulario...');
-    console.log('📝 Datos del formulario:', this.registerForm.value);
-    
     if (this.registerForm.invalid) {
       this.markAllFieldsAsTouched();
-      console.log('❌ Formulario inválido:', this.registerForm.errors);
+      // ✅ TOAST DE VALIDACIÓN
+      this.notificationService.warning(
+        'Por favor completa todos los campos requeridos',
+        'Formulario incompleto'
+      );
       return;
     }
 
@@ -786,7 +812,6 @@ export class RegisterComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    // Preparar datos para enviar al backend (coinciden con RegisterRequest corregido)
     const registerData: RegisterRequest = {
       nombre: this.registerForm.get('nombre')?.value.trim(),
       apellido: this.registerForm.get('apellido')?.value.trim(),
@@ -797,28 +822,42 @@ export class RegisterComponent implements OnInit {
       dni: this.registerForm.get('dni')?.value?.trim() || undefined
     };
 
-    console.log('🔄 RegisterComponent: Datos enviados al backend:', registerData);
-
     this.authService.register(registerData).subscribe({
       next: (response) => {
         this.isLoading.set(false);
         console.log('✅ RegisterComponent: Registro exitoso:', response);
         
         if (response.success) {
-          this.successMessage.set('¡Cuenta creada exitosamente! Redirigiendo...');
+          // ✅ TOAST DE ÉXITO
+          this.notificationService.success(
+            '¡Tu cuenta ha sido creada exitosamente!',
+            'Registro completado'
+          );
+
+          // ✅ NOTIFICACIÓN PERSISTENTE
+          this.notificationService.addNotification(
+            'success',
+            'Bienvenido a Rifas Solidarias',
+            `Tu cuenta como ${registerData.rol} ha sido creada correctamente`,
+            '/dashboard',
+            'Ir al dashboard'
+          );
           
-          // Si el registro devuelve tokens, guardar estado
+          this.successMessage.set('¡Cuenta creada exitosamente! Redirigiendo...');
+          sessionStorage.removeItem('returnUrl');
+          
           if (response.data?.tokens) {
-            console.log('🔑 Tokens recibidos, usuario queda logueado');
-            // El AuthService ya maneja esto automáticamente
             setTimeout(() => {
-              this.router.navigate(['/dashboard']);
+              this.router.navigateByUrl(this.returnUrl);
             }, 1500);
           } else {
-            // Sin auto-login, redirigir al login
             setTimeout(() => {
               this.router.navigate(['/login'], {
-                queryParams: { email: registerData.email, registered: 'true' }
+                queryParams: { 
+                  email: registerData.email, 
+                  registered: 'true',
+                  returnUrl: this.returnUrl !== '/dashboard' ? this.returnUrl : undefined
+                }
               });
             }, 1500);
           }
@@ -831,12 +870,17 @@ export class RegisterComponent implements OnInit {
         console.error('❌ RegisterComponent: Error en registro:', error);
         
         let errorMsg = 'Error en el registro. Intenta nuevamente.';
-        
         if (error?.error?.message) {
           errorMsg = error.error.message;
         } else if (error?.message) {
           errorMsg = error.message;
         }
+        
+        // ✅ TOAST DE ERROR
+        this.notificationService.error(
+          errorMsg,
+          'Error en el registro'
+        );
         
         this.errorMessage.set(errorMsg);
       }
@@ -853,24 +897,26 @@ export class RegisterComponent implements OnInit {
   }
 
   /**
-   * Registro con Google
-   */
-  registerWithGoogle(): void {
-    console.log('🔄 RegisterComponent: Registro con Google...');
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-    
-    this.authService.registerWithGoogle().subscribe({
-      next: (response) => {
-        console.log('✅ RegisterComponent: URL de Google obtenida:', response.authUrl);
-        // Redirigir a Google OAuth
-        window.location.href = response.authUrl;
-      },
-      error: (error) => {
-        this.isLoading.set(false);
-        console.error('❌ RegisterComponent: Error en registro con Google:', error);
-        this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
-      }
-    });
-  }
+ * ✅ ACTUALIZADO: Registro con Google pasando returnUrl al backend
+ */
+registerWithGoogle(): void {
+  console.log('🔄 RegisterComponent: Registro con Google...');
+  console.log('📍 returnUrl a preservar:', this.returnUrl);
+  
+  this.isLoading.set(true);
+  this.errorMessage.set(null);
+  
+  // ✅ NUEVO: Pasar returnUrl como parámetro al backend
+  this.authService.registerWithGoogle(this.returnUrl).subscribe({
+    next: (response) => {
+      console.log('✅ RegisterComponent: URL de Google obtenida:', response.authUrl);
+      window.location.href = response.authUrl;
+    },
+    error: (error) => {
+      this.isLoading.set(false);
+      console.error('❌ RegisterComponent: Error en registro con Google:', error);
+      this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
+    }
+  });
+}
 }

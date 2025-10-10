@@ -1,0 +1,453 @@
+<!-- src/app/rifas/components/buy-numbers/buy-numbers.component.html -->
+
+<app-navbar></app-navbar>
+
+<div class="buy-numbers-container">
+  <div class="page-header">
+    <button class="btn-back" (click)="goBack()">
+      ← Volver
+    </button>
+    
+    @if (rifa(); as rifaData) {
+      <div class="rifa-info">
+        <h1>🎟️ Comprar Números</h1>
+        <h2>{{ rifaData.nombre }}</h2>
+        <div class="rifa-details">
+          <span class="detail-item">
+            <strong>Precio por número:</strong> {{ formatPrice(rifaData.precio_numero) }}
+          </span>
+          <span class="detail-item">
+            <strong>Disponibles:</strong> {{ getAvailableCount() }} de {{ rifaData.cantidad_numeros }}
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando números disponibles...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3>Error al cargar</h3>
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="loadNumeros()">
+        🔄 Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  @if (!loading() && !error() && numeros().length > 0) {
+    <div class="numbers-content">
+      <!-- Resumen de compra -->
+      @if (numerosSeleccionados().length > 0) {
+        <div class="purchase-summary">
+          <div class="summary-card">
+            <h3>📋 Resumen de Compra</h3>
+            <div class="summary-details">
+              <div class="summary-item">
+                <span>Números seleccionados:</span>
+                <span class="highlight">{{ numerosSeleccionados().length }}</span>
+              </div>
+              <div class="summary-item">
+                <span>Números:</span>
+                <span class="numbers-list">{{ getSelectedNumbersList() }}</span>
+              </div>
+              <div class="summary-item total">
+                <span>Total a pagar:</span>
+                <span class="total-amount">{{ formatPrice(getTotalAmount()) }}</span>
+              </div>
+            </div>
+            <div class="summary-actions">
+              <button 
+                class="btn btn-success purchase-btn"
+                (click)="proceedToPurchase()"
+                [disabled]="purchasing()">
+                @if (purchasing()) {
+                  ⏳ Procesando...
+                } @else {
+                  💰 Comprar Números
+                }
+              </button>
+              <button 
+                class="btn btn-secondary"
+                (click)="clearSelection()"
+                [disabled]="purchasing()">
+                🧹 Limpiar Selección
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Métodos de selección -->
+      <div class="selection-methods">
+        <h3>🎯 Métodos de Selección</h3>
+        <div class="methods-grid">
+          <!-- Selección manual -->
+          <div class="method-card">
+            <div class="method-icon">👆</div>
+            <h4>Selección Manual</h4>
+            <p>Haz clic en los números que desees comprar</p>
+          </div>
+
+          <!-- Selección aleatoria -->
+          <div class="method-card">
+            <div class="method-icon">🎲</div>
+            <h4>Números Aleatorios</h4>
+            <div class="method-controls">
+              <input 
+                type="number" 
+                [(ngModel)]="randomCount" 
+                min="1" 
+                [max]="getAvailableCount()"
+                placeholder="Cantidad"
+                class="form-control">
+              <button 
+                class="btn btn-primary"
+                (click)="selectRandomNumbers()"
+                [disabled]="!randomCount || randomCount < 1">
+                🎲 Seleccionar
+              </button>
+            </div>
+          </div>
+
+          <!-- Selección por rango -->
+          <div class="method-card">
+            <div class="method-icon">📊</div>
+            <h4>Rango de Números</h4>
+            <div class="method-controls range-controls">
+              <input 
+                type="number" 
+                [(ngModel)]="rangeStart" 
+                placeholder="Desde"
+                class="form-control">
+              <span>-</span>
+              <input 
+                type="number" 
+                [(ngModel)]="rangeEnd" 
+                placeholder="Hasta"
+                class="form-control">
+              <button 
+                class="btn btn-primary"
+                (click)="selectRangeNumbers()"
+                [disabled]="!rangeStart || !rangeEnd">
+                📊 Seleccionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grilla de números -->
+      <div class="numbers-section">
+        <div class="section-header">
+          <h3>🎫 Números Disponibles</h3>
+          <div class="filters">
+            <select [(ngModel)]="filtroEstado" (change)="loadNumeros()" class="form-select">
+              <option value="disponible">✅ Disponibles</option>
+              <option value="vendido">💰 Vendidos</option>
+              <option value="reservado">⏳ Reservados</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="numbers-grid">
+          @for (numero of numeros(); track numero.id) {
+            <div 
+              class="number-card"
+              [attr.data-numero]="numero.numero"
+              [class]="getNumberCardClass(numero)"
+              (click)="toggleNumberSelection(numero)"
+              [title]="getNumberTooltip(numero)">
+              
+              <div class="number-header">
+                <span class="number-value">{{ numero.numero }}</span>
+                <span class="number-status">
+                  {{ getStatusIcon(numero.estado) }}
+                </span>
+              </div>
+
+              @if (numero.estado !== 'disponible') {
+                <div class="number-info">
+                  @if (numero.estado === 'vendido') {
+                    <div class="sold-info">
+                      <small>Vendido</small>
+                      @if (numero.fecha_venta) {
+                        <small>{{ formatDate(numero.fecha_venta) }}</small>
+                      }
+                    </div>
+                  }
+                  @if (numero.estado === 'reservado') {
+                    <div class="reserved-info">
+                      <small>Reservado</small>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (isNumberSelected(numero.numero)) {
+                <div class="selection-indicator">
+                  ✓ Seleccionado
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Paginación -->
+        @if (pagination() && pagination().totalPages > 1) {
+          <div class="pagination-container">
+            <div class="pagination-info">
+              Página {{ pagination().page }} de {{ pagination().totalPages }}
+              ({{ pagination().total | number }} números total)
+            </div>
+            
+            <div class="pagination-controls">
+              <button 
+                class="btn btn-outline"
+                [disabled]="pagination().page <= 1"
+                (click)="cambiarPagina(pagination().page - 1)">
+                ← Anterior
+              </button>
+              
+              @for (pageNum of getPaginationPages(); track pageNum) {
+                <button 
+                  class="btn"
+                  [class]="pageNum === pagination().page ? 'btn-primary' : 'btn-outline'"
+                  (click)="cambiarPagina(pageNum)">
+                  {{ pageNum }}
+                </button>
+              }
+              
+              <button 
+                class="btn btn-outline"
+                [disabled]="pagination().page >= pagination().totalPages"
+                (click)="cambiarPagina(pagination().page + 1)">
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !error() && numeros().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🎫</div>
+      <h3>No hay números disponibles</h3>
+      <p>Esta rifa no tiene números disponibles para comprar en este momento.</p>
+      <button 
+        class="btn btn-primary"
+        (click)="goBack()">
+        ← Volver a la Rifa
+      </button>
+    </div>
+  }
+</div>
+
+<!-- ✅ MODAL DE CONFIRMACIÓN DE COMPRA -->
+@if (showPurchaseModal()) {
+  <div class="modal-overlay" (click)="closePurchaseModal()">
+     <div class="modal-content" (click)="$event.stopPropagation()">
+      <form [formGroup]="purchaseForm" (ngSubmit)="confirmPurchase()">
+        <div class="modal-header">
+          <h3>💰 Confirmar Compra</h3>
+          <button type="button" class="close-btn" (click)="closePurchaseModal()">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="purchase-details">
+            <h4>Detalles de la compra:</h4>
+            <div class="detail-row">
+              <span>Números:</span>
+              <span>{{ getSelectedNumbersList() }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Cantidad:</span>
+              <span>{{ numerosSeleccionados().length }}</span>
+            </div>
+            <div class="detail-row total">
+              <span>Total:</span>
+              <span>{{ formatPrice(getTotalAmount()) }}</span>
+            </div>
+          </div>
+
+          <!-- Información del comprador -->
+          <div class="buyer-info">
+            <h4>Información del comprador:</h4>
+            
+            <div class="form-group">
+              <label for="nombre">Nombre *</label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                class="form-control"
+                [class.invalid]="purchaseForm.get('nombre')?.invalid && purchaseForm.get('nombre')?.touched">
+              @if (purchaseForm.get('nombre')?.invalid && purchaseForm.get('nombre')?.touched) {
+                <small class="error-text">El nombre es obligatorio (mínimo 2 caracteres)</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="apellido">Apellido *</label>
+              <input
+                id="apellido"
+                type="text"
+                formControlName="apellido"
+                class="form-control"
+                [class.invalid]="purchaseForm.get('apellido')?.invalid && purchaseForm.get('apellido')?.touched">
+              @if (purchaseForm.get('apellido')?.invalid && purchaseForm.get('apellido')?.touched) {
+                <small class="error-text">El apellido es obligatorio (mínimo 2 caracteres)</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input
+                id="telefono"
+                type="tel"
+                formControlName="telefono"
+                class="form-control"
+                placeholder="+54 9 11 1234-5678">
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="form-control"
+                placeholder="ejemplo@email.com"
+                [class.invalid]="purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched">
+              @if (purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched) {
+                <small class="error-text">Email inválido</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="metodo_pago">Método de Pago *</label>
+              <select
+                id="metodo_pago"
+                formControlName="metodo_pago"
+                class="form-control">
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="transferencia">🏦 Transferencia</option>
+                <option value="tarjeta">💳 Tarjeta</option>
+                <option value="mercadopago">📱 MercadoPago</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="observaciones">Observaciones</label>
+              <textarea
+                id="observaciones"
+                formControlName="observaciones"
+                class="form-control"
+                rows="3"
+                placeholder="Notas adicionales..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            (click)="closePurchaseModal()"
+            [disabled]="purchasing()">
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-success"
+            [disabled]="purchasing() || purchaseForm.invalid">
+            @if (purchasing()) {
+              ⏳ Procesando...
+            } @else {
+              ✅ Confirmar Compra
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ✅ NUEVO: MODAL DE ÉXITO -->
+@if (showSuccessModal()) {
+  <div class="modal-overlay success-overlay" (click)="closeSuccessModal()">
+    <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header success-header">
+        <div class="success-icon">🎉</div>
+        <h3>¡Compra Exitosa!</h3>
+        <button type="button" class="close-btn" (click)="closeSuccessModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="success-message">
+          <p>Tu compra ha sido procesada correctamente</p>
+        </div>
+
+        @if (purchaseResult(); as result) {
+          <div class="success-details">
+            <div class="detail-row">
+              <span>📋 Números comprados:</span>
+              <span class="highlight">{{ result.numeros_comprados?.join(', ') }}</span>
+            </div>
+            <div class="detail-row">
+              <span>🎫 Cantidad:</span>
+              <span class="highlight">{{ result.cantidad }}</span>
+            </div>
+            <div class="detail-row">
+              <span>💰 Total pagado:</span>
+              <span class="highlight success-amount">{{ formatPrice(result.total_pagado) }}</span>
+            </div>
+            <div class="detail-row">
+              <span>📅 Fecha:</span>
+              <span>{{ formatDate(result.fecha_compra) }}</span>
+            </div>
+            <div class="detail-row">
+              <span>💳 Método de pago:</span>
+              <span>{{ result.metodo_pago }}</span>
+            </div>
+          </div>
+
+          <div class="success-info">
+            <p>📧 Recibirás una confirmación por email con los detalles de tu compra y los códigos QR de tus números.</p>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer success-footer">
+        <button 
+          class="btn btn-primary"
+          (click)="verMisBoletos()">
+          🎫 Ver Mis Boletos
+        </button>
+        <button 
+          class="btn btn-success"
+          (click)="compartirWhatsApp()">
+          📱 Compartir en WhatsApp
+        </button>
+        <button 
+          class="btn btn-secondary"
+          (click)="closeSuccessModal()">
+          ← Volver
+        </button>
+      </div>
+    </div>
+  </div>
+}

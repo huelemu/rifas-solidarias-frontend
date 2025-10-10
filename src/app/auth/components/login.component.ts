@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { LoginRequest } from '../models/auth.models';
+import { NotificationService } from '../../shared/services/notification.service'; 
 
 @Component({
   selector: 'app-login',
@@ -367,12 +368,15 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private returnUrl: string = '/dashboard';
+  private readonly notificationService = inject(NotificationService); 
+
 
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly registrationSuccess = signal<string | null>(null);
 
-  loginForm: FormGroup = this.fb.group({
+ loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
@@ -421,12 +425,36 @@ export class LoginComponent {
         this.isLoading.set(false);
         if (response.success) {
           console.log('✅ LoginComponent: Login exitoso:', response.data.user);
-          this.authService.redirectAfterLogin();
+          
+          // ✅ TOAST DE BIENVENIDA
+          this.notificationService.success(
+            `Bienvenido ${response.data.user.name}`,
+            'Sesión iniciada'
+          );
+
+          // ✅ NOTIFICACIÓN PERSISTENTE
+          this.notificationService.addNotification(
+            'info',
+            'Sesión iniciada correctamente',
+            `Has iniciado sesión como ${response.data.user.role}`,
+            '/dashboard',
+            'Ir al dashboard'
+          );
+          
+          sessionStorage.removeItem('returnUrl');
+          console.log('🎯 Redirigiendo a:', this.returnUrl);
+          this.router.navigateByUrl(this.returnUrl);
         }
       },
       error: (error) => {
         this.isLoading.set(false);
         console.error('❌ LoginComponent: Error en login:', error);
+        
+        // ✅ TOAST DE ERROR
+        this.notificationService.error(
+          error.message || 'Credenciales incorrectas',
+          'Error de autenticación'
+        );
         
         if (error.message && error.message.includes('Google')) {
           this.errorMessage.set('Esta cuenta fue creada con Google. Por favor, usa el botón "Continuar con Google" para iniciar sesión.');
@@ -437,29 +465,31 @@ export class LoginComponent {
     });
   }
 
-  /**
-   * Maneja el login con Google
-   */
-  loginWithGoogle(): void {
-    console.log('🔐 LoginComponent: Click en botón de Google');
-    console.log('🔐 LoginComponent: Iniciando login con Google...');
-    
-    this.errorMessage.set(null);
 
-    this.authService.loginWithGoogle().subscribe({
-      next: (response) => {
-        console.log('✅ LoginComponent: URL de Google obtenida:', response.authUrl);
-        console.log('🔄 Redirigiendo a Google...');
-        // Redirigir a Google OAuth
-        window.location.href = response.authUrl;
-      },
-      error: (error) => {
-        console.error('❌ LoginComponent: Error en login con Google:', error);
-        this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
-      }
-    });
-  }
+/**
+ * ✅ ACTUALIZADO: Maneja el login con Google pasando returnUrl al backend
+ */
+loginWithGoogle(): void {
+  console.log('🔐 LoginComponent: Click en botón de Google');
+  console.log('🔐 LoginComponent: Iniciando login con Google...');
+  console.log('📍 returnUrl a preservar:', this.returnUrl);
+  
+  this.errorMessage.set(null);
 
+  // ✅ NUEVO: Pasar returnUrl como parámetro al backend
+  this.authService.loginWithGoogle(this.returnUrl).subscribe({
+    next: (response) => {
+      console.log('✅ LoginComponent: URL de Google obtenida:', response.authUrl);
+      console.log('🔄 Redirigiendo a Google...');
+      // Redirigir a Google OAuth
+      window.location.href = response.authUrl;
+    },
+    error: (error) => {
+      console.error('❌ LoginComponent: Error en login con Google:', error);
+      this.errorMessage.set('Error al conectar con Google. Intenta nuevamente.');
+    }
+  });
+}
   private markAllFieldsAsTouched(): void {
     Object.keys(this.loginForm.controls).forEach(key => {
       this.loginForm.get(key)?.markAsTouched();
