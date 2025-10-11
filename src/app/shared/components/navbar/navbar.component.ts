@@ -1,9 +1,10 @@
+// src/app/shared/components/navbar/navbar.component.ts
+
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NotificationCenterComponent } from '../notification-center/notification-center.component';
-
 
 @Component({
   selector: 'app-navbar',
@@ -13,9 +14,11 @@ import { NotificationCenterComponent } from '../notification-center/notification
     <div class="navbar">
       <div class="navbar-content">
         <div class="navbar-left">
-          <a routerLink="/dashboard" class="navbar-brand">
+          <!-- Logo clickeable que va al home correcto -->
+          <a (click)="goToHome()" class="navbar-brand" style="cursor: pointer;">
             🎫 Rifas Solidarias
           </a>
+          
           <nav class="navbar-nav">
             <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
               Dashboard
@@ -33,13 +36,14 @@ import { NotificationCenterComponent } from '../notification-center/notification
         </div>
         
         <div class="navbar-right">
-          <!-- ✅ AGREGAR CENTRO DE NOTIFICACIONES AQUÍ -->
+          <!-- Centro de Notificaciones -->
           <app-notification-center/>
           
           <div class="user-info">
             <span class="user-name">{{ authService.currentUser()?.name }}</span>
             <span class="user-role">{{ getRoleLabel() }}</span>
           </div>
+          
           <button class="btn-logout" (click)="logout()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -57,6 +61,18 @@ import { NotificationCenterComponent } from '../notification-center/notification
 export class NavbarComponent {
   authService = inject(AuthService);
   private router = inject(Router);
+
+  /**
+   * Navega al home correcto según si está autenticado o no
+   */
+  goToHome(): void {
+    const isAuth = this.authService.currentUser() !== null;
+    if (isAuth) {
+      this.router.navigate(['/dashboard']); // Dashboard privado
+    } else {
+      this.router.navigate(['/']); // Dashboard público
+    }
+  }
 
   canManageUsers(): boolean {
     return this.authService.currentUser()?.role === 'admin_global';

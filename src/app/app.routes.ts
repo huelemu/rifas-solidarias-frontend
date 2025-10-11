@@ -1,11 +1,32 @@
 // src/app/app.routes.ts - VERSIÓN ACTUALIZADA CON REGISTRO
 
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './auth/guards/auth.guard';
+import { authGuard, guestGuard} from './auth/guards/auth.guard';
 
 export const routes: Routes = [
+
    // ===================================================
-  // RUTAS PÚBLICAS (NO REQUIEREN AUTENTICACIÓN)
+  // RUTA PRINCIPAL - DASHBOARD PÚBLICO (LANDING PAGE)
+  // ===================================================
+{
+  path: '',
+  loadComponent: () => import('./dashboard/public-dashboard.component')
+    .then(m => m.PublicDashboardComponent),
+  title: 'Rifas Solidarias - Participa y Ayuda'
+},
+
+  {
+    path: 'terminos-condiciones',
+    loadComponent: () => import('./legal/components/terminos-condiciones.component').then(m => m.TerminosCondicionesComponent)
+  },
+  {
+    path: 'politica-privacidad',
+    loadComponent: () => import('./legal/components/politica-privacidad.component').then(m => m.PoliticaPrivacidadComponent)
+  },
+
+
+  // ===================================================
+  // RUTAS PÚBLICAS
   // ===================================================
   {
     path: 'login',
@@ -13,6 +34,7 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     title: 'Iniciar Sesión - Rifas Solidarias'
   },
+  
 
   {
     path: 'register',
@@ -20,6 +42,30 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     title: 'Crear Cuenta - Rifas Solidarias'
   },
+
+
+  // Vista pública de rifa individual
+  {
+    path: 'public/rifas/:rifaId',
+    loadComponent: () => import('./rifas/components/rifa-public-view/rifa-public-view.component').then(m => m.RifaPublicViewComponent),
+    title: 'Ver Rifa - Rifas Solidarias'
+  },
+
+  // ===================================================
+  // DASHBOARD AUTENTICADO (diferente del público)
+  // ===================================================
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [authGuard],
+    title: 'Dashboard - Rifas Solidarias'
+  },
+  // Dashboard principal
+
+
+   // ===================================================
+  // RUTAS PÚBLICAS (NO REQUIEREN AUTENTICACIÓN)
+  // ===================================================
 
   // ⭐ NUEVA RUTA - OLVIDÉ MI CONTRASEÑA
   {
@@ -41,18 +87,6 @@ export const routes: Routes = [
     path: 'auth/google/callback',
     loadComponent: () => import('./auth/components/google-callback.component').then(m => m.GoogleCallbackComponent),
     title: 'Autenticación Google - Rifas Solidarias'
-  },
-
-  // ===================================================
-  // RUTAS PROTEGIDAS - REQUIEREN AUTENTICACIÓN
-  // ===================================================
-  
-  // Dashboard principal
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
-    canActivate: [authGuard],
-    title: 'Dashboard - Rifas Solidarias'
   },
 
   // ===================================================

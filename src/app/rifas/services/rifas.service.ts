@@ -598,6 +598,27 @@ retirarParticipacion(rifaId: number, participacionId: number): Observable<any> {
     return this.http.get<ApiResponse<any>>(`${this.baseUrl}/rifas/${rifaId}/estadisticas`);
   }
 
+
+  // ===================================================
+// DASHBOARD PÚBLICO
+// ===================================================
+
+/**
+ * Obtener datos del dashboard público
+ * @returns Observable con estadísticas públicas y personales (si está autenticado)
+ */
+getPublicDashboard(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/dashboard/public`).pipe(
+    tap((response: any) => {
+      console.log('📊 Dashboard público cargado:', response);
+    }),
+    catchError((error) => {
+      console.error('❌ Error cargando dashboard público:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
   // ===================================================
   // UTILIDADES
   // ===================================================
