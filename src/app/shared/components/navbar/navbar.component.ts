@@ -32,6 +32,10 @@ import { NotificationCenterComponent } from '../notification-center/notification
             <a routerLink="/rifas" routerLinkActive="active">
               Rifas
             </a>
+                    <!-- ✅ NUEVO LINK -->
+            <a routerLink="/mis-numeros" routerLinkActive="active">
+            🎫 Mis Números
+            </a>
           </nav>
         </div>
         

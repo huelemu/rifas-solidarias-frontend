@@ -8,6 +8,7 @@ import { AuthService } from '../auth/services/auth.service';
 import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 import { NotificationService } from '../shared/services/notification.service';
 import { ChartService } from '../shared/services/chart.service';
+import { ApiConfigService } from '../shared/services/api-config.service';
 import { firstValueFrom } from 'rxjs';
 
 // Interfaces para estadísticas
@@ -396,6 +397,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   notificationService = inject(NotificationService);
   chartService = inject(ChartService);
   http = inject(HttpClient);
+  apiConfig = inject(ApiConfigService);
 
   // Chart instance
   private activityChart: any = null;
@@ -439,21 +441,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
+
+   /**
    * Carga estadísticas del dashboard
    */
   private async loadStatistics(): Promise<void> {
     try {
-      // Intentar obtener datos del backend
+      // ✅ USAR URL DINÁMICA
+      const url = this.apiConfig.buildUrl('/stats/dashboard');
+      console.log('📡 Cargando estadísticas desde:', url);
+
       const response: any = await firstValueFrom(
-        this.http.get('http://localhost:3100/estadisticas/dashboard')
+        this.http.get(url)
       );
       
       if (response.status === 'success') {
         this.stats.set(response.data);
+        console.log('✅ Estadísticas cargadas:', response.data);
       }
     } catch (error) {
-      console.error('Error cargando estadísticas:', error);
+      console.error('❌ Error cargando estadísticas:', error);
+      
       // Fallback a datos mock si falla
       this.stats.set({
         rifas_activas: 3,
@@ -463,6 +471,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         mis_numeros: 15,
         proximos_sorteos: 2
       });
+      
+      // Notificar al usuario
+      this.notificationService.showWarning(
+        'No se pudieron cargar las estadísticas en tiempo real',
+        'Mostrando datos de ejemplo'
+      );
     }
 
     // Cargar top rifas si es admin
@@ -476,8 +490,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
    */
   private async loadTopRifas(): Promise<void> {
     try {
-      // TODO: Implementar endpoint en backend
-      // Por ahora datos mock
+      const url = this.apiConfig.buildUrl('/stats/top-rifas?limit=5');
+      
+      const response: any = await firstValueFrom(
+        this.http.get(url)
+      );
+
+      if (response.status === 'success') {
+        this.topRifas.set(response.data);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando top rifas:', error);
+      
+      // Datos mock como fallback
       this.topRifas.set([
         {
           id: 1,
@@ -485,17 +510,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           numeros_vendidos: 85,
           total_recaudado: 127500,
           porcentaje_vendido: 85
-        },
-        {
-          id: 2,
-          nombre: 'Rifa DEMO Finalizada',
-          numeros_vendidos: 100,
-          total_recaudado: 150000,
-          porcentaje_vendido: 100
         }
       ]);
-    } catch (error) {
-      console.error('Error cargando top rifas:', error);
     }
   }
 

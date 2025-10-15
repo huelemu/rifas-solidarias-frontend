@@ -183,12 +183,15 @@ export class RifasService { // NOMBRE CORRECTO: RifasService
  * Obtener mis números comprados
  */
 getMisNumeros(rifaId?: number): Observable<any> {
+  // ✅ CORRECCIÓN: Agregar /api/ en la ruta base
   const url = rifaId 
     ? `${this.baseUrl}/rifas/${rifaId}/mis-numeros`
-    : `${this.baseUrl}/mis-numeros`;
+    : `${this.baseUrl}/rifas/mis-numeros`;
   
+  console.log('📡 Llamando a getMisNumeros:', url);
   return this.http.get<any>(url);
 }
+
 
 /**
  * Reservar números temporalmente

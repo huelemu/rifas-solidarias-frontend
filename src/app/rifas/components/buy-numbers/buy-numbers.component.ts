@@ -67,14 +67,14 @@ export class BuyNumbersComponent implements OnInit {
   );
 
   constructor() {
-    this.purchaseForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellido: ['', [Validators.required, Validators.minLength(2)]],
-      telefono: [''],
-      email: ['', [Validators.email]],
-      metodo_pago: ['efectivo', Validators.required],
-      observaciones: ['']
-    });
+     this.purchaseForm = this.fb.group({
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    apellido: ['', [Validators.required, Validators.minLength(2)]],
+    telefono: ['', [Validators.minLength(8)]],
+    email: ['', [Validators.required, Validators.email]], // ✅ AHORA REQUIRED
+    metodo_pago: ['efectivo', Validators.required],
+    observaciones: ['']
+  });
   }
 
   ngOnInit() {

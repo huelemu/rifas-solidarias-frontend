@@ -323,19 +323,29 @@
                 placeholder="+54 9 11 1234-5678">
             </div>
 
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                formControlName="email"
-                class="form-control"
-                placeholder="ejemplo@email.com"
-                [class.invalid]="purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched">
-              @if (purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched) {
-                <small class="error-text">Email inválido</small>
-              }
-            </div>
+          <div class="form-group">
+            <label for="email">Email *</label> <!-- ✅ Asterisco para requerido -->
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              class="form-control"
+              placeholder="ejemplo@email.com"
+              [class.invalid]="purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched">
+            @if (purchaseForm.get('email')?.invalid && purchaseForm.get('email')?.touched) {
+              <small class="error-text">
+                @if (purchaseForm.get('email')?.hasError('required')) {
+                  El email es obligatorio
+                }
+                @if (purchaseForm.get('email')?.hasError('email')) {
+                  Ingresá un email válido
+                }
+              </small>
+            }
+            <small class="help-text">
+              📧 Con este email podrás consultar tus números en cualquier momento
+            </small>
+          </div>
 
             <div class="form-group">
               <label for="metodo_pago">Método de Pago *</label>

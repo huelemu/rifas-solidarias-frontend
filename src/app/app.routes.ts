@@ -2,6 +2,7 @@
 
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard} from './auth/guards/auth.guard';
+import { MisNumerosComponent } from './rifas/components/mis-numeros/mis-numeros.component';
 
 export const routes: Routes = [
 
@@ -15,6 +16,12 @@ export const routes: Routes = [
   title: 'Rifas Solidarias - Participa y Ayuda'
 },
 
+{
+    path: 'mis-numeros',
+    component: MisNumerosComponent,
+    title: 'Mis Números | Rifas Solidarias'
+  },
+
   {
     path: 'terminos-condiciones',
     loadComponent: () => import('./legal/components/terminos-condiciones.component').then(m => m.TerminosCondicionesComponent)
@@ -24,6 +31,13 @@ export const routes: Routes = [
     loadComponent: () => import('./legal/components/politica-privacidad.component').then(m => m.PoliticaPrivacidadComponent)
   },
 
+  // Configuración de usuario
+  {
+    path: 'configuracion',
+    loadComponent: () => import('./users/components/user-profile/user-profile.component').then(m => m.UserProfileComponent),
+    canActivate: [authGuard],
+    title: 'Configuración - Rifas Solidarias'
+  },
 
   // ===================================================
   // RUTAS PÚBLICAS

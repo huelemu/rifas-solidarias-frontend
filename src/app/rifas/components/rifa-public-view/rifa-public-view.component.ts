@@ -65,13 +65,27 @@ throw new Error('Method not implemented.');
     return resultado.sort((a, b) => a.numero - b.numero);
   });
 
-  ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const rifaId = params['rifaId'];
+ngOnInit(): void {
+    this.route.params.subscribe((params) => {
+      // ✅ IMPORTANTE: Obtener el ID correctamente
+      const rifaIdParam = params['id'] || params['rifaId'];
       
-      if (rifaId) {
-        this.cargarRifaPublica(+rifaId);
+      if (!rifaIdParam) {
+        console.error('❌ No se proporcionó ID de rifa en la URL');
+        this.error.set('ID de rifa inválido');
+        return;
       }
+
+      const rifaId = parseInt(rifaIdParam, 10);
+
+      if (isNaN(rifaId) || rifaId <= 0) {
+        console.error('❌ ID de rifa inválido:', rifaIdParam);
+        this.error.set('ID de rifa inválido');
+        return;
+      }
+
+      console.log('✅ Cargando rifa pública:', rifaId);
+      this.cargarRifaPublica(rifaId);
     });
   }
 

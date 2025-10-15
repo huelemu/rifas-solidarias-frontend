@@ -687,53 +687,78 @@ export class MyNumbersComponent implements OnInit {
     try {
       this.cargando.set(true);
       
-      // TODO: Implementar llamada real al backend
-      // Por ahora, datos mock
-      const mockData: MisNumerosRifa[] = [
-        {
-          rifa_id: 1,
-          rifa_nombre: 'Rifa Solidaria Cruz Roja 2024',
-          rifa_descripcion: 'Gran sorteo benéfico',
-          rifa_estado: 'activa',
-          fecha_sorteo: '2025-12-31T20:00:00',
-          numero_ganador: null,
-          precio_numero: 1500,
-          numeros: [
-            { id: 1, numero: 15, fecha_compra: '2025-01-15', metodo_pago: 'transferencia', es_ganador: false },
-            { id: 2, numero: 28, fecha_compra: '2025-01-16', metodo_pago: 'efectivo', es_ganador: false },
-            { id: 3, numero: 42, fecha_compra: '2025-01-17', metodo_pago: 'mercadopago', es_ganador: false }
-          ],
-          total_invertido: 4500,
-          tiene_ganador: false
+      // ✅ LLAMADA REAL AL BACKEND
+      this.rifasService.getMisNumeros().subscribe({
+        next: (response: any) => {
+          console.log('✅ Mis números cargados:', response);
+          
+          // Procesar la respuesta del backend
+          const data = response.data || response;
+          
+          // Agrupar números por rifa
+          const rifasMap = new Map<number, MisNumerosRifa>();
+          
+          if (Array.isArray(data)) {
+            data.forEach((numero: any) => {
+              const rifaId = numero.rifa_id;
+              
+              if (!rifasMap.has(rifaId)) {
+                rifasMap.set(rifaId, {
+                  rifa_id: rifaId,
+                  rifa_nombre: numero.rifa_nombre || 'Rifa sin nombre',
+                  rifa_descripcion: numero.rifa_descripcion || '',
+                  rifa_estado: numero.rifa_estado || 'activa',
+                  fecha_sorteo: numero.fecha_sorteo,
+                  numero_ganador: numero.numero_ganador || null,
+                  precio_numero: numero.precio_numero || numero.precio || 0,
+                  numeros: [],
+                  total_invertido: 0,
+                  tiene_ganador: !!numero.numero_ganador
+                });
+              }
+              
+              const rifa = rifasMap.get(rifaId)!;
+              
+              // Agregar número a la rifa
+              rifa.numeros.push({
+                id: numero.id || numero.numero_id,
+                numero: numero.numero,
+                fecha_compra: numero.fecha_venta || numero.fecha_compra || new Date().toISOString(),
+                metodo_pago: numero.metodo_pago || 'efectivo',
+                es_ganador: numero.es_ganador || (numero.numero === numero.numero_ganador)
+              });
+              
+              // Actualizar total invertido
+              rifa.total_invertido += numero.precio_numero || numero.precio || 0;
+            });
+          }
+          
+          // Convertir Map a Array
+          const rifasArray = Array.from(rifasMap.values());
+          
+          this.misRifas.set(rifasArray);
+          this.aplicarFiltros();
+          this.cargando.set(false);
         },
-        {
-          rifa_id: 2,
-          rifa_nombre: 'Rifa Solidaria Cruz Roja 2024 - DEMO FINALIZADA',
-          rifa_descripcion: 'Rifa finalizada con ganador',
-          rifa_estado: 'finalizada',
-          fecha_sorteo: '2024-03-01T20:00:00',
-          numero_ganador: 42,
-          precio_numero: 1500,
-          numeros: [
-            { id: 4, numero: 42, fecha_compra: '2024-01-20', metodo_pago: 'transferencia', es_ganador: true },
-            { id: 5, numero: 77, fecha_compra: '2024-01-21', metodo_pago: 'efectivo', es_ganador: false }
-          ],
-          total_invertido: 3000,
-          tiene_ganador: true
+        error: (error) => {
+          console.error('❌ Error cargando mis números:', error);
+          this.notificationService.error(
+            'No se pudieron cargar tus números',
+            'Error de carga'
+          );
+          this.cargando.set(false);
         }
-      ];
-
-      this.misRifas.set(mockData);
-      this.rifasFiltradas.set(mockData);
+      });
       
-          } catch (error) {
+    } catch (error) {
       console.error('Error cargando mis números:', error);
-      this.notificationService.showError('No se pudieron cargar tus números');
-    } finally {
+      this.notificationService.error(
+        'No se pudieron cargar tus números',
+        'Error'
+      );
       this.cargando.set(false);
     }
   }
-
   /**
    * Aplica filtros a las rifas
    */
