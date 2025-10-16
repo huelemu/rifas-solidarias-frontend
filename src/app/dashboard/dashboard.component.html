@@ -1,32 +1,23 @@
 <!-- src/app/dashboard/dashboard.component.html -->
-
 <app-navbar></app-navbar>
 
 <div class="dashboard-container">
   
-  <!-- ============================================
-       HEADER CON BIENVENIDA
-       ============================================ -->
+  <!-- HEADER -->
   <div class="dashboard-header">
     <div class="header-content">
-      <div>
-        <h1>👋 Hola, {{ userName() }}</h1>
-        <p class="header-subtitle">{{ userRole() }}</p>
+      <div class="welcome-text">
+        <h1>Hola, {{ userName() }} 👋</h1>
+        <p class="role-badge">{{ userRole() }}</p>
       </div>
-      <button class="btn-refresh" (click)="refreshDashboard()" title="Actualizar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.64A9 9 0 0 0 20.49 15"></path>
-        </svg>
+      <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="loading()">
+        <span class="refresh-icon" [class.spinning]="loading()">🔄</span>
         Actualizar
       </button>
     </div>
   </div>
 
-  <!-- ============================================
-       LOADING STATE
-       ============================================ -->
+  <!-- LOADING -->
   @if (loading()) {
     <div class="loading-container">
       <div class="spinner"></div>
@@ -34,346 +25,129 @@
     </div>
   }
 
-  <!-- ============================================
-       ERROR STATE
-       ============================================ -->
+  <!-- ERROR -->
   @else if (error()) {
     <div class="error-container">
       <div class="error-icon">⚠️</div>
-      <h3>Error al cargar el dashboard</h3>
+      <h3>Error al cargar</h3>
       <p>{{ error() }}</p>
-      <button class="btn btn-primary" (click)="refreshDashboard()">
-        Reintentar
-      </button>
+      <button class="btn btn-primary" (click)="refreshDashboard()">Reintentar</button>
     </div>
   }
 
-  <!-- ============================================
-       DASHBOARD CONTENT
-       ============================================ -->
+  <!-- CONTENT -->
   @else {
     <div class="dashboard-content">
 
-      <!-- ============================================
-           ESTADÍSTICAS PRINCIPALES - CARDS
-           ============================================ -->
+      <!-- ESTADÍSTICAS PRINCIPALES -->
       <div class="stats-grid">
         
-        <!-- Card: Rifas Activas -->
-        <div class="stat-card stat-card-primary" (click)="goToRifas()">
+        <!-- Rifas Activas -->
+        <div class="stat-card primary" (click)="goToRifas()">
           <div class="stat-icon">🎫</div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats()?.rifas_activas || 0 }}</div>
+            <div class="stat-value">{{ stats().rifas_activas }}</div>
             <div class="stat-label">Rifas Activas</div>
           </div>
-          <div class="stat-trend">
-            <span class="trend-up">↗ Ver rifas</span>
-          </div>
         </div>
 
-        <!-- Card: Mis Números -->
-        <div class="stat-card stat-card-success" (click)="goToMisNumeros()">
+        <!-- Mis Números -->
+        <div class="stat-card success" (click)="goToMisNumeros()">
           <div class="stat-icon">🎟️</div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats()?.mis_numeros_comprados || 0 }}</div>
+            <div class="stat-value">{{ stats().mis_numeros_comprados }}</div>
             <div class="stat-label">Mis Números</div>
           </div>
-          <div class="stat-trend">
-            <span class="trend-neutral">Ver mis números</span>
-          </div>
         </div>
 
-        <!-- Card: Total Invertido -->
-        <div class="stat-card stat-card-warning">
+        <!-- Total Invertido -->
+        <div class="stat-card warning">
           <div class="stat-icon">💰</div>
           <div class="stat-info">
-            <div class="stat-value">{{ formatPrice(stats()?.total_invertido) }}</div>
+            <div class="stat-value">{{ formatPrice(stats().total_invertido) }}</div>
             <div class="stat-label">Total Invertido</div>
           </div>
-          <div class="stat-trend">
-            <span class="trend-neutral">Participación</span>
-          </div>
         </div>
 
-        <!-- Card: Rifas en las que Participo -->
-        <div class="stat-card stat-card-info">
+        <!-- Rifas Participando -->
+        <div class="stat-card info">
           <div class="stat-icon">🎯</div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats()?.mis_rifas_activas || 0 }}</div>
+            <div class="stat-value">{{ stats().mis_rifas_activas }}</div>
             <div class="stat-label">Rifas Participando</div>
-          </div>
-          <div class="stat-trend">
-            <span class="trend-neutral">En juego</span>
           </div>
         </div>
 
-        <!-- CARDS ADICIONALES PARA ADMIN -->
+        <!-- CARDS ADMIN -->
         @if (isAdmin()) {
-          
-          <!-- Card: Total Usuarios -->
-          <div class="stat-card stat-card-purple" (click)="goToUsuarios()">
+          <div class="stat-card purple" (click)="goToUsuarios()">
             <div class="stat-icon">👥</div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats()?.total_usuarios || 0 }}</div>
+              <div class="stat-value">{{ stats().total_usuarios }}</div>
               <div class="stat-label">Usuarios</div>
             </div>
-            <div class="stat-trend">
-              <span class="trend-up">Gestionar →</span>
-            </div>
           </div>
 
-          <!-- Card: Total Recaudado -->
-          <div class="stat-card stat-card-success">
-            <div class="stat-icon">💵</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ formatPrice(stats()?.total_recaudado) }}</div>
-              <div class="stat-label">Total Recaudado</div>
-            </div>
-            <div class="stat-trend">
-              <span class="trend-up">↗ +15%</span>
-            </div>
-          </div>
-
-          <!-- Card: Ventas Hoy -->
-          <div class="stat-card stat-card-primary">
-            <div class="stat-icon">📈</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats()?.numeros_vendidos_hoy || 0 }}</div>
-              <div class="stat-label">Números Vendidos Hoy</div>
-            </div>
-            <div class="stat-trend">
-              <span class="trend-up">Actividad</span>
-            </div>
-          </div>
-
-          <!-- Card: Instituciones -->
-          <div class="stat-card stat-card-orange" (click)="goToInstituciones()">
+          <div class="stat-card orange" (click)="goToInstituciones()">
             <div class="stat-icon">🏛️</div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats()?.total_instituciones || 0 }}</div>
+              <div class="stat-value">{{ stats().total_instituciones }}</div>
               <div class="stat-label">Instituciones</div>
             </div>
-            <div class="stat-trend">
-              <span class="trend-neutral">Ver todas →</span>
+          </div>
+        }
+
+        <!-- CARD VENDEDOR -->
+        @if (isVendedor()) {
+          <div class="stat-card success" (click)="goToVentas()">
+            <div class="stat-icon">📈</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stats().numeros_vendidos_hoy }}</div>
+              <div class="stat-label">Vendidos Hoy</div>
             </div>
           </div>
-
         }
       </div>
 
-      <!-- ============================================
-           SECCIÓN DE DOS COLUMNAS
-           ============================================ -->
-      <div class="dashboard-grid">
+      <!-- ACCIONES RÁPIDAS -->
+      <div class="quick-actions">
+        <h2 class="section-title">⚡ Acciones Rápidas</h2>
+        <div class="actions-grid">
+          
+          <button class="action-btn" (click)="goToRifas()">
+            <span class="action-icon">🎫</span>
+            <span class="action-text">Ver Rifas</span>
+          </button>
 
-        <!-- ============================================
-             COLUMNA IZQUIERDA
-             ============================================ -->
-        <div class="dashboard-left">
+          <button class="action-btn" (click)="goToMisNumeros()">
+            <span class="action-icon">🎟️</span>
+            <span class="action-text">Mis Números</span>
+          </button>
 
-          <!-- MIS RIFAS ACTIVAS -->
-          <div class="card">
-            <div class="card-header">
-              <h2>🎫 Mis Rifas Activas</h2>
-              <button class="btn-link" (click)="goToMisNumeros()">Ver todas →</button>
-            </div>
-            <div class="card-body">
-              @if (misRifas().length === 0) {
-                <div class="empty-state">
-                  <div class="empty-icon">🎯</div>
-                  <p>No estás participando en ninguna rifa activa</p>
-                  <button class="btn btn-primary" (click)="goToRifas()">
-                    Explorar Rifas
-                  </button>
-                </div>
-              } @else {
-                <div class="rifas-list">
-                  @for (rifa of misRifas(); track rifa.id) {
-                    <div class="rifa-item" (click)="verRifa(rifa.id)">
-                      <div class="rifa-item-header">
-                        <h3>{{ rifa.nombre }}</h3>
-                        <span class="badge badge-{{ rifa.estado }}">{{ rifa.estado }}</span>
-                      </div>
-                      <div class="rifa-item-info">
-                        <div class="info-row">
-                          <span class="info-label">Sorteo:</span>
-                          <span class="info-value">{{ formatDate(rifa.fecha_sorteo) }}</span>
-                        </div>
-                        <div class="info-row">
-                          <span class="info-label">Progreso:</span>
-                          <span class="info-value">{{ rifa.porcentaje_vendido }}%</span>
-                        </div>
-                      </div>
-                      <div class="rifa-progress">
-                        <div class="progress-bar">
-                          <div 
-                            class="progress-fill" 
-                            [style.width.%]="rifa.porcentaje_vendido">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
+          @if (isAdmin()) {
+            <button class="action-btn" (click)="router.navigate(['/rifas/crear'])">
+              <span class="action-icon">➕</span>
+              <span class="action-text">Nueva Rifa</span>
+            </button>
 
-          <!-- ACCIONES RÁPIDAS -->
-          <div class="card">
-            <div class="card-header">
-              <h2>⚡ Acciones Rápidas</h2>
-            </div>
-            <div class="card-body">
-              <div class="quick-actions">
-                
-                <button class="action-btn action-btn-primary" (click)="goToRifas()">
-                  <div class="action-icon">🎫</div>
-                  <div class="action-content">
-                    <div class="action-title">Ver Rifas</div>
-                    <div class="action-desc">Explorar rifas disponibles</div>
-                  </div>
-                </button>
+            <button class="action-btn" (click)="goToInstituciones()">
+              <span class="action-icon">🏛️</span>
+              <span class="action-text">Instituciones</span>
+            </button>
 
-                @if (isAdmin()) {
-                  <button class="action-btn action-btn-success" (click)="goToCreateRifa()">
-                    <div class="action-icon">➕</div>
-                    <div class="action-content">
-                      <div class="action-title">Crear Rifa</div>
-                      <div class="action-desc">Nueva rifa solidaria</div>
-                    </div>
-                  </button>
-                }
-
-                <button class="action-btn action-btn-info" (click)="goToMisNumeros()">
-                  <div class="action-icon">🎟️</div>
-                  <div class="action-content">
-                    <div class="action-title">Mis Números</div>
-                    <div class="action-desc">Ver mi participación</div>
-                  </div>
-                </button>
-
-                @if (isAdmin()) {
-                  <button class="action-btn action-btn-warning" (click)="goToUsuarios()">
-                    <div class="action-icon">👥</div>
-                    <div class="action-content">
-                      <div class="action-title">Gestionar Usuarios</div>
-                      <div class="action-desc">Administrar permisos</div>
-                    </div>
-                  </button>
-                }
-
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ============================================
-             COLUMNA DERECHA
-             ============================================ -->
-        <div class="dashboard-right">
-
-          <!-- TOP RIFAS (SOLO ADMIN) -->
-          @if (isAdmin() && topRifas().length > 0) {
-            <div class="card">
-              <div class="card-header">
-                <h2>🏆 Top Rifas por Ventas</h2>
-              </div>
-              <div class="card-body">
-                <div class="top-rifas-list">
-                  @for (rifa of topRifas(); track rifa.id; let index = $index) {
-                    <div class="top-rifa-item" (click)="verRifa(rifa.id)">
-                      <div class="top-rifa-rank">
-                        @if (index === 0) {
-                          <span class="rank-medal gold">🥇</span>
-                        } @else if (index === 1) {
-                          <span class="rank-medal silver">🥈</span>
-                        } @else if (index === 2) {
-                          <span class="rank-medal bronze">🥉</span>
-                        } @else {
-                          <span class="rank-number">{{ index + 1 }}</span>
-                        }
-                      </div>
-                      <div class="top-rifa-content">
-                        <h4>{{ rifa.nombre }}</h4>
-                        <div class="top-rifa-stats">
-                          <span class="stat">{{ rifa.porcentaje_vendido }}% vendido</span>
-                          <span class="stat">{{ formatPrice(rifa.total_recaudado) }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
+            <button class="action-btn" (click)="goToUsuarios()">
+              <span class="action-icon">👥</span>
+              <span class="action-text">Usuarios</span>
+            </button>
           }
 
-          <!-- NOTIFICACIONES RECIENTES -->
-          <div class="card">
-            <div class="card-header">
-              <h2>🔔 Notificaciones</h2>
-            </div>
-            <div class="card-body">
-              <div class="notifications-list">
-                
-                <div class="notification-item notification-info">
-                  <div class="notification-icon">ℹ️</div>
-                  <div class="notification-content">
-                    <div class="notification-title">Bienvenido al sistema</div>
-                    <div class="notification-time">Hace 1 hora</div>
-                  </div>
-                </div>
-
-                <div class="notification-item notification-success">
-                  <div class="notification-icon">✅</div>
-                  <div class="notification-content">
-                    <div class="notification-title">Sistema actualizado</div>
-                    <div class="notification-time">Hace 2 horas</div>
-                  </div>
-                </div>
-
-                <div class="notification-item notification-warning">
-                  <div class="notification-icon">⚠️</div>
-                  <div class="notification-content">
-                    <div class="notification-title">Próximo sorteo mañana</div>
-                    <div class="notification-time">Hace 5 horas</div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- INFO DEL SISTEMA -->
-          <div class="card card-system-info">
-            <div class="card-header">
-              <h2>🔧 Sistema</h2>
-            </div>
-            <div class="card-body">
-              <div class="system-info">
-                <div class="info-row">
-                  <span class="info-label">Estado:</span>
-                  <span class="status-badge status-online">🟢 En línea</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Versión:</span>
-                  <span class="info-value">v2.0.0</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Frontend:</span>
-                  <span class="info-value">Angular 20</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Backend:</span>
-                  <span class="info-value">Node.js + Express</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          @if (isVendedor()) {
+            <button class="action-btn" (click)="goToVentas()">
+              <span class="action-icon">💼</span>
+              <span class="action-text">Gestionar Ventas</span>
+            </button>
+          }
         </div>
-
       </div>
 
     </div>
