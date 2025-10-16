@@ -242,6 +242,14 @@ private async regenerarQRs(numerosData: any[], rifaId: number): Promise<any[]> {
     return numero.precio || this.rifa()?.precio_numero || 0;
   }
 
+ getLogoUrl(): string | null {
+    return ImageUrlHelper.getLogoUrl(this.rifa()?.institucion_logo);
+  }
+
+  getRifaImageUrl(): string | null {
+    return ImageUrlHelper.getRifaImageUrl(this.rifa()?.imagen_url);
+  }
+
   getDisponibles(): number {
     return this.disponibles();
   }
@@ -319,25 +327,48 @@ private async regenerarQRs(numerosData: any[], rifaId: number): Promise<any[]> {
     });
   }
 
-  // ⭐ NUEVO: Compartir por WhatsApp
+ /**
+ * ✅ Compartir número en WhatsApp
+ */
 compartirWhatsApp(numero: NumeroBoleto): void {
   const rifa = this.rifa();
   const rifaId = rifa?.id;
-  const baseUrl = window.location.origin;
-  const urlPublica = `${baseUrl}/public/rifas/${rifaId}/numero/${numero.numero}`;
-
-  const precio = this.getPrecioNumero(numero);
-  const mensaje = `🎉 *${rifa?.nombre}*\n\n` +
-    `🎟️ Entrada N° *${numero.numero}*\n` +
-    `💰 Precio: $${precio.toLocaleString()}\n\n` +
-    `👇 Mirá la imagen del boleto y reservá:\n${urlPublica}`;
-
-  const imagen = encodeURIComponent(rifa?.imagen_url || '');
-  const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}${imagen ? `&attachment=${imagen}` : ''}`;
-
-  window.open(url, '_blank');
+  
+  // URL pública del número
+  const url = `${window.location.origin}/public/rifas/${rifaId}/numero/${numero.numero}`;
+  
+  // Obtener logo/imagen de la rifa
+  const logoUrl = rifa?.imagen_url || this.institucion()?.logo_url;
+  const imagenCompleta = logoUrl ? 
+    (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
+  
+  // Construir mensaje
+  let mensaje = `*Mi numero de la rifa!*\n\n`;
+  mensaje += `${rifa?.nombre}\n`;
+  mensaje += `Numero: ${numero.numero}\n`;
+  mensaje += `Precio: $${(numero.precio_venta || rifa?.precio_numero || 0).toLocaleString('es-AR')}\n`;
+  
+  if (numero.estado === 'vendido' && numero.fecha_venta) {
+    const fecha = new Date(numero.fecha_venta).toLocaleDateString('es-AR');
+    mensaje += `Comprado: ${fecha}\n`;
+  }
+  
+  if (rifa?.fecha_sorteo) {
+    const fechaSorteo = new Date(rifa.fecha_sorteo).toLocaleDateString('es-AR');
+    mensaje += `Sorteo: ${fechaSorteo}\n`;
+  }
+  
+  mensaje += `\n`;
+  
+  if (imagenCompleta) {
+    mensaje += `Ver imagen: ${imagenCompleta}\n\n`;
+  }
+  
+  mensaje += `Ver mi numero: ${url}`;
+  
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+  window.open(whatsappUrl, '_blank');
 }
-
   verQR(numero: NumeroBoleto): void {
     const modal = document.createElement('div');
     modal.style.cssText = `

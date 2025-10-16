@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
 import { NotificationService } from '../../../shared/services/notification.service';
 
 
@@ -145,6 +146,15 @@ export class BuyNumbersComponent implements OnInit {
     });
   }
 
+
+  getLogoUrl(): string | null {
+    return ImageUrlHelper.getLogoUrl(this.rifa()?.institucion_logo);
+  }
+
+  getRifaImageUrl(): string | null {
+    return ImageUrlHelper.getRifaImageUrl(this.rifa()?.imagen_url);
+  }
+
   /**
    * Cargar datos de la rifa
    */
@@ -162,6 +172,8 @@ export class BuyNumbersComponent implements OnInit {
     });
   }
 
+
+  
   /**
    * Cargar números disponibles
    */
@@ -444,15 +456,38 @@ export class BuyNumbersComponent implements OnInit {
   }
 
   /**
-   * ✅ NUEVO: Compartir en WhatsApp
-   */
-  compartirWhatsApp(): void {
-    const rifa = this.rifa();
-    const url = `${window.location.origin}/public/rifas/${this.rifaId}`;
-    const texto = `¡Acabo de comprar ${this.purchaseResult()?.cantidad} números en la rifa "${rifa?.nombre}"! 🎟️\n\n¡Participá vos también!`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + '\n' + url)}`;
-    window.open(whatsappUrl, '_blank');
+ * ✅ MEJORADO: Compartir en WhatsApp con imagen
+ */
+compartirWhatsApp(): void {
+  const url = window.location.href;
+  const logoUrl = this.getRifaImageUrl() || this.getLogoUrl();
+  const imagenCompleta = logoUrl ? 
+    (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
+  
+  const nombre = this.rifa()?.nombre || '';
+  const precio = this.rifa()?.precio_numero || 0;
+  const disponibles = this.rifa()?.numeros_disponibles || 0;
+  const total = this.rifa()?.cantidad_numeros || 0;
+  const fechaSorteo = this.rifa()?.fecha_sorteo ? 
+    new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
+    'A confirmar';
+  
+  // ✅ Emojis simples y compatibles
+  let mensaje = `🎟️ *${nombre}*\n\n`;
+  mensaje += `💰 Precio: $${precio.toLocaleString('es-AR')}\n`;
+  mensaje += `📊 Disponibles: ${disponibles} de ${total}\n`;
+  mensaje += `🎯 Sorteo: ${fechaSorteo}\n\n`;
+  
+  if (imagenCompleta) {
+    mensaje += `🖼️ ${imagenCompleta}\n\n`;
   }
+  
+  mensaje += `👉 ${url}`;
+  
+  // ✅ SOLO codificar la URL, NO el mensaje completo
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+  window.open(whatsappUrl, '_blank');
+}
 
   /**
    * Marcar todos los campos como tocados

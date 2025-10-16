@@ -238,12 +238,36 @@ ngOnInit(): void {
   }
 
   // Métodos de compartir
-  compartirWhatsApp(): void {
-    const url = window.location.href;
-    const texto = `¡Mira esta rifa! ${this.rifa()?.nombre} - Precio: $${this.rifa()?.precio_numero}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}`;
-    window.open(whatsappUrl, '_blank');
+compartirWhatsApp(): void {
+  const url = window.location.href;
+  const logoUrl = this.getRifaImageUrl() || this.getLogoUrl();
+  const imagenCompleta = logoUrl ? 
+    (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
+  
+  const nombre = this.rifa()?.nombre || '';
+  const precio = this.rifa()?.precio_numero || 0;
+  const disponibles = this.rifa()?.numeros_disponibles || 0;
+  const total = this.rifa()?.cantidad_numeros || 0;
+  const fechaSorteo = this.rifa()?.fecha_sorteo ? 
+    new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
+    'A confirmar';
+  
+  // ✅ Emojis simples y compatibles
+  let mensaje = `🎟️ *${nombre}*\n\n`;
+  mensaje += `💰 Precio: $${precio.toLocaleString('es-AR')}\n`;
+  mensaje += `📊 Disponibles: ${disponibles} de ${total}\n`;
+  mensaje += `🎯 Sorteo: ${fechaSorteo}\n\n`;
+  
+  if (imagenCompleta) {
+    mensaje += `🖼️ ${imagenCompleta}\n\n`;
   }
+  
+  mensaje += `👉 ${url}`;
+  
+  // ✅ SOLO codificar la URL, NO el mensaje completo
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+  window.open(whatsappUrl, '_blank');
+}
 
   compartirFacebook(): void {
     const url = window.location.href;
