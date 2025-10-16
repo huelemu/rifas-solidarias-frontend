@@ -1,0 +1,72 @@
+<div class="navbar">
+  <div class="navbar-content">
+    <div class="navbar-left">
+      <a (click)="goToHome()" class="navbar-brand">
+        🎫 Rifas Solidarias
+      </a>
+      
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          Dashboard
+        </a>
+        <a routerLink="/usuarios" routerLinkActive="active" *ngIf="canManageUsers()">
+          Usuarios
+        </a>
+        <a routerLink="/instituciones" routerLinkActive="active" *ngIf="canManageInstitutions()">
+          Instituciones
+        </a>
+        <a routerLink="/rifas" routerLinkActive="active" *ngIf="!esVendedor()">
+          Rifas
+        </a>
+        <a routerLink="/vendedor/mis-ventas" routerLinkActive="active" *ngIf="esVendedor()">
+          💰 Mis Ventas
+        </a>
+      </nav>
+    </div>
+    
+    <div class="navbar-right">
+      <app-notification-center/>
+      
+      <div class="user-menu">
+        <button class="user-button" (click)="toggleMenuUsuario(); $event.stopPropagation()">
+          <div class="user-info">
+            <span class="user-name">{{ getNombreCompleto() }}</span>
+            <span class="user-role">{{ getRoleLabel() }}</span>
+          </div>
+          <span class="dropdown-icon" [class.open]="mostrarMenuUsuario()">▼</span>
+        </button>
+
+        <div class="dropdown-menu" *ngIf="mostrarMenuUsuario()" (click)="$event.stopPropagation()">
+          <div class="dropdown-header">
+            <strong>{{ getNombreCompleto() }}</strong>
+            <span class="user-email">{{ authService.currentUser()?.email }}</span>
+          </div>
+
+          <div class="dropdown-divider"></div>
+
+          <button type="button" class="dropdown-item" (click)="irAConfiguracion()">
+            <span class="item-icon">⚙️</span>
+            Configuración
+          </button>
+
+          <button type="button" class="dropdown-item" (click)="irAMisNumeros()">
+            <span class="item-icon">🎫</span>
+            Mis Números
+          </button>
+
+          <button type="button" class="dropdown-item" *ngIf="esVendedor()" (click)="irAMisVentas()">
+            <span class="item-icon">💰</span>
+            Mis Ventas
+          </button>
+
+          <div class="dropdown-divider"></div>
+
+          <button type="button" class="dropdown-item logout" (click)="logout()">
+            <span class="item-icon">🚪</span>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

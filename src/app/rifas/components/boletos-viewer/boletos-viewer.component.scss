@@ -400,4 +400,216 @@
     transform: scale(1.05);
   }
 }
+
+.vendedor-row {
+  background: #e7f3ff;
+  border-radius: 6px;
+  padding: 0.75rem !important;
+  margin: 0.5rem 0;
+  border-left: 3px solid #007bff;
+
+  .info-label {
+    font-weight: 600;
+    color: #0056b3;
+  }
+
+  .vendedor-name {
+    color: #007bff;
+    font-weight: 700;
+  }
+}
+
+// Botones de acción
+.boleto-action {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 2px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .btn-vender {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .btn-whatsapp {
+    width: 100%;
+    padding: 0.875rem;
+    background: #25d366;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #1fb855;
+      transform: translateY(-2px);
+    }
+  }
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+
+  h3 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: #f8f9fa;
+      color: #000;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+
+  .form-group {
+    margin-bottom: 1.25rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.95rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.875rem;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 2px solid #e9ecef;
+
+  button {
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.btn-secondary {
+      background: #6c757d;
+      color: white;
+
+      &:hover {
+        background: #5a6268;
+      }
+    }
+
+    &.btn-success {
+      background: #28a745;
+      color: white;
+
+      &:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      }
+
+      &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+  }
+}
 }

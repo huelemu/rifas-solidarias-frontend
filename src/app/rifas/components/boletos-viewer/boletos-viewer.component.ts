@@ -1,5 +1,4 @@
 // src/app/rifas/components/boletos-viewer/boletos-viewer.component.ts
-// REEMPLAZAR TODO EL ARCHIVO CON ESTE CÓDIGO ACTUALIZADO
 
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -8,8 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
-import { ImageUrlHelper } from '../../../shared/utils/image-url.helper'; // ✅ IMPORTAR
-
+import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
 
 interface NumeroBoleto {
   id: number;
@@ -22,10 +20,12 @@ interface NumeroBoleto {
   comprador_email?: string;
   vendedor_nombre?: string;
   vendedor_apellido?: string;
+  vendedor_id?: number;
   fecha_venta?: string;
   metodo_pago?: string;
-  precio?: number; // ✅ Ahora es opcional
-  precio_venta?: number; // ✅ Precio de venta si fue vendido
+  precio?: number;
+  precio_venta?: number;
+  fecha_asignacion?: string;
 }
 
 @Component({
@@ -47,7 +47,21 @@ export class BoletosViewerComponent implements OnInit {
   readonly institucion = signal<any>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  
+  // ⭐ NUEVO: Detectar si es vista de vendedor
+  readonly modoVendedor = signal(false);
+  readonly usuarioActual = signal<any>(null);
 
+  // Modal de venta
+  readonly mostrarModalVenta = signal(false);
+  readonly numeroSeleccionado = signal<NumeroBoleto | null>(null);
+  
+  datosComprador = {
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    email: ''
+  };
 
   // Filtros
   filtroEstado = 'todos';
@@ -57,21 +71,38 @@ export class BoletosViewerComponent implements OnInit {
   readonly numerosFiltrados = computed(() => {
     let resultado = this.numeros();
 
-    // Filtrar por estado
     if (this.filtroEstado !== 'todos') {
       resultado = resultado.filter(n => n.estado === this.filtroEstado);
     }
 
-    // Filtrar por número
     if (this.buscarNumero) {
       resultado = resultado.filter(n => n.numero === this.buscarNumero);
     }
 
-    // Ordenar por número
     return resultado.sort((a, b) => a.numero - b.numero);
   });
 
+  readonly disponibles = computed(() => 
+    this.numeros().filter(n => n.estado === 'disponible').length
+  );
+  
+  readonly vendidos = computed(() => 
+    this.numeros().filter(n => n.estado === 'vendido').length
+  );
+
+  readonly reservados = computed(() => 
+    this.numeros().filter(n => n.estado === 'reservado').length
+  );
+
   ngOnInit(): void {
+    // Detectar si viene de ruta de vendedor
+    const rutaActual = this.router.url;
+    this.modoVendedor.set(rutaActual.includes('/vendedor/'));
+    
+    // Obtener usuario actual
+    const user = this.authService.currentUser();
+    this.usuarioActual.set(user);
+
     this.route.params.subscribe(params => {
       const rifaId = +params['rifaId'];
       if (rifaId) {
@@ -84,77 +115,74 @@ export class BoletosViewerComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    console.log('📡 Cargando boletos para rifa:', rifaId);
-
     // Cargar información de la rifa
     this.rifasService.getRifaById(rifaId).subscribe({
       next: (response: any) => {
-        console.log('✅ Rifa cargada:', response);
         const rifaData = response.data || response;
         this.rifa.set(rifaData);
         this.institucion.set(rifaData.institucion_promotora || { nombre: 'Rifa Solidaria' });
       },
-      error: (err) => {
-        console.error('❌ Error cargando rifa:', err);
-      }
+      error: (err) => console.error('Error cargando rifa:', err)
     });
 
-    // Cargar todos los números de la rifa
-    this.rifasService.getNumeros(rifaId, { limit: 10000 }).subscribe({
-      next: (response: any) => {
-        console.log('✅ Números cargados:', response);
-        const numerosData = response.data || [];
-        
-        // ✅ Normalizar precios
-        const numerosNormalizados = numerosData.map((num: any) => ({
-          ...num,
-          precio: this.obtenerPrecio(num)
-        }));
-        
-        this.numeros.set(numerosNormalizados);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('❌ Error cargando números:', err);
-        this.error.set('Error al cargar los boletos');
-        this.loading.set(false);
-      }
-    });
+    // ⭐ CARGAR NÚMEROS SEGÚN EL MODO
+    if (this.modoVendedor()) {
+      // Modo vendedor: solo sus números
+      this.rifasService.obtenerNumerosVendedor(rifaId).subscribe({
+        next: (response) => {
+          this.numeros.set(response.data.numeros || []);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set('Error al cargar números');
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // Modo admin: todos los números
+      this.rifasService.getNumeros(rifaId, { limit: 10000 }).subscribe({
+        next: (response: any) => {
+          const numerosData = response.data || [];
+          const numerosNormalizados = numerosData.map((num: any) => ({
+            ...num,
+            precio: this.obtenerPrecio(num)
+          }));
+          this.numeros.set(numerosNormalizados);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set('Error al cargar boletos');
+          this.loading.set(false);
+        }
+      });
+    }
   }
 
-  /**
-   * ✅ Obtener el precio correcto de un número
-   */
   obtenerPrecio(numero: any): number {
-    // Prioridad: precio_venta > precio > precio_numero de la rifa
     if (numero.precio_venta) return parseFloat(numero.precio_venta);
     if (numero.precio) return parseFloat(numero.precio);
     if (this.rifa()?.precio_numero) return parseFloat(this.rifa().precio_numero);
     return 0;
   }
 
-// ✅ AGREGAR ESTE MÉTODO
   getInstitucionLogoUrl(): string | null {
     return ImageUrlHelper.getLogoUrl(this.institucion()?.logo_url);
   }
 
-  /**
-   * ✅ Obtener el precio formateado de un número
-   */
   getPrecioNumero(numero: NumeroBoleto): number {
     return numero.precio || this.rifa()?.precio_numero || 0;
   }
 
   getDisponibles(): number {
-    return this.numeros().filter(n => n.estado === 'disponible').length;
+    return this.disponibles();
   }
 
   getReservados(): number {
-    return this.numeros().filter(n => n.estado === 'reservado').length;
+    return this.reservados();
   }
 
   getVendidos(): number {
-    return this.numeros().filter(n => n.estado === 'vendido').length;
+    return this.vendidos();
   }
 
   aplicarFiltros(): void {
@@ -174,14 +202,68 @@ export class BoletosViewerComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/rifas']);
+    if (this.modoVendedor()) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/rifas']);
+    }
   }
 
-  /**
-   * ✅ Ver el QR en grande
-   */
+  // ⭐ NUEVO: Abrir modal de venta
+  venderNumero(numero: NumeroBoleto): void {
+    if (numero.estado !== 'disponible') {
+      alert('Este número no está disponible');
+      return;
+    }
+    this.numeroSeleccionado.set(numero);
+    this.mostrarModalVenta.set(true);
+  }
+
+  cerrarModalVenta(): void {
+    this.numeroSeleccionado.set(null);
+    this.mostrarModalVenta.set(false);
+    this.datosComprador = { nombre: '', apellido: '', telefono: '', email: '' };
+  }
+
+  confirmarVenta(): void {
+    const numero = this.numeroSeleccionado();
+    if (!numero) return;
+
+    this.loading.set(true);
+    const rifaId = this.rifa()!.id;
+
+    this.rifasService.venderNumeroVendedor(rifaId, numero.numero, {
+      comprador_nombre: this.datosComprador.nombre,
+      comprador_apellido: this.datosComprador.apellido,
+      comprador_telefono: this.datosComprador.telefono,
+      comprador_email: this.datosComprador.email
+    }).subscribe({
+      next: () => {
+        alert('✅ Entrada vendida exitosamente');
+        this.cerrarModalVenta();
+        this.cargarBoletos(rifaId);
+      },
+      error: (err) => {
+        alert('❌ Error: ' + (err.error?.message || 'Error desconocido'));
+        this.loading.set(false);
+      }
+    });
+  }
+
+  // ⭐ NUEVO: Compartir por WhatsApp
+  compartirWhatsApp(numero: NumeroBoleto): void {
+    const rifa = this.rifa();
+    const precio = this.getPrecioNumero(numero);
+    const mensaje = `🎉 *${rifa?.nombre}*\n\n` +
+      `📍 Entrada #${numero.numero}\n` +
+      `💵 Precio: $${precio.toLocaleString()}\n\n` +
+      `¿Te interesa? ¡Reservala ahora! 🎫`;
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+  }
+
   verQR(numero: NumeroBoleto): void {
-    // Crear modal para ver QR grande
     const modal = document.createElement('div');
     modal.style.cssText = `
       position: fixed;
@@ -199,51 +281,23 @@ export class BoletosViewerComponent implements OnInit {
     
     modal.innerHTML = `
       <div style="text-align: center; color: white;">
-        <h2 style="margin-bottom: 1rem;">Número ${numero.numero}</h2>
-        <img src="${numero.qr_code}" style="max-width: 400px; max-height: 400px; background: white; padding: 1rem; border-radius: 8px;">
-        <p style="margin-top: 1rem; font-size: 0.9rem;">Click para cerrar</p>
+        <h2 style="margin-bottom: 20px;">Entrada #${numero.numero}</h2>
+        <img src="${numero.qr_code}" style="max-width: 400px; background: white; padding: 20px; border-radius: 10px;">
+        <p style="margin-top: 20px;">Click para cerrar</p>
       </div>
     `;
     
-    modal.onclick = () => document.body.removeChild(modal);
+    modal.onclick = () => modal.remove();
     document.body.appendChild(modal);
   }
 
-  /**
-   * ✅ Copiar URL pública del número
-   */
-  copiarURLPublica(numero: NumeroBoleto): void {
-    const rifaId = this.rifa()?.id;
-    const url = `${window.location.origin}/public/rifas/${rifaId}/numero/${numero.numero}`;
-    
-    navigator.clipboard.writeText(url).then(() => {
-      alert('✅ URL copiada al portapapeles');
-    }).catch(() => {
-      // Fallback para navegadores antiguos
-      const input = document.createElement('input');
-      input.value = url;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-      alert('✅ URL copiada al portapapeles');
-    });
-  }
+  abrirURLPublica(numero: NumeroBoleto): void {
+  const rifaId = this.rifa()?.id;
+  const url = `/public/rifas/${rifaId}/numero/${numero.numero}`;
+  window.open(url, '_blank');
+}
 
   generarPDF(): void {
-    const rifaId = this.rifa()?.id;
-    const usuario = this.authService.currentUser();
-    
-    if (!rifaId || !usuario) {
-      alert('No se puede generar el PDF en este momento');
-      return;
-    }
-
-    alert('Funcionalidad de generación de PDF - Por implementar en siguiente etapa');
-  }
-
-  venderNumero(numero: NumeroBoleto): void {
-    console.log('Vender número:', numero);
-    alert(`Funcionalidad de venta para el número ${numero.numero} - Por implementar en siguiente etapa`);
+    alert('Función de generar PDF próximamente');
   }
 }

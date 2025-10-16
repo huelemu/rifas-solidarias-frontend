@@ -1,0 +1,333 @@
+// vendedor-numeros.component.scss
+
+.vendedor-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .btn-back {
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    
+    &:hover {
+      background: #e9ecef;
+    }
+  }
+
+  .header-info h1 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  .rifa-nombre {
+    color: #6c757d;
+    margin: 0;
+  }
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-left: 4px solid #3498db;
+
+  &.total { border-left-color: #9b59b6; }
+  &.disponible { border-left-color: #27ae60; }
+  &.vendido { border-left-color: #e74c3c; }
+  &.progreso { border-left-color: #f39c12; }
+
+  .stat-icon {
+    font-size: 2.5rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+}
+
+.progress-bar {
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    transition: width 0.3s;
+  }
+}
+
+.controles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .filtros {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .vista-toggle {
+    display: flex;
+    gap: 0.5rem;
+    
+    button {
+      padding: 0.5rem 1rem;
+      border: 2px solid #dee2e6;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      
+      &.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+    }
+  }
+}
+
+.numeros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.numero-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 3px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+
+  &.disponible {
+    border-color: #27ae60;
+  }
+
+  &.vendido {
+    border-color: #e74c3c;
+    opacity: 0.8;
+  }
+}
+
+.numero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .numero-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+}
+
+.numero-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &.btn-primary {
+      background: #007bff;
+      color: white;
+      
+      &:hover {
+        background: #0056b3;
+      }
+    }
+
+    &.btn-whatsapp {
+      background: #25d366;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      
+      &:hover {
+        background: #1fb855;
+      }
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    &.btn-icon {
+      background: #f8f9fa;
+      font-size: 1.5rem;
+      
+      &:hover {
+        background: #e9ecef;
+      }
+    }
+  }
+}
+
+.numero-comprador {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 0.9rem;
+
+  p {
+    margin: 0.25rem 0;
+    color: #495057;
+  }
+}
+
+// Modal
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+
+  h3 {
+    margin: 0;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    
+    &:hover {
+      color: #000;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1rem;
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #dee2e6;
+
+  button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &.btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    &.btn-success {
+      background: #28a745;
+      color: white;
+
+      &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

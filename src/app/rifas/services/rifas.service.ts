@@ -371,6 +371,16 @@ getHistorialCompras(): Observable<any> {
     console.log(`💾 PDF descargado: ${nombreArchivo}`);
   }
 
+  obtenerNumerosVendedor(rifaId: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/rifas/${rifaId}/vendedor/mis-numeros`);
+}
+
+venderNumeroVendedor(rifaId: number, numero: number, datos: any): Observable<any> {
+  return this.http.post(
+    `${this.baseUrl}/rifas/${rifaId}/numeros/${numero}/vender-vendedor`,
+    datos
+  );
+}
 
 // ===================================================
 // MÉTODOS PÚBLICOS (SIN AUTENTICACIÓN)

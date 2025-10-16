@@ -1,14 +1,14 @@
 @use '../../../../styles/variables' as *;
 
-
 .navbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 100; // ⭐ Navbar base
 }
+
 
 .navbar-content {
   max-width: 1400px;
@@ -70,47 +70,160 @@
   gap: $spacing-lg;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+// ===================================================
+// MENÚ DESPLEGABLE DE USUARIO
+// ===================================================
+
+.user-menu {
+  position: relative;
 }
 
-.user-name {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
-
-.btn-logout {
+.user-button {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-lg;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: $border-radius-sm;
+  border-radius: 8px;
+  color: white;
   cursor: pointer;
-  font-weight: 500;
-  transition: all $transition-fast;
-  font-family: inherit;
-  font-size: 0.875rem;
-  
+  transition: all 0.2s;
+
   &:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
   }
-  
-  svg {
-    flex-shrink: 0;
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: white;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .dropdown-icon {
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+    color: white;
+
+    &.open {
+      transform: rotate(180deg);
+    }
   }
 }
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 260px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1002; // ⭐ AUMENTADO (debe estar sobre el overlay)
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-header {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  .user-email {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e9ecef;
+  margin: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+
+  .item-icon {
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+    color: #667eea;
+  }
+
+  &.logout {
+    color: #dc3545;
+
+    &:hover {
+      background: #fff5f5;
+      color: #c82333;
+    }
+  }
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001; // ⭐ AUMENTADO (entre navbar y dropdown)
+  background: transparent;
+}
+
+// ===================================================
+// RESPONSIVE
+// ===================================================
 
 @media (max-width: 768px) {
   .navbar-content {
@@ -118,18 +231,26 @@
   }
   
   .navbar-nav {
-    display: none; // Ocultar en móvil (o implementar menú hamburguesa)
-  }
-  
-  .user-info {
     display: none;
   }
-  
-  .btn-logout {
-    padding: $spacing-sm;
+
+  .user-button {
+    padding: 0.5rem;
     
-    span {
+    .user-info {
       display: none;
     }
+    
+    .dropdown-icon {
+      font-size: 1rem;
+    }
+  }
+
+  .dropdown-menu {
+    right: -10px;
+    min-width: 240px;
   }
 }
+
+
+

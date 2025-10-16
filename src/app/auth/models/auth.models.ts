@@ -60,12 +60,20 @@ export interface RegisterResponse {
 export interface User {
   id: number;
   email: string;
-  name: string;          // Mapeado desde nombre + apellido del backend
-  role: UserRole;
+  nombre: string;        // ✅ Campo real del backend
+  apellido: string;      // ✅ Campo real del backend
+  rol: UserRole;         // ✅ Campo real del backend (no "role")
+  telefono?: string;
+  dni?: string;
   institucion_id?: number;
   institucion?: Institucion;
-  created_at?: string;
-  updated_at?: string;
+  activa?: boolean;
+  fecha_creacion?: string;
+  fecha_actualizacion?: string;
+    
+  // ⭐ Computed properties para retrocompatibilidad
+  name?: string;         // Se calcula como nombre + apellido
+  role?: UserRole;       // Alias de rol
 }
 
 /**
