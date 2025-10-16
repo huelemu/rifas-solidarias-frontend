@@ -372,7 +372,7 @@ getHistorialCompras(): Observable<any> {
   }
 
   obtenerNumerosVendedor(rifaId: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}/rifas/${rifaId}/vendedor/mis-numeros`);
+  return this.http.get<any>(`${this.baseUrl}/rifas/${rifaId}/vendedor/mis-numeros`);
 }
 
 venderNumeroVendedor(rifaId: number, numero: number, datos: any): Observable<any> {

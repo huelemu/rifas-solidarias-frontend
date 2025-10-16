@@ -8,6 +8,7 @@ import { RifasService } from '../../services/rifas.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
+import * as QRCode from 'qrcode';
 
 interface NumeroBoleto {
   id: number;
@@ -66,21 +67,30 @@ export class BoletosViewerComponent implements OnInit {
   // Filtros
   filtroEstado = 'todos';
   buscarNumero: number | null = null;
+  filtroVendedor = '';
 
   // Computed
   readonly numerosFiltrados = computed(() => {
-    let resultado = this.numeros();
+  let resultado = this.numeros();
 
-    if (this.filtroEstado !== 'todos') {
-      resultado = resultado.filter(n => n.estado === this.filtroEstado);
-    }
+  if (this.filtroEstado !== 'todos') {
+    resultado = resultado.filter(n => n.estado === this.filtroEstado);
+  }
 
-    if (this.buscarNumero) {
-      resultado = resultado.filter(n => n.numero === this.buscarNumero);
-    }
+  if (this.buscarNumero) {
+    resultado = resultado.filter(n => n.numero === this.buscarNumero);
+  }
 
-    return resultado.sort((a, b) => a.numero - b.numero);
-  });
+  if (this.filtroVendedor.trim()) {
+    const texto = this.filtroVendedor.trim().toLowerCase();
+    resultado = resultado.filter(n =>
+      (n.vendedor_nombre?.toLowerCase().includes(texto) || 
+       n.vendedor_apellido?.toLowerCase().includes(texto))
+    );
+  }
+
+  return resultado.sort((a, b) => a.numero - b.numero);
+});
 
   readonly disponibles = computed(() => 
     this.numeros().filter(n => n.estado === 'disponible').length
@@ -95,68 +105,127 @@ export class BoletosViewerComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    // Detectar si viene de ruta de vendedor
-    const rutaActual = this.router.url;
-    this.modoVendedor.set(rutaActual.includes('/vendedor/'));
-    
-    // Obtener usuario actual
-    const user = this.authService.currentUser();
-    this.usuarioActual.set(user);
+  // Detectar si viene de ruta de vendedor
+  const rutaActual = this.router.url;
+  const esRutaVendedor = rutaActual.includes('/vendedor/');
+  
+  // Obtener usuario actual
+  const user = this.authService.currentUser();
+  const esRolVendedor = user?.rol === 'vendedor';
+  
+  // ⭐ MODO VENDEDOR si viene de ruta O tiene rol vendedor
+  this.modoVendedor.set(esRutaVendedor || esRolVendedor);
+  
+  console.log('🔍 Detección modo vendedor:');
+  console.log('  - Ruta actual:', rutaActual);
+  console.log('  - Es ruta vendedor:', esRutaVendedor);
+  console.log('  - Usuario rol:', user?.rol);
+  console.log('  - Es rol vendedor:', esRolVendedor);
+  console.log('  - Modo final:', this.modoVendedor());
 
-    this.route.params.subscribe(params => {
-      const rifaId = +params['rifaId'];
-      if (rifaId) {
-        this.cargarBoletos(rifaId);
-      }
-    });
-  }
+
+  
+  const User = this.authService.currentUser();
+  this.usuarioActual.set(user);
+
+  this.route.params.subscribe(params => {
+    const rifaId = +params['rifaId'];
+    if (rifaId) {
+      this.cargarBoletos(rifaId);
+    }
+  });
+}
 
   cargarBoletos(rifaId: number): void {
-    this.loading.set(true);
-    this.error.set(null);
+  this.loading.set(true);
+  this.error.set(null);
 
-    // Cargar información de la rifa
-    this.rifasService.getRifaById(rifaId).subscribe({
-      next: (response: any) => {
-        const rifaData = response.data || response;
-        this.rifa.set(rifaData);
-        this.institucion.set(rifaData.institucion_promotora || { nombre: 'Rifa Solidaria' });
+  // Cargar información de la rifa
+  this.rifasService.getRifaById(rifaId).subscribe({
+    next: (response: any) => {
+      const rifaData = response.data || response;
+      this.rifa.set(rifaData);
+      this.institucion.set(rifaData.institucion_promotora || { nombre: 'Rifa Solidaria' });
+    },
+    error: (err) => console.error('Error cargando rifa:', err)
+  });
+
+  // ⭐ CARGAR NÚMEROS SEGÚN EL MODO
+  if (this.modoVendedor()) {
+    console.log('🔑 Modo vendedor: cargando solo números asignados');
+    // Vendedor: solo sus números
+    this.rifasService.obtenerNumerosVendedor(rifaId).subscribe({
+      next: async (response) => {
+        console.log('📦 Números del vendedor:', response);
+        const numerosData = response.data?.numeros || [];
+        
+        // Regenerar QR
+        const numerosConQR = await this.regenerarQRs(numerosData, rifaId);
+        this.numeros.set(numerosConQR);
+        this.loading.set(false);
       },
-      error: (err) => console.error('Error cargando rifa:', err)
+      error: (err) => {
+        console.error('❌ Error cargando números del vendedor:', err);
+        this.error.set('Error al cargar tus números');
+        this.loading.set(false);
+      }
     });
+  } else {
+    console.log('👑 Modo admin: cargando todos los números');
+    // Admin: todos los números
+    this.rifasService.getNumeros(rifaId, { limit: 10000 }).subscribe({
+      next: async (response: any) => {
+        const numerosData = response.data || [];
+        
+        // Regenerar QR
+        const numerosConQR = await this.regenerarQRs(numerosData, rifaId);
+        this.numeros.set(numerosConQR);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Error cargando números:', err);
+        this.error.set('Error al cargar boletos');
+        this.loading.set(false);
+      }
+    });
+    
 
-    // ⭐ CARGAR NÚMEROS SEGÚN EL MODO
-    if (this.modoVendedor()) {
-      // Modo vendedor: solo sus números
-      this.rifasService.obtenerNumerosVendedor(rifaId).subscribe({
-        next: (response) => {
-          this.numeros.set(response.data.numeros || []);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.error.set('Error al cargar números');
-          this.loading.set(false);
-        }
-      });
-    } else {
-      // Modo admin: todos los números
-      this.rifasService.getNumeros(rifaId, { limit: 10000 }).subscribe({
-        next: (response: any) => {
-          const numerosData = response.data || [];
-          const numerosNormalizados = numerosData.map((num: any) => ({
-            ...num,
-            precio: this.obtenerPrecio(num)
-          }));
-          this.numeros.set(numerosNormalizados);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.error.set('Error al cargar boletos');
-          this.loading.set(false);
-        }
-      });
-    }
   }
+}
+
+// ⭐ NUEVO MÉTODO: Regenerar QRs
+private async regenerarQRs(numerosData: any[], rifaId: number): Promise<any[]> {
+  return Promise.all(
+    numerosData.map(async (num: any) => {
+      try {
+        const baseUrl = window.location.origin;
+        const urlCompleta = `${baseUrl}/public/rifas/${rifaId}/numero/${num.numero}`;
+        
+        const qrCode = await QRCode.toDataURL(urlCompleta, {
+          errorCorrectionLevel: 'H',
+          margin: 1,
+          width: 300,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        
+        return {
+          ...num,
+          qr_code: qrCode,
+          precio: this.obtenerPrecio(num)
+        };
+      } catch (error) {
+        console.error(`Error generando QR para número ${num.numero}:`, error);
+        return {
+          ...num,
+          precio: this.obtenerPrecio(num)
+        };
+      }
+    })
+  );
+}
 
   obtenerPrecio(numero: any): number {
     if (numero.precio_venta) return parseFloat(numero.precio_venta);
@@ -251,17 +320,23 @@ export class BoletosViewerComponent implements OnInit {
   }
 
   // ⭐ NUEVO: Compartir por WhatsApp
-  compartirWhatsApp(numero: NumeroBoleto): void {
-    const rifa = this.rifa();
-    const precio = this.getPrecioNumero(numero);
-    const mensaje = `🎉 *${rifa?.nombre}*\n\n` +
-      `📍 Entrada #${numero.numero}\n` +
-      `💵 Precio: $${precio.toLocaleString()}\n\n` +
-      `¿Te interesa? ¡Reservala ahora! 🎫`;
-    
-    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-  }
+compartirWhatsApp(numero: NumeroBoleto): void {
+  const rifa = this.rifa();
+  const rifaId = rifa?.id;
+  const baseUrl = window.location.origin;
+  const urlPublica = `${baseUrl}/public/rifas/${rifaId}/numero/${numero.numero}`;
+
+  const precio = this.getPrecioNumero(numero);
+  const mensaje = `🎉 *${rifa?.nombre}*\n\n` +
+    `🎟️ Entrada N° *${numero.numero}*\n` +
+    `💰 Precio: $${precio.toLocaleString()}\n\n` +
+    `👇 Mirá la imagen del boleto y reservá:\n${urlPublica}`;
+
+  const imagen = encodeURIComponent(rifa?.imagen_url || '');
+  const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}${imagen ? `&attachment=${imagen}` : ''}`;
+
+  window.open(url, '_blank');
+}
 
   verQR(numero: NumeroBoleto): void {
     const modal = document.createElement('div');

@@ -333,7 +333,7 @@ export class UserProfileComponent implements OnInit {
         nombre: currentUser.name?.split(' ')[0] || '',
         apellido: currentUser.name?.split(' ').slice(1).join(' ') || '',
         email: currentUser.email,
-        telefono: currentUser.name || ''
+        telefono: currentUser.telefono || ''
       });
     }
   }

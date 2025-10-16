@@ -1,571 +1,411 @@
-// src/app/rifas/components/boletos-viewer/boletos-viewer.component.scss
+/* ============================================================
+   🎟️ BOLETOS VIEWER COMPONENT
+   Estilo moderno y limpio para la grilla y el modal de venta
+============================================================ */
 
 .boletos-container {
-  max-width: 1400px;
+  padding: 20px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 2rem;
-  background: #f8f9fa;
-  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
+
+/* ================== HEADER ================== */
 
 .boletos-header {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
 
-.header-content {
-  margin-bottom: 1.5rem;
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
 
-  .btn-back {
-    padding: 0.5rem 1rem;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 1rem;
-    
-    &:hover {
-      background: #5a6268;
+    h1 {
+      font-size: 1.6rem;
+      margin: 0;
     }
-  }
 
-  h1 {
-    margin: 0 0 0.5rem 0;
-    color: #2c3e50;
-    font-size: 1.8rem;
-  }
+    .btn-back {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
 
-  .institucion-name {
-    color: #7f8c8d;
-    font-size: 1.1rem;
-    margin: 0;
-  }
-}
+      &:hover {
+        background: #0056b3;
+      }
+    }
 
-.header-controls {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-
-  label {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    font-weight: 500;
-  }
-}
-
-.form-select, .form-control {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.boletos-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  border-left: 4px solid #3498db;
-
-  &.disponible { border-left-color: #27ae60; }
-  &.reservado { border-left-color: #f39c12; }
-  &.vendido { border-left-color: #e74c3c; }
-  &.total { border-left-color: #9b59b6; }
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.boletos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.boleto-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 3px solid transparent;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  }
-
-  &.disponible {
-    border-color: #27ae60;
-  }
-
-  &.reservado {
-    border-color: #f39c12;
-    opacity: 0.8;
-  }
-
-  &.vendido {
-    border-color: #e74c3c;
-    opacity: 0.7;
-  }
-}
-
-.boleto-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.boleto-numero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-
-  .numero-label {
-    font-size: 0.75rem;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .numero-value {
-    font-size: 2rem;
-    font-weight: bold;
-  }
-}
-
-.estado-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.disponible {
-    background: #d4edda;
-    color: #155724;
-  }
-
-  &.reservado {
-    background: #fff3cd;
-    color: #856404;
-  }
-
-  &.vendido {
-    background: #f8d7da;
-    color: #721c24;
-  }
-}
-
-.boleto-qr {
-  padding: 1.5rem;
-  background: #f8f9fa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.qr-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 8px;
-  background: white;
-  padding: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.boleto-info {
-  padding: 1rem 1.5rem;
-  background: white;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.info-label {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.info-value {
-  color: #2c3e50;
-  font-weight: 600;
-  text-align: right;
-
-  &.price {
-    color: #27ae60;
-    font-size: 1.1rem;
-  }
-
-  &.small {
-    font-size: 0.85rem;
-    word-break: break-all;
-  }
-}
-
-.boleto-comprador {
-  background: #f8f9fa;
-  padding: 1rem 1.5rem;
-  border-top: 2px solid #e9ecef;
-}
-
-.comprador-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.comprador-icon {
-  font-size: 1.2rem;
-}
-
-.comprador-title {
-  font-weight: 600;
-  color: #495057;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-}
-
-.comprador-info .info-row {
-  padding: 0.4rem 0;
-  font-size: 0.9rem;
-}
-
-.boleto-action {
-  padding: 1rem 1.5rem;
-  background: white;
-}
-
-.btn-vender {
-  width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-
-  &:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-}
-
-.loading-container, .error-container, .empty-state {
-  text-align: center;
-  padding: 3rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@media (max-width: 768px) {
-  .boletos-container {
-    padding: 1rem;
-  }
-
-  .boletos-grid {
-    grid-template-columns: 1fr;
+    .institucion-name {
+      font-weight: 600;
+      color: #444;
+    }
   }
 
   .header-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
 
-  .action-buttons {
-    margin-left: 0;
-    flex-direction: column;
-  }
-
-.btn-copy-url {
-  padding: 0.25rem 0.75rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #5568d3;
-    transform: scale(1.05);
-  }
-}
-
-.qr-image {
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-}
-
-.vendedor-row {
-  background: #e7f3ff;
-  border-radius: 6px;
-  padding: 0.75rem !important;
-  margin: 0.5rem 0;
-  border-left: 3px solid #007bff;
-
-  .info-label {
-    font-weight: 600;
-    color: #0056b3;
-  }
-
-  .vendedor-name {
-    color: #007bff;
-    font-weight: 700;
-  }
-}
-
-// Botones de acción
-.boleto-action {
-  padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-top: 2px solid #e9ecef;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-
-  .btn-vender {
-    width: 100%;
-    padding: 0.875rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      label {
+        font-size: 0.9rem;
+        margin-bottom: 3px;
+        color: #555;
+      }
+      select,
+      input {
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 0.95rem;
+      }
     }
 
-    &:active {
-      transform: translateY(0);
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+
+      .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &.btn-primary {
+          background: #007bff;
+          color: #fff;
+          &:hover { background: #0056b3; }
+        }
+
+        &.btn-secondary {
+          background: #6c757d;
+          color: #fff;
+          &:hover { background: #5a6268; }
+        }
+      }
+    }
+  }
+}
+
+/* ================== STATS ================== */
+
+.boletos-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+
+  .stat-card {
+    flex: 1;
+    min-width: 120px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    font-weight: 600;
+
+    .stat-number {
+      font-size: 1.4rem;
+    }
+
+    &.disponible .stat-number { color: #28a745; }
+    &.reservado .stat-number { color: #ffc107; }
+    &.vendido .stat-number { color: #dc3545; }
+    &.total .stat-number { color: #007bff; }
+  }
+}
+
+/* ================== GRID DE BOLETOS ================== */
+
+.boletos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 📏 tarjetas más anchas */
+  gap: 20px;
+}
+
+.boleto-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* separa info del footer */
+  min-height: 360px; /* 📏 más altas */
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  &.disponible { border-top: 4px solid #28a745; }
+  &.reservado { border-top: 4px solid #ffc107; }
+  &.vendido { border-top: 4px solid #dc3545; }
+}
+
+.boleto-vendedor {
+  width: 100%;
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .vendedor-label {
+    font-weight: 600;
+    color: #444;
+  }
+
+  .vendedor-value {
+    color: #007bff;
+    font-weight: 600;
+  }
+}
+
+.info-row .vendedor-name {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* ENCABEZADO DE CADA BOLETO */
+.boleto-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .boleto-numero {
+    display: flex;
+    align-items: center;
+    .numero-label {
+      font-weight: 600;
+      margin-right: 3px;
+    }
+    .numero-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #333;
+    }
+  }
+
+  .estado-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+
+    &.disponible { background: #28a745; }
+    &.reservado { background: #ffc107; color: #000; }
+    &.vendido { background: #dc3545; }
+  }
+}
+
+/* QR CODE */
+.boleto-qr {
+  margin: 10px 0;
+  .qr-image {
+    width: 130px;
+    height: 130px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    background: #fff;
+    padding: 4px;
+  }
+}
+
+/* INFO DEL BOLETO */
+.boleto-info {
+  width: 100%;
+  margin-bottom: 8px;
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 2px 0;
+
+    .info-label {
+      font-weight: 600;
+      color: #555;
+    }
+
+    .price {
+      color: #28a745;
+      font-weight: 700;
+    }
+  }
+
+  .btn-copy-url {
+    background: #f1f1f1;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    &:hover {
+      background: #e2e2e2;
+    }
+  }
+}
+
+/* SECCIÓN DE VENTA */
+.boleto-comprador {
+  width: 100%;
+  margin-top: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px;
+
+  .comprador-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+}
+
+/* ================== BOTONES DE ACCIÓN ================== */
+.boleto-action {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+
+  button {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  .btn-vender {
+    background: #007bff;
+    color: #fff;
+
+    &:hover {
+      background: #0056b3;
     }
   }
 
   .btn-whatsapp {
-    width: 100%;
-    padding: 0.875rem;
-    background: #25d366;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+    background: #25D366;
+    color: #fff;
 
     &:hover {
-      background: #1fb855;
-      transform: translateY(-2px);
+      background: #1ebe5d;
     }
   }
 }
+
+/* ================== MODAL ================== */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 2000;
-  animation: fadeIn 0.2s;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 400px;
+  max-width: 95vw;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.25s ease-out;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 12px;
 
   h3 {
     margin: 0;
-    color: #2c3e50;
+    font-size: 1.3rem;
   }
 
   .btn-close {
-    background: none;
+    background: transparent;
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #6c757d;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s;
-    
+    color: #666;
+
     &:hover {
-      background: #f8f9fa;
       color: #000;
     }
   }
 }
 
 .modal-body {
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
   .form-group {
-    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
 
     label {
-      display: block;
-      margin-bottom: 0.5rem;
       font-weight: 600;
-      color: #495057;
-      font-size: 0.95rem;
+      margin-bottom: 4px;
     }
 
-    .form-control {
-      width: 100%;
-      padding: 0.875rem;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-
-      &:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      }
+    input {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
   }
 }
@@ -573,43 +413,52 @@
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 2px solid #e9ecef;
+  gap: 10px;
+  margin-top: 10px;
 
-  button {
-    padding: 0.875rem 1.5rem;
-    border: none;
+  .btn-secondary, .btn-success {
+    padding: 8px 14px;
     border-radius: 8px;
-    font-weight: 600;
+    border: none;
     cursor: pointer;
-    transition: all 0.2s;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
 
-    &.btn-secondary {
-      background: #6c757d;
-      color: white;
+  .btn-secondary {
+    background: #ccc;
+    &:hover { background: #bbb; }
+  }
 
-      &:hover {
-        background: #5a6268;
-      }
-    }
-
-    &.btn-success {
-      background: #28a745;
-      color: white;
-
-      &:hover {
-        background: #218838;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-      }
-
-      &:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-        transform: none;
-      }
-    }
+  .btn-success {
+    background: #28a745;
+    color: white;
+    &:hover { background: #218838; }
   }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ================== ESTADOS VACÍO Y ERROR ================== */
+.loading-container, .error-container, .empty-state {
+  text-align: center;
+  margin-top: 30px;
+  color: #666;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

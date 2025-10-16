@@ -27,6 +27,16 @@
       </div>
 
       <div class="filter-group">
+        <label>Filtrar por vendedor:</label>
+        <input 
+          type="text"
+          [(ngModel)]="filtroVendedor"
+          (ngModelChange)="aplicarFiltros()"
+          placeholder="Nombre o apellido..."
+          class="form-control">
+      </div>
+
+      <div class="filter-group">
         <label>Buscar número:</label>
         <input 
           type="number" 
@@ -115,32 +125,43 @@
           [alt]="'QR Número ' + numero.numero"
           class="qr-image"
           (click)="verQR(numero)"
-          style="cursor: pointer;"
           title="Click para ver en grande">
       </div>
 
-     <!-- INFORMACIÓN DEL BOLETO -->
+      <!-- INFORMACIÓN DEL BOLETO -->
       <div class="boleto-info">
         <div class="info-row">
           <span class="info-label">Rifa:</span>
           <span class="info-value">{{ rifa()?.nombre }}</span>
         </div>
+
         <div class="info-row">
           <span class="info-label">Precio:</span>
-          <span class="info-value price">${{ getPrecioNumero(numero) | number:'1.2-2' }}</span>
+          <span class="info-value price">
+            ${{ getPrecioNumero(numero) | number:'1.2-2' }}
+          </span>
         </div>
+
+        <!-- ✅ NUEVO: Vendedor -->
+        <div class="info-row" *ngIf="numero.vendedor_nombre">
+          <span class="info-label">Vendedor:</span>
+          <span class="info-value vendedor-name">
+            {{ numero.vendedor_nombre }} {{ numero.vendedor_apellido }}
+          </span>
+        </div>
+
         <div class="info-row" *ngIf="numero.estado === 'disponible'">
           <span class="info-label">URL Pública:</span>
-        <button
-          class="btn-copy-url"
-          (click)="abrirURLPublica(numero)"
-          title="Abrir URL pública">
-          🌐 Abrir Link
-        </button>
+          <button
+            class="btn-copy-url"
+            (click)="abrirURLPublica(numero)"
+            title="Abrir URL pública">
+            🌐 Abrir Link
+          </button>
         </div>
       </div>
 
-          <!-- INFORMACIÓN DEL COMPRADOR Y VENDEDOR -->
+      <!-- INFORMACIÓN DEL COMPRADOR -->
       <div *ngIf="numero.estado === 'vendido'" class="boleto-comprador">
         <div class="comprador-header">
           <span class="comprador-icon">👤</span>
@@ -159,15 +180,6 @@
             <span class="info-label">Email:</span>
             <span class="info-value small">{{ numero.comprador_email }}</span>
           </div>
-          
-          <!-- ⭐ NUEVO: INFORMACIÓN DEL VENDEDOR -->
-          <div *ngIf="numero.vendedor_nombre" class="info-row vendedor-row">
-            <span class="info-label">🏷️ Vendido por:</span>
-            <span class="info-value vendedor-name">
-              {{ numero.vendedor_nombre }} {{ numero.vendedor_apellido }}
-            </span>
-          </div>
-          
           <div *ngIf="numero.fecha_venta" class="info-row">
             <span class="info-label">Fecha:</span>
             <span class="info-value">{{ numero.fecha_venta | date:'short' }}</span>
@@ -188,71 +200,64 @@
           📱 Compartir WhatsApp
         </button>
       </div>
-      <!-- ACCIÓN (solo disponibles) -->
-      <div *ngIf="numero.estado === 'disponible'" class="boleto-action">
-        <button class="btn-vender" (click)="venderNumero(numero)">
-          💳 Vender
-        </button>
-      </div>
     </div>
   </div>
-
-      <!-- MODAL DE VENTA -->
-      <div *ngIf="mostrarModalVenta()" class="modal-overlay" (click)="cerrarModalVenta()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>💳 Vender Entrada #{{numeroSeleccionado()!.numero}}</h3>
-            <button class="btn-close" (click)="cerrarModalVenta()">✕</button>
-          </div>
-          
-          <div class="modal-body">
-            <form #ventaForm="ngForm">
-              <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" class="form-control" 
-                      [(ngModel)]="datosComprador.nombre" 
-                      name="nombre" required>
-              </div>
-              
-              <div class="form-group">
-                <label>Apellido *</label>
-                <input type="text" class="form-control" 
-                      [(ngModel)]="datosComprador.apellido" 
-                      name="apellido" required>
-              </div>
-              
-              <div class="form-group">
-                <label>Teléfono *</label>
-                <input type="tel" class="form-control" 
-                      [(ngModel)]="datosComprador.telefono" 
-                      name="telefono" required 
-                      placeholder="+54 9 11 1234-5678">
-              </div>
-              
-              <div class="form-group">
-                <label>Email (opcional)</label>
-                <input type="email" class="form-control" 
-                      [(ngModel)]="datosComprador.email" 
-                      name="email">
-              </div>
-            </form>
-          </div>
-          
-          <div class="modal-footer">
-            <button class="btn-secondary" (click)="cerrarModalVenta()">Cancelar</button>
-            <button class="btn-success" 
-                    [disabled]="!ventaForm.valid || loading()"
-                    (click)="confirmarVenta()">
-              Confirmar Venta
-            </button>
-          </div>
-        </div>
-      </div>
 
   <!-- EMPTY STATE -->
   <div *ngIf="!loading() && !error() && numerosFiltrados().length === 0" class="empty-state">
     <p>No se encontraron boletos con los filtros aplicados</p>
     <button class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
   </div>
+</div>
 
+<!-- 🔹 MODAL DE VENTA (fuera del flujo principal, centrado y fijo) -->
+<div *ngIf="mostrarModalVenta()" class="modal-overlay" (click)="cerrarModalVenta()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>💳 Vender Entrada #{{numeroSeleccionado()!.numero}}</h3>
+      <button class="btn-close" (click)="cerrarModalVenta()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <form #ventaForm="ngForm">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" class="form-control" 
+                [(ngModel)]="datosComprador.nombre" 
+                name="nombre" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Apellido *</label>
+          <input type="text" class="form-control" 
+                [(ngModel)]="datosComprador.apellido" 
+                name="apellido" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Teléfono *</label>
+          <input type="tel" class="form-control" 
+                [(ngModel)]="datosComprador.telefono" 
+                name="telefono" required 
+                placeholder="+54 9 11 1234-5678">
+        </div>
+        
+        <div class="form-group">
+          <label>Email (opcional)</label>
+          <input type="email" class="form-control" 
+                [(ngModel)]="datosComprador.email" 
+                name="email">
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrarModalVenta()">Cancelar</button>
+      <button class="btn-success" 
+              [disabled]="!ventaForm.valid || loading()"
+              (click)="confirmarVenta()">
+        Confirmar Venta
+      </button>
+    </div>
+  </div>
 </div>

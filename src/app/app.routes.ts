@@ -244,6 +244,7 @@ export const routes: Routes = [
   canActivate: [authGuard],
   title: 'Mis Ventas - Rifas Solidarias'
 },
+
   // ===================================================
   // PÁGINA NO ENCONTRADA (SIEMPRE AL FINAL)
   // ===================================================

@@ -1,0 +1,92 @@
+<!-- src/app/vendedor/components/mis-ventas/mis-ventas.component.html -->
+
+<app-navbar></app-navbar>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>💰 Mis Ventas</h1>
+      <p class="subtitle">Rifas donde tengo números asignados para vender</p>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading()" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando rifas...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error()" class="error-container">
+    <p>❌ {{ error() }}</p>
+    <button class="btn btn-primary" (click)="cargarRifas()">Reintentar</button>
+  </div>
+
+  <!-- RIFAS GRID -->
+  <div *ngIf="!loading() && !error()" class="rifas-grid">
+    @for (rifa of rifas(); track rifa.id) {
+      <div class="rifa-card" (click)="verBoletos(rifa.id)">
+        <!-- IMAGEN -->
+        <div class="rifa-imagen">
+          <img [src]="getImagenUrl(rifa.imagen_url)" [alt]="rifa.nombre">
+          <div class="estado-badge" [class]="rifa.estado">
+            {{ rifa.estado }}
+          </div>
+        </div>
+
+        <!-- INFO -->
+        <div class="rifa-info">
+          <h3>{{ rifa.nombre }}</h3>
+          <p class="descripcion" *ngIf="rifa.descripcion">{{ rifa.descripcion }}</p>
+
+          <!-- ESTADÍSTICAS -->
+          <div class="stats-row">
+            <div class="stat">
+              <span class="stat-label">Asignados</span>
+              <span class="stat-value">{{ rifa.numeros_asignados }}</span>
+            </div>
+            <div class="stat vendidos">
+              <span class="stat-label">Vendidos</span>
+              <span class="stat-value">{{ rifa.numeros_vendidos }}</span>
+            </div>
+            <div class="stat disponibles">
+              <span class="stat-label">Disponibles</span>
+              <span class="stat-value">{{ rifa.numeros_asignados - rifa.numeros_vendidos }}</span>
+            </div>
+          </div>
+
+          <!-- BARRA DE PROGRESO -->
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="calcularPorcentaje(rifa)"></div>
+            </div>
+            <span class="progress-label">{{ calcularPorcentaje(rifa) }}% vendido</span>
+          </div>
+
+          <!-- RECAUDACIÓN -->
+          <div class="recaudacion" *ngIf="rifa.total_recaudado">
+            <span class="label">Recaudado:</span>
+            <span class="valor">${{ rifa.total_recaudado | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- FECHA SORTEO -->
+          <div class="fecha-sorteo" *ngIf="rifa.fecha_sorteo">
+            🗓️ Sorteo: {{ rifa.fecha_sorteo | date:'dd/MM/yyyy' }}
+          </div>
+
+          <!-- BOTÓN -->
+          <button class="btn-ver-boletos">
+            Ver mis números
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No tienes rifas asignadas</h3>
+        <p>Contactá al administrador para que te asigne números para vender</p>
+      </div>
+    }
+  </div>
+</div>
