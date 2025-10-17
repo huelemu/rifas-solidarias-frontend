@@ -1,0 +1,205 @@
+.rifa-detail-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+      
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      
+      .back-btn {
+        padding: 8px 16px;
+        text-decoration: none;
+      }
+      
+      .header-title h1 {
+        margin: 0;
+        color: #1f2937;
+      }
+      
+      .header-title p {
+        margin: 4px 0 0 0;
+        color: #6b7280;
+      }
+      
+      .header-actions {
+        display: flex;
+        gap: 12px;
+      }
+    }
+
+    .detail-section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      
+      h2 {
+        margin: 0 0 20px 0;
+        color: #1f2937;
+        font-size: 18px;
+      }
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+      
+      label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+      }
+      
+      span {
+        color: #6b7280;
+        font-size: 14px;
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      
+      .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        font-size: 14px;
+        color: #6b7280;
+      }
+    }
+
+    .actions-grid {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    // Status colors (reutilizar del list component)
+    .status-activa { background: #dcfce7; color: #16a34a; }
+    .status-borrador { background: #f3f4f6; color: #6b7280; }
+    .status-pausada { background: #fef3c7; color: #d97706; }
+    .status-cerrada { background: #e0e7ff; color: #6366f1; }
+    .status-finalizada { background: #f0f9ff; color: #0284c7; }
+    .status-cancelada { background: #fef2f2; color: #dc2626; }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-warning { background: #d97706; color: white; }
+    .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
+
+    .loading-container, .error-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f4f6;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      text-align: center;
+      
+      h3 {
+        color: #dc2626;
+        margin-bottom: 8px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }

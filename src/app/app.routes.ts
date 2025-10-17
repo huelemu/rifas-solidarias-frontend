@@ -212,6 +212,13 @@ export const routes: Routes = [
         loadComponent: () => import('./rifas/components/boletos-viewer/boletos-viewer.component')
           .then(m => m.BoletosViewerComponent),
         title: 'Boletos de Rifa - Rifas Solidarias'
+      },
+    {
+        path: ':id/asignar-numeros',
+        loadComponent: () => import('./admin/assign-numbers/assign-numbers.component')
+          .then(m => m.AssignNumbersComponent),
+        //canActivate: [authGuard],
+        title: 'Asignar Números - Rifas Solidarias'
       }
     ]
   },

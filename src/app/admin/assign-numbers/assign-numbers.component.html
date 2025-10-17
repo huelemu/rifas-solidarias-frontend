@@ -1,0 +1,329 @@
+<!-- src/app/admin/assign-numbers/assign-numbers.component.html -->
+
+<app-navbar></app-navbar>
+
+<div class="assign-numbers-container">
+  <div class="page-header">
+    <button class="btn-back" (click)="goBack()">
+      ← Volver
+    </button>
+    
+    @if (rifa(); as rifaData) {
+      <div class="rifa-info">
+        <h1>👥 Asignar Números a Vendedores</h1>
+        <h2>{{ rifaData.titulo }}</h2>
+        <div class="rifa-details">
+          <span class="detail-item">
+            <strong>Total números:</strong> {{ rifaData.cantidad_numeros }}
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando números disponibles...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3>Error al cargar</h3>
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="loadNumerosDisponibles()">
+        🔄 Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  <div class="assign-content">
+    <!-- Selección de Institución y Vendedor -->
+    <div class="selection-panel">
+      <h3>🎯 Paso 1: Seleccionar Institución y Vendedor</h3>
+      
+      <div class="form-group">
+        <label for="institucion">Institución *</label>
+        <select 
+          id="institucion" 
+          class="form-select" 
+          [(ngModel)]="institucionSeleccionada"
+          (change)="onInstitucionChange()">
+          <option [value]="null">Seleccione una institución</option>
+          @for (inst of instituciones(); track inst.id) {
+            <option [value]="inst.id">
+              {{ inst.institucion.nombre }} ({{ inst.numero_desde }} - {{ inst.numero_hasta }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="vendedor">Vendedor *</label>
+        <select 
+          id="vendedor" 
+          class="form-select" 
+          [(ngModel)]="vendedorSeleccionado"
+          [disabled]="!institucionSeleccionada">
+          <option [value]="null">Seleccione un vendedor</option>
+          @for (vendedor of vendedores(); track vendedor.id) {
+            <option [value]="vendedor.id">
+              {{ vendedor.nombre }} ({{ vendedor.email }})
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- Resumen de asignación -->
+    @if (numerosSeleccionados().length > 0 && vendedorSeleccionado) {
+      <div class="assign-summary">
+        <div class="summary-card">
+          <h3>📋 Resumen de Asignación</h3>
+          <div class="summary-details">
+            <div class="summary-item">
+              <span>Números seleccionados:</span>
+              <span class="highlight">{{ numerosSeleccionados().length }}</span>
+            </div>
+            <div class="summary-item">
+              <span>Números:</span>
+              <span class="numbers-list">{{ getSelectedNumbersList() }}</span>
+            </div>
+            <div class="summary-item">
+              <span>Vendedor:</span>
+              <span>{{ getVendedorNombre() }}</span>
+            </div>
+          </div>
+          <div class="summary-actions">
+            <button 
+              class="btn btn-success assign-btn"
+              (click)="proceedToAssign()"
+              [disabled]="asignando()">
+              @if (asignando()) {
+                ⏳ Asignando...
+              } @else {
+                ✅ Asignar Números
+              }
+            </button>
+            <button 
+              class="btn btn-secondary"
+              (click)="clearSelection()"
+              [disabled]="asignando()">
+              🧹 Limpiar Selección
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Métodos de selección -->
+    @if (institucionSeleccionada && vendedorSeleccionado) {
+      <div class="selection-methods">
+        <h3>🎯 Paso 2: Método de Selección</h3>
+        
+        <!-- Tabs de tipo de asignación -->
+        <div class="method-tabs">
+          <button 
+            class="method-tab"
+            [class.active]="tipoAsignacion === 'individual'"
+            (click)="tipoAsignacion = 'individual'; clearSelection()">
+            👆 Individual
+          </button>
+          <button 
+            class="method-tab"
+            [class.active]="tipoAsignacion === 'rango'"
+            (click)="tipoAsignacion = 'rango'; clearSelection()">
+            📊 Rango
+          </button>
+          <button 
+            class="method-tab"
+            [class.active]="tipoAsignacion === 'aleatorio'"
+            (click)="tipoAsignacion = 'aleatorio'; clearSelection()">
+            🎲 Aleatorio
+          </button>
+        </div>
+
+        <!-- Controles según tipo -->
+        <div class="methods-grid">
+          <!-- Selección Individual -->
+          @if (tipoAsignacion === 'individual') {
+            <div class="method-card active">
+              <div class="method-icon">👆</div>
+              <h4>Selección Manual</h4>
+              <p>Haz clic en los números que deseas asignar</p>
+              <p class="disponibles-count">
+                Disponibles: <strong>{{ getAvailableCount() }}</strong>
+              </p>
+            </div>
+          }
+
+          <!-- Selección Aleatoria -->
+          @if (tipoAsignacion === 'aleatorio') {
+            <div class="method-card active">
+              <div class="method-icon">🎲</div>
+              <h4>Números Aleatorios</h4>
+              <div class="method-controls">
+                <input 
+                  type="number" 
+                  [(ngModel)]="cantidadAleatoria" 
+                  min="1" 
+                  [max]="getAvailableCount()"
+                  placeholder="Cantidad"
+                  class="form-control">
+                <button 
+                  class="btn btn-primary"
+                  (click)="selectRandomNumbers()"
+                  [disabled]="!cantidadAleatoria || cantidadAleatoria < 1">
+                  🎲 Seleccionar
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Selección por Rango -->
+          @if (tipoAsignacion === 'rango') {
+            <div class="method-card active">
+              <div class="method-icon">📊</div>
+              <h4>Rango de Números</h4>
+              <div class="method-controls range-controls">
+                <input 
+                  type="number" 
+                  [(ngModel)]="rangoDesde" 
+                  placeholder="Desde"
+                  class="form-control">
+                <span>-</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="rangoHasta" 
+                  placeholder="Hasta"
+                  class="form-control">
+                <button 
+                  class="btn btn-primary"
+                  (click)="selectRangeNumbers()"
+                  [disabled]="!rangoDesde || !rangoHasta">
+                  📊 Seleccionar
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Grilla de números (solo para individual) -->
+      @if (tipoAsignacion === 'individual' && numeros().length > 0) {
+        <div class="numbers-section">
+          <div class="section-header">
+            <h3>🎫 Números Disponibles</h3>
+            <p class="disponibles-info">
+              {{ getAvailableCount() }} números disponibles
+            </p>
+          </div>
+
+          <div class="numbers-grid">
+            @for (numero of numeros(); track numero) {
+              <div 
+                class="number-card disponible"
+                [class.selected]="isNumberSelected(numero)"
+                (click)="toggleNumberSelection(numero)"
+                [title]="'Número ' + numero">
+                
+                <div class="number-value">{{ numero }}</div>
+                
+                @if (isNumberSelected(numero)) {
+                  <div class="selected-badge">✓</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Vista previa para rango y aleatorio -->
+      @if (tipoAsignacion !== 'individual' && numerosSeleccionados().length > 0) {
+        <div class="preview-section">
+          <h3>👁️ Vista Previa de Números Seleccionados</h3>
+          <div class="preview-numbers">
+            @for (numero of numerosSeleccionados().slice(0, 50); track numero) {
+              <span class="preview-number">{{ numero }}</span>
+            }
+            @if (numerosSeleccionados().length > 50) {
+              <span class="preview-more">
+                ... y {{ numerosSeleccionados().length - 50 }} más
+              </span>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal de Éxito -->
+@if (showSuccessModal()) {
+  <div class="modal-overlay" (click)="closeSuccessModal()">
+    <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>✅ Asignación Exitosa</h2>
+        <button class="btn-close" (click)="closeSuccessModal()">×</button>
+      </div>
+      
+      @if (asignacionResult(); as result) {
+        <div class="modal-body">
+          <div class="success-icon">🎉</div>
+          <p class="success-message">
+            Se han asignado <strong>{{ result.cantidad_asignada }}</strong> número(s) 
+            a <strong>{{ result.vendedor.nombre }}</strong>
+          </p>
+          
+          <div class="result-details">
+            <div class="detail-row">
+              <span>Vendedor:</span>
+              <strong>{{ result.vendedor.nombre }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Email:</span>
+              <strong>{{ result.vendedor.email }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Institución:</span>
+              <strong>{{ result.institucion }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Rango asignado:</span>
+              <strong>{{ result.numero_desde }} - {{ result.numero_hasta }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Cantidad:</span>
+              <strong>{{ result.cantidad_asignada }} números</strong>
+            </div>
+          </div>
+
+          <div class="numeros-asignados">
+            <h4>Números asignados:</h4>
+            <div class="numeros-list">
+              @for (numero of result.numeros_asignados.slice(0, 20); track numero) {
+                <span class="numero-badge">{{ numero }}</span>
+              }
+              @if (result.numeros_asignados.length > 20) {
+                <span class="more-badge">
+                  +{{ result.numeros_asignados.length - 20 }} más
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="closeSuccessModal()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,183 @@
+<app-navbar></app-navbar>
+
+    <div class="rifa-detail-container">
+  
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Cargando detalle de la rifa...</p>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="error-container">
+          <div class="error-message">
+            <h3>❌ Error</h3>
+            <p>{{ error() }}</p>
+            <button 
+              class="btn btn-primary"
+              (click)="loadRifa()">
+              🔄 Reintentar
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Contenido -->
+      @if (rifa() && !loading()) {
+        <div class="rifa-detail-content">
+          <!-- Información Principal -->
+          <div class="detail-section">
+            <h2>📝 Información General</h2>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Nombre:</label>
+                <span>{{ rifa().nombre }}</span>
+              </div>
+              
+              @if (rifa().descripcion) {
+                <div class="detail-item full-width">
+                  <label>Descripción:</label>
+                  <span>{{ rifa().descripcion }}</span>
+                </div>
+              }
+              
+              <div class="detail-item">
+                <label>Estado:</label>
+                <span 
+                  class="status-badge"
+                  [class]="getEstadoClass(rifa().estado)">
+                  {{ getEstadoConfig(rifa().estado).icon }} {{ getEstadoConfig(rifa().estado).label }}
+                </span>
+              </div>
+              
+              <div class="detail-item">
+                <label>Total de Números:</label>
+                <span>{{ rifa().cantidad_numeros | number }}</span>
+              </div>
+              
+              <div class="detail-item">
+                <label>Precio por Número:</label>
+                <span>{{ formatPrice(rifa().precio_numero) }}</span>
+              </div>
+              
+              <div class="detail-item">
+                <label>Institución Promotora:</label>
+                <span>{{ rifa().institucion_promotora_nombre || 'No especificada' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fechas -->
+          <div class="detail-section">
+            <h2>📅 Fechas Importantes</h2>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Fecha de Inicio:</label>
+                <span>{{ formatDate(rifa().fecha_inicio) }}</span>
+              </div>
+              
+              <div class="detail-item">
+                <label>Fecha de Fin:</label>
+                <span>{{ formatDate(rifa().fecha_fin) }}</span>
+              </div>
+              
+              @if (rifa().fecha_sorteo) {
+                <div class="detail-item">
+                  <label>Fecha de Sorteo:</label>
+                  <span>{{ formatDate(rifa().fecha_sorteo) }}</span>
+                </div>
+              }
+              
+              <div class="detail-item">
+                <label>Creada el:</label>
+                <span>{{ formatDate(rifa().fecha_creacion) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estadísticas -->
+          @if (rifa().numeros_vendidos !== undefined) {
+            <div class="detail-section">
+              <h2>📊 Estadísticas de Ventas</h2>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-number">{{ rifa().numeros_vendidos | number }}</div>
+                  <div class="stat-label">Números Vendidos</div>
+                </div>
+                
+                <div class="stat-card">
+                  <div class="stat-number">{{ rifa().numeros_disponibles | number }}</div>
+                  <div class="stat-label">Disponibles</div>
+                </div>
+                
+                <div class="stat-card">
+                  <div class="stat-number">{{ formatPrice(rifa().total_recaudado || 0) }}</div>
+                  <div class="stat-label">Total Recaudado</div>
+                </div>
+                
+                <div class="stat-card">
+                  <div class="stat-number">{{ (rifa().porcentaje_vendido || 0) | number:'1.1-1' }}%</div>
+                  <div class="stat-label">Porcentaje Vendido</div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Acciones -->
+          @if (canManageRifa(rifa())) {
+            <div class="detail-section">
+              <h2>⚙️ Acciones</h2>
+              <div class="actions-grid">
+                <button 
+                  class="btn btn-primary"
+                  (click)="verNumeros()">
+                  🔢 Gestionar Números
+                </button>
+                
+            
+            @if (rifa().estado === 'activa') {
+              <button 
+                class="btn btn-success"
+                (click)="comprarNumeros()">
+                🛒 Comprar Números
+              </button>
+            }
+
+                <button 
+                  class="btn btn-secondary"
+                  (click)="verEstadisticas()">
+                  📈 Ver Estadísticas
+                </button>
+                
+                @if (rifa().estado === 'borrador') {
+                  <button 
+                    class="btn btn-success"
+                    (click)="activarRifa()">
+                    🟢 Activar Rifa
+                  </button>
+                }
+                
+                @if (rifa().estado === 'activa') {
+                  <button 
+                    class="btn btn-warning"
+                    (click)="pausarRifa()">
+                    ⏸️ Pausar Rifa
+                  </button>
+                }
+
+                    @if (rifa()?.estado === 'activa') {
+                    <button 
+                        class="btn btn-primary"
+                        (click)="irAAsignarNumeros()">
+                        👥 Asignar Números a Vendedores
+                    </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>

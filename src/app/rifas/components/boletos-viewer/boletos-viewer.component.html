@@ -210,54 +210,142 @@
   </div>
 </div>
 
-<!-- 🔹 MODAL DE VENTA (fuera del flujo principal, centrado y fijo) -->
-<div *ngIf="mostrarModalVenta()" class="modal-overlay" (click)="cerrarModalVenta()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>💳 Vender Entrada #{{numeroSeleccionado()!.numero}}</h3>
-      <button class="btn-close" (click)="cerrarModalVenta()">✕</button>
-    </div>
-    
-    <div class="modal-body">
-      <form #ventaForm="ngForm">
-        <div class="form-group">
-          <label>Nombre *</label>
-          <input type="text" class="form-control" 
-                [(ngModel)]="datosComprador.nombre" 
-                name="nombre" required>
+<!-- ✅ MODAL DE VENTA -->
+@if (showSaleModal()) {
+  <div class="modal-overlay" (click)="closeSaleModal()">
+    <div class="modal-content modal-sale" (click)="$event.stopPropagation()">
+      <form [formGroup]="saleForm" (ngSubmit)="confirmSale()">
+        <div class="modal-header">
+          <h3>💳 Vender Número {{ selectedNumero()?.numero }}</h3>
+          <button type="button" class="close-btn" (click)="closeSaleModal()">✕</button>
         </div>
         
-        <div class="form-group">
-          <label>Apellido *</label>
-          <input type="text" class="form-control" 
-                [(ngModel)]="datosComprador.apellido" 
-                name="apellido" required>
+        <div class="modal-body">
+          <!-- Resumen del número -->
+          <div class="sale-summary">
+            <div class="summary-item">
+              <span class="label">Número:</span>
+              <span class="value">#{{ selectedNumero()?.numero }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Precio:</span>
+              <span class="value highlight">{{ formatPrice(getPrecioNumero(selectedNumero()!)) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Rifa:</span>
+              <span class="value">{{ rifa()?.nombre }}</span>
+            </div>
+          </div>
+
+          <!-- Formulario del comprador -->
+          <div class="form-section">
+            <h4>👤 Datos del Comprador</h4>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre">Nombre *</label>
+                <input
+                  id="nombre"
+                  type="text"
+                  formControlName="nombre"
+                  class="form-control"
+                  [class.invalid]="saleForm.get('nombre')?.invalid && saleForm.get('nombre')?.touched"
+                  placeholder="Juan">
+                @if (saleForm.get('nombre')?.invalid && saleForm.get('nombre')?.touched) {
+                  <small class="error-text">El nombre es obligatorio</small>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="apellido">Apellido *</label>
+                <input
+                  id="apellido"
+                  type="text"
+                  formControlName="apellido"
+                  class="form-control"
+                  [class.invalid]="saleForm.get('apellido')?.invalid && saleForm.get('apellido')?.touched"
+                  placeholder="Pérez">
+                @if (saleForm.get('apellido')?.invalid && saleForm.get('apellido')?.touched) {
+                  <small class="error-text">El apellido es obligatorio</small>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="telefono">Teléfono *</label>
+                <input
+                  id="telefono"
+                  type="tel"
+                  formControlName="telefono"
+                  class="form-control"
+                  [class.invalid]="saleForm.get('telefono')?.invalid && saleForm.get('telefono')?.touched"
+                  placeholder="+54 9 11 1234-5678">
+                @if (saleForm.get('telefono')?.invalid && saleForm.get('telefono')?.touched) {
+                  <small class="error-text">El teléfono es obligatorio</small>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  class="form-control"
+                  [class.invalid]="saleForm.get('email')?.invalid && saleForm.get('email')?.touched"
+                  placeholder="correo@ejemplo.com">
+                @if (saleForm.get('email')?.invalid && saleForm.get('email')?.touched) {
+                  <small class="error-text">Email inválido</small>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="metodo_pago">Método de Pago *</label>
+              <select
+                id="metodo_pago"
+                formControlName="metodo_pago"
+                class="form-control">
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="transferencia">🏦 Transferencia</option>
+                <option value="tarjeta">💳 Tarjeta</option>
+                <option value="mercadopago">📱 MercadoPago</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="observaciones">Observaciones</label>
+              <textarea
+                id="observaciones"
+                formControlName="observaciones"
+                class="form-control"
+                rows="3"
+                placeholder="Notas adicionales sobre la venta..."></textarea>
+            </div>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label>Teléfono *</label>
-          <input type="tel" class="form-control" 
-                [(ngModel)]="datosComprador.telefono" 
-                name="telefono" required 
-                placeholder="+54 9 11 1234-5678">
-        </div>
-        
-        <div class="form-group">
-          <label>Email (opcional)</label>
-          <input type="email" class="form-control" 
-                [(ngModel)]="datosComprador.email" 
-                name="email">
+
+        <div class="modal-footer">
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            (click)="closeSaleModal()"
+            [disabled]="processing()">
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-success"
+            [disabled]="processing() || saleForm.invalid">
+            @if (processing()) {
+              ⏳ Procesando...
+            } @else {
+              ✅ Confirmar Venta
+            }
+          </button>
         </div>
       </form>
     </div>
-    
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="cerrarModalVenta()">Cancelar</button>
-      <button class="btn-success" 
-              [disabled]="!ventaForm.valid || loading()"
-              (click)="confirmarVenta()">
-        Confirmar Venta
-      </button>
-    </div>
   </div>
-</div>
+}
