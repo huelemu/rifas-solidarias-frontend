@@ -89,6 +89,7 @@ export class VendedorNumerosComponent implements OnInit {
     
     return resultado.sort((a, b) => a.numero - b.numero);
   });
+  authService: any;
 
   ngOnInit() {
     const rifaId = +this.route.snapshot.params['rifaId'];
@@ -149,17 +150,34 @@ export class VendedorNumerosComponent implements OnInit {
     });
   }
 
-  compartirWhatsApp(numero: NumeroVendedor) {
-    const rifa = this.rifa();
-    const precio = rifa?.precio_numero || 0;
-    const mensaje = `🎉 *${rifa?.nombre}*\n\n` +
-      `📍 Entrada #${numero.numero}\n` +
-      `💵 Precio: $${precio.toLocaleString()}\n\n` +
-      `¿Te interesa? ¡Reservala ahora! 🎫`;
-    
-    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
+compartirWhatsApp(numero: NumeroVendedor) {
+  const rifaId = this.rifa()?.id;
+  const rifaNombre = this.rifa()?.nombre || 'Rifa';
+  const rifaPrecio = this.rifa()?.precio_numero || 0;
+  const fechaSorteo = this.rifa()?.fecha_sorteo ? 
+    new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
+    'A confirmar';
+  
+  // ✅ Obtener datos del vendedor
+  const vendedor = this.authService.currentUser();
+  
+  const mensaje = 
+    `🎟️ *${rifaNombre}*\n\n` +
+    `#${numero.numero}\n` +
+    `💰 Precio: $${rifaPrecio.toLocaleString('es-AR')}\n` +
+    `🎯 Cuando?: ${fechaSorteo}\n\n` +
+    `Ver tk: ${window.location.origin}/public/rifas/${rifaId}/numero/${numero.numero}\n\n` +
+    `¡Reservala ahora! 🎫`;
+  
+  // ✅ AGREGAR ALIAS MP SI EXISTE
+  let mensajeFinal = mensaje;
+  if (vendedor && (vendedor as any).alias_mp) {
+    mensajeFinal += `\n💳 Alias: ${(vendedor as any).alias_mp}`;
   }
+  
+  const url = `https://wa.me/?text=${encodeURIComponent(mensajeFinal)}`;
+  window.open(url, '_blank');
+}
 
   compartirInstagram(numero: NumeroVendedor) {
     // Generar imagen del número para Instagram Stories

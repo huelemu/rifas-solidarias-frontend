@@ -1,9 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+
 
 @Component({
   selector: 'app-user-profile',
@@ -19,6 +21,14 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
       </header>
 
       <main class="profile-main">
+        
+        <!-- Mensajes -->
+        @if (mensaje()) {
+          <div class="alert" [class.success]="!error()" [class.error]="error()">
+            {{ mensaje() }}
+          </div>
+        }
+
         <div class="profile-card">
           <form [formGroup]="profileForm" (ngSubmit)="guardarCambios()">
             
@@ -68,6 +78,19 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
                     class="form-control"
                     placeholder="+54 9 11 1234-5678"
                   />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>💳 Alias </label>
+                  <input 
+                    type="text" 
+                    formControlName="alias_mp"
+                    class="form-control"
+                    placeholder="mialias.mp"
+                  />
+                  <small>Tu alias se mostrará al compartir rifas</small>
                 </div>
               </div>
             </section>
@@ -148,7 +171,7 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
               class="btn btn-primary"
               [disabled]="passwordForm.invalid || cambiandoPassword()"
             >
-              {{ cambiandoPassword() ? 'Actualizando...' : 'Cambiar Contraseña' }}
+              {{ cambiandoPassword() ? 'Cambiando...' : 'Cambiar Contraseña' }}
             </button>
           </form>
         </div>
@@ -170,6 +193,25 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
     .profile-header h1 {
       color: #2c3e50;
       margin-bottom: 0.5rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
 
     .profile-card {
@@ -223,8 +265,19 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
       border-color: #007bff;
     }
 
+    .form-control:read-only {
+      background: #e9ecef;
+      cursor: not-allowed;
+    }
+
     .form-control.invalid {
       border-color: #dc3545;
+    }
+
+    small {
+      color: #6c757d;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
     }
 
     .info-grid {
@@ -290,32 +343,34 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
       opacity: 0.5;
       cursor: not-allowed;
     }
-
-    small {
-      color: #6c757d;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
   `]
 })
 export class UserProfileComponent implements OnInit {
   private authService = inject(AuthService);
+  private http = inject(HttpClient);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+ 
 
   user = signal<any>(null);
   guardando = signal(false);
   cambiandoPassword = signal(false);
+  mensaje = signal('');
+  error = signal(false);
 
   profileForm: FormGroup;
   passwordForm: FormGroup;
+  
+  private apiUrl = this.getApiUrl();
+  
 
   constructor() {
     this.profileForm = this.fb.group({
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      telefono: ['']
+      telefono: [''],
+      alias_mp: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -325,15 +380,28 @@ export class UserProfileComponent implements OnInit {
     }, { validators: this.passwordsMatch });
   }
 
+
+    // ✅ MÉTODO PARA DETECTAR LA URL DE LA API
+  private getApiUrl(): string {
+    const hostname = window.location.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3100/auth/me';
+    } else {
+      return 'https://apirifas.huelemu.com.ar/auth/me';
+    }
+  }
+
   ngOnInit(): void {
     const currentUser = this.authService.currentUser();
     if (currentUser) {
       this.user.set(currentUser);
       this.profileForm.patchValue({
-        nombre: currentUser.name?.split(' ')[0] || '',
-        apellido: currentUser.name?.split(' ').slice(1).join(' ') || '',
+        nombre: currentUser.nombre || currentUser.name?.split(' ')[0] || '',
+        apellido: currentUser.apellido || currentUser.name?.split(' ').slice(1).join(' ') || '',
         email: currentUser.email,
-        telefono: currentUser.telefono || ''
+        telefono: currentUser.telefono || '',
+        alias_mp: (currentUser as any).alias_mp || ''
       });
     }
   }
@@ -351,19 +419,40 @@ export class UserProfileComponent implements OnInit {
       'vendedor': 'Vendedor',
       'comprador': 'Comprador'
     };
-    return roleMap[this.user()?.role] || this.user()?.role;
+    const rol = this.user()?.role || this.user()?.rol;
+    return roleMap[rol] || rol;
   }
 
   guardarCambios(): void {
     if (this.profileForm.invalid) return;
 
     this.guardando.set(true);
+    this.mensaje.set('');
+    this.error.set(false);
     
-    // TODO: Implementar llamada al backend
-    setTimeout(() => {
-      alert('✅ Perfil actualizado correctamente');
-      this.guardando.set(false);
-    }, 1000);
+    const userId = this.user()?.id;
+    const datos = this.profileForm.value;
+
+    console.log('💾 Guardando cambios en:', this.apiUrl); 
+    console.log('💾 Guardando cambios:', datos);
+
+    this.http.put(`${this.apiUrl}/  `, datos).subscribe({
+      next: (response: any) => {
+        console.log('✅ Respuesta del servidor:', response);
+        this.guardando.set(false);
+        this.mensaje.set('✅ Perfil actualizado correctamente');
+        this.error.set(false);
+        
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => this.mensaje.set(''), 3000);
+      },
+      error: (err) => {
+        console.error('❌ Error al guardar:', err);
+        this.guardando.set(false);
+        this.mensaje.set('❌ Error al actualizar el perfil');
+        this.error.set(true);
+      }
+    });
   }
 
   cambiarPassword(): void {
@@ -371,11 +460,14 @@ export class UserProfileComponent implements OnInit {
 
     this.cambiandoPassword.set(true);
     
-    // TODO: Implementar llamada al backend
+    // TODO: Implementar cambio de password
     setTimeout(() => {
-      alert('✅ Contraseña actualizada correctamente');
+      this.mensaje.set('✅ Contraseña actualizada correctamente');
+      this.error.set(false);
       this.passwordForm.reset();
       this.cambiandoPassword.set(false);
+      
+      setTimeout(() => this.mensaje.set(''), 3000);
     }, 1000);
   }
 

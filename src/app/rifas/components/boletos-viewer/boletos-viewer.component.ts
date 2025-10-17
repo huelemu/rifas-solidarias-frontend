@@ -319,20 +319,28 @@ export class BoletosViewerComponent implements OnInit {
   }
 
   compartirWhatsApp(numero: NumeroBoleto): void {
-    const rifaId = this.rifa()?.id;
-    const rifa = this.rifa();
-    const url = `${window.location.origin}/public/rifas/${rifaId}/numero/${numero.numero}`;
-    
-    const mensaje = `🎫 *Número de Rifa Disponible*\n\n` +
-      `*Rifa:* ${rifa?.nombre}\n` +
-      `*Número:* ${numero.numero}\n` +
-      `*Precio:* ${this.formatPrice(this.getPrecioNumero(numero))}\n\n` +
-      `¡Reservalo ahora! 🎫\n\n` +
-      `Ver detalles: ${url}`;
-    
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-    window.open(whatsappUrl, '_blank');
+  const rifaId = this.rifa()?.id;
+  const rifa = this.rifa();
+  const url = `${window.location.origin}/public/rifas/${rifaId}/numero/${numero.numero}`;
+  
+  // ✅ Obtener datos del vendedor
+  const vendedor = this.authService.currentUser();
+  
+  let mensaje = `🎫 *Número de Rifa Disponible*\n\n` +
+    `*${rifa?.nombre}*\n` +
+    `*Número:* ${numero.numero}\n` +
+    `*Precio:* ${this.formatPrice(this.getPrecioNumero(numero))}\n\n` +
+    `¡Reservalo ahora! 🎫\n\n` +
+    `Ver detalles: ${url}`;
+  
+  // ✅ AGREGAR ALIAS MP SI EXISTE
+  if (vendedor && (vendedor as any).alias_mp) {
+    mensaje += `\n💳 Alias: ${(vendedor as any).alias_mp}`;
   }
+  
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+  window.open(whatsappUrl, '_blank');
+}
 
   generarPDF(): void {
     const rifaId = this.rifa()?.id;

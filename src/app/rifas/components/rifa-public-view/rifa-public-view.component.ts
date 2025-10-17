@@ -240,7 +240,7 @@ ngOnInit(): void {
   // Métodos de compartir
 compartirWhatsApp(): void {
   const url = window.location.href;
-  const logoUrl = this.getRifaImageUrl() || this.getLogoUrl();
+  const logoUrl = this.rifa()?.imagen_url;
   const imagenCompleta = logoUrl ? 
     (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
   
@@ -252,19 +252,21 @@ compartirWhatsApp(): void {
     new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
     'A confirmar';
   
-  // ✅ Emojis simples y compatibles
+  // ✅ Obtener el vendedor actual (usuario logueado)
+  const vendedor = this.authService.currentUser();
+  
   let mensaje = `🎟️ *${nombre}*\n\n`;
   mensaje += `💰 Precio: $${precio.toLocaleString('es-AR')}\n`;
   mensaje += `📊 Disponibles: ${disponibles} de ${total}\n`;
-  mensaje += `🎯 Sorteo: ${fechaSorteo}\n\n`;
-  
-  if (imagenCompleta) {
-    mensaje += `🖼️ ${imagenCompleta}\n\n`;
-  }
+  mensaje += `🎯 Cuando?: ${fechaSorteo}\n\n`;
   
   mensaje += `👉 ${url}`;
   
-  // ✅ SOLO codificar la URL, NO el mensaje completo
+  // ✅ AGREGAR ALIAS MP SI EXISTE
+  if (vendedor && (vendedor as any).alias_mp) {
+    mensaje += `\n💳 Alias: ${(vendedor as any).alias_mp}`;
+  }
+  
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
   window.open(whatsappUrl, '_blank');
 }
