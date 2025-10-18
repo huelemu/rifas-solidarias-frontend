@@ -2,6 +2,8 @@
 
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './auth/guards/auth.guard';
+import { NumeroDetalleComponent } from './public/numero-detalle/numero-detalle.component';
+
 
 export const routes: Routes = [
 
@@ -71,6 +73,11 @@ export const routes: Routes = [
     loadComponent: () => import('./rifas/components/numero-publico/numero-publico.component')
       .then(m => m.NumeroPublicoComponent),
     title: 'Ver Número - Rifas Solidarias'
+  },
+
+  {
+    path: 'public/rifas/:rifaId/numero/:numeroId',
+    component: NumeroDetalleComponent
   },
 
   // Términos y condiciones

@@ -1,0 +1,231 @@
+.login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      color: #1a202c;
+    }
+
+    .login-header p {
+      margin: 0;
+      color: #718096;
+      font-size: 1rem;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      color: #2d3748;
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group input.error {
+      border-color: #fc8181;
+    }
+
+    .error-message {
+      color: #e53e3e;
+      font-size: 0.85rem;
+      margin-top: -0.25rem;
+    }
+
+    .forgot-password-link {
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+
+    .forgot-password-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    .forgot-password-link a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 0.875rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .alert-error {
+      background-color: #fff5f5;
+      border: 1px solid #feb2b2;
+      color: #c53030;
+    }
+
+    .alert-success {
+      background-color: #f0fff4;
+      border: 1px solid #9ae6b4;
+      color: #22543d;
+    }
+
+    .login-button,
+    .google-button {
+      padding: 0.875rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .login-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .login-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .google-button {
+      background: white;
+      color: #1a202c;
+      border: 2px solid #e2e8f0;
+    }
+
+    .google-button:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .separator {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 0.5rem 0;
+    }
+
+    .separator-line {
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .separator-text {
+      color: #a0aec0;
+      font-size: 0.875rem;
+    }
+
+    .register-link {
+      text-align: center;
+      color: #4a5568;
+      font-size: 0.9rem;
+      padding-top: 0.5rem;
+    }
+
+    .register-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .login-container {
+        padding: 1rem;
+      }
+
+      .login-card {
+        padding: 1.5rem;
+      }
+
+      .login-header h1 {
+        font-size: 1.5rem;
+      }
+    }

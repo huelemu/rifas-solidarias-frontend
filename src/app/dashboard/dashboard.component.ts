@@ -1,21 +1,24 @@
 // src/app/dashboard/dashboard.component.ts
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { RifasService } from '../rifas/services/rifas.service';
-import { AuthService } from '../auth/services/auth.service';
+import { HttpClient } from '@angular/common/http';
 import { NavbarComponent } from '../shared/components/navbar/navbar.component';
+import { AuthService } from '../auth/services/auth.service';
+import { environment } from '../../environments/environment.development';
 
 interface DashboardStats {
   rifas_activas: number;
-  mis_numeros_comprados: number;
-  total_invertido: number;
-  mis_rifas_activas: number;
-  proximos_sorteos: number;
-  // Admin
+  rifas_finalizadas?: number;
+  mis_numeros_comprados?: number;
+  total_invertido?: number;
+  mis_rifas_activas?: number;
+  proximos_sorteos?: number;
+  // Admin stats
   total_usuarios?: number;
   total_instituciones?: number;
   total_recaudado?: number;
+  numeros_vendidos?: number;
   numeros_vendidos_hoy?: number;
 }
 
@@ -28,14 +31,16 @@ interface DashboardStats {
 })
 export class DashboardComponent implements OnInit {
   readonly router = inject(Router);
-  private readonly rifasService = inject(RifasService);
   readonly authService = inject(AuthService);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
   // Signals
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly stats = signal<DashboardStats>({
     rifas_activas: 0,
+    rifas_finalizadas: 0,
     mis_numeros_comprados: 0,
     total_invertido: 0,
     mis_rifas_activas: 0,
@@ -76,23 +81,44 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    // Simular carga de estadísticas
-    // TODO: Reemplazar con llamada real al backend
-    setTimeout(() => {
-      this.stats.set({
-        rifas_activas: 5,
-        mis_numeros_comprados: 12,
-        total_invertido: 120000,
-        mis_rifas_activas: 3,
-        proximos_sorteos: 2,
-        // Admin stats
-        total_usuarios: 150,
-        total_instituciones: 8,
-        total_recaudado: 5000000,
-        numeros_vendidos_hoy: 45
-      });
-      this.loading.set(false);
-    }, 500);
+    // ✅ CARGAR DATOS REALES DESDE LA API
+    this.http.get<any>(`${this.apiUrl}/estadisticas/dashboard`).subscribe({
+      next: (response) => {
+        console.log('✅ Dashboard stats:', response);
+        if (response.status === 'success' && response.data) {
+          // ✅ Asegurar que todos los valores numéricos tengan un valor por defecto
+          this.stats.set({
+            rifas_activas: response.data.rifas_activas || 0,
+            rifas_finalizadas: response.data.rifas_finalizadas || 0,
+            mis_numeros_comprados: response.data.mis_numeros_comprados || 0,
+            total_invertido: response.data.total_invertido || 0,
+            mis_rifas_activas: response.data.mis_rifas_activas || 0,
+            proximos_sorteos: response.data.proximos_sorteos || 0,
+            total_usuarios: response.data.total_usuarios || 0,
+            total_instituciones: response.data.total_instituciones || 0,
+            total_recaudado: response.data.total_recaudado || 0,
+            numeros_vendidos: response.data.numeros_vendidos || 0,
+            numeros_vendidos_hoy: response.data.numeros_vendidos_hoy || 0
+          });
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Error cargando dashboard:', err);
+        this.error.set('Error al cargar las estadísticas');
+        this.loading.set(false);
+        
+        // Mantener valores por defecto en caso de error
+        this.stats.set({
+          rifas_activas: 0,
+          rifas_finalizadas: 0,
+          mis_numeros_comprados: 0,
+          total_invertido: 0,
+          mis_rifas_activas: 0,
+          proximos_sorteos: 0
+        });
+      }
+    });
   }
 
   refreshDashboard(): void {
@@ -117,11 +143,14 @@ export class DashboardComponent implements OnInit {
   }
 
   goToVentas(): void {
-     this.router.navigate(['/vendedor/mis-ventas']);
+    this.router.navigate(['/vendedor/mis-ventas']);
   }
 
-
-  formatPrice(value: number): string {
+  // ✅ CORREGIDO: Ahora acepta number | undefined
+  formatPrice(value: number | undefined): string {
+    if (value === undefined || value === null) {
+      return '$0';
+    }
     return `$${value.toLocaleString('es-AR')}`;
   }
 }

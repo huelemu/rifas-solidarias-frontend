@@ -1,0 +1,209 @@
+/* Container principal */
+.numero-detalle-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+/* Card del número */
+.numero-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header con el número */
+.numero-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.numero-badge {
+  display: inline-block;
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.numero-value {
+  display: block;
+  font-size: 4rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+}
+
+.numero-estado {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Estados del número */
+.estado-disponible .numero-estado {
+  color: #28a745;
+}
+
+.estado-reservado .numero-estado {
+  color: #ffc107;
+}
+
+.estado-vendido .numero-estado {
+  color: #6c757d;
+}
+
+/* Información de la rifa */
+.rifa-info {
+  padding: 2rem;
+}
+
+.rifa-titulo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.rifa-descripcion {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.info-item {
+  padding: 0.75rem 0;
+  font-size: 1rem;
+}
+
+.info-item i {
+  color: #667eea;
+  margin-right: 0.5rem;
+}
+
+/* Premios */
+.premios-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.premios-section h5 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.premios-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.premios-lista li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.premios-lista li:last-child {
+  border-bottom: none;
+}
+
+.premio-valor {
+  color: #28a745;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+/* Información del vendedor */
+.vendedor-info {
+  padding: 0 2rem 2rem 2rem;
+}
+
+.vendedor-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vendedor-avatar i {
+  font-size: 3rem;
+  color: #667eea;
+}
+
+.vendedor-datos h5 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.vendedor-datos p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.95rem;
+}
+
+/* Botón de WhatsApp */
+.acciones-numero {
+  padding: 0 2rem 2rem 2rem;
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.btn-whatsapp:hover {
+  background: #20BA5A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  color: white;
+}
+
+.btn-whatsapp i {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+/* Info adicional */
+.info-adicional {
+  padding: 0 2rem 2rem 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .numero-value {
+    font-size: 3rem;
+  }
+
+  .rifa-titulo {
+    font-size: 1.5rem;
+  }
+
+  .numero-badge {
+    padding: 1.5rem 2rem;
+  }
+
+  .numero-header {
+    padding: 2rem 1rem;
+  }
+
+  .rifa-info,
+  .vendedor-info,
+  .acciones-numero,
+  .info-adicional {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

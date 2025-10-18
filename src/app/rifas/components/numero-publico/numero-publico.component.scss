@@ -1,0 +1,194 @@
+    .numero-publico-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .content {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .rifa-imagen {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem 0;
+      color: #2c3e50;
+      font-size: 1.8rem;
+    }
+
+    .descripcion {
+      color: #7f8c8d;
+      margin: 0;
+    }
+
+    .numero-destacado {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+    }
+
+    .numero-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .numero-value {
+      font-size: 4rem;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+
+    .precio {
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .estado-info {
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+
+      &.disponible {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      &.reservado {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      &.vendido {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    }
+
+    .icono {
+      font-size: 1.5rem;
+    }
+
+    /* ✅ NUEVO: Estilos del vendedor */
+    .vendedor-info {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .vendedor-icono {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vendedor-datos {
+      text-align: left;
+      flex: 1;
+    }
+
+    .vendedor-nombre {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.25rem;
+    }
+
+    .vendedor-telefono {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+    }
+
+    .btn-comprar, .btn-ver-otros {
+      width: 100%;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-comprar {
+      background: linear-gradient(135deg, #25D366 0%, #20BA5A 100%);
+      color: white;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+      }
+    }
+
+    .btn-ver-otros {
+      background: #6c757d;
+      color: white;
+
+      &:hover {
+        background: #5a6268;
+      }
+    }
+
+    /* ✅ NUEVO: Mensaje informativo */
+    .info-whatsapp {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+
+    .loading {
+      text-align: center;
+      color: white;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }

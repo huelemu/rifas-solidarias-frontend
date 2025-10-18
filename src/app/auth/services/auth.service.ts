@@ -5,6 +5,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment.development';
 import { 
   LoginRequest, 
   LoginResponse, 
@@ -26,7 +27,8 @@ export class AuthService {
   private readonly router = inject(Router);
 
   // Detección automática de entorno
-  private readonly apiUrl = this.getApiUrl();
+//  private readonly apiUrl = this.getApiUrl();
+  private apiUrl = environment.apiUrl;
   
   // Signals para manejo de estado reactivo
   private readonly authState = signal<AuthState>({
@@ -49,63 +51,124 @@ export class AuthService {
   /**
    * Detecta automáticamente la URL de la API basada en el entorno
    */
-  private getApiUrl(): string {
-    const hostname = window.location.hostname;
+  // private getApiUrl(): string {
+  //   const hostname = window.location.hostname;
     
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3100';
-    } else {
-      return 'https://apirifas.huelemu.com.ar';
-    }
-  }
+  //   if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  //     return 'http://localhost:3100';
+  //   } else {
+  //     return 'https://apirifas.huelemu.com.ar';
+  //   }
+  // }
 
   /**
-   * ⭐ NUEVA FUNCIÓN HELPER: Mapea datos del backend al modelo User
-   */
-  private mapBackendUserToFrontend(backendUser: any): User {
-    return {
-      id: backendUser.id,
-      email: backendUser.email,
-      nombre: backendUser.nombre,
-      apellido: backendUser.apellido,
-      rol: backendUser.rol as UserRole,
-      telefono: backendUser.telefono,
-      dni: backendUser.dni,
-      institucion_id: backendUser.institucion_id,
-      activa: backendUser.activa,
-      fecha_creacion: backendUser.fecha_creacion,
-      fecha_actualizacion: backendUser.fecha_actualizacion,
-      institucion: backendUser.institucion_nombre ? {
-        id: backendUser.institucion_id || 0,
-        nombre: backendUser.institucion_nombre,
-        descripcion: backendUser.institucion_descripcion,
-        activa: backendUser.institucion_activa
-      } : undefined,
-      // Computed properties para retrocompatibilidad
-      name: `${backendUser.nombre} ${backendUser.apellido}`.trim(),
-      role: backendUser.rol
-    };
-  }
+ * ⭐ HELPER: Mapea datos del backend al modelo User
+ */
+private mapBackendUserToFrontend(backendUser: any): User {
+  console.log('🔄 Mapeando usuario del backend:', backendUser);
+  
+  return {
+    id: backendUser.id,
+    email: backendUser.email,
+    nombre: backendUser.nombre,
+    apellido: backendUser.apellido,
+    rol: backendUser.rol as UserRole,
+    telefono: backendUser.telefono,
+    dni: backendUser.dni,
+    alias_mp: backendUser.alias_mp,  // ✅ IMPORTANTE
+    institucion_id: backendUser.institucion_id,
+    activa: backendUser.activa,
+    fecha_creacion: backendUser.fecha_creacion,
+    fecha_actualizacion: backendUser.fecha_actualizacion,
+    created_at: backendUser.created_at || backendUser.fecha_creacion,  // ✅ Fallback
+    institucion_nombre: backendUser.institucion_nombre || backendUser.institucion?.nombre,  // ✅ Fallback
+    institucion: backendUser.institucion ? {
+      id: backendUser.institucion.id || backendUser.institucion_id || 0,
+      nombre: backendUser.institucion.nombre || backendUser.institucion_nombre,
+      descripcion: backendUser.institucion.descripcion,
+      activa: backendUser.institucion.activa
+    } : (backendUser.institucion_id ? {
+      id: backendUser.institucion_id,
+      nombre: backendUser.institucion_nombre || '',
+      activa: true
+    } : undefined),
+    // Computed properties para retrocompatibilidad
+    name: `${backendUser.nombre} ${backendUser.apellido}`.trim(),
+    role: backendUser.rol
+  };
+}
+
+ /**
+ * Refrescar datos del usuario actual
+ */
+refreshUser(): Observable<any> {
+  console.log('🔄 Refrescando datos del usuario...');
+  
+  return this.http.get<any>(`${this.apiUrl}/auth/me`).pipe(
+    tap(response => {
+      console.log('📥 Respuesta COMPLETA de /auth/me:', response);
+      console.log('📦 response.data:', response.data);
+      console.log('🏷️ alias_mp en response.data:', response.data?.alias_mp);  // ✅ AGREGAR ESTE LOG
+      
+      if (response.status === 'success' && response.data) {
+        const userData = response.data;
+        console.log('👤 Datos del usuario recibidos:', userData);
+        
+        const updatedUser = this.mapBackendUserToFrontend(userData);
+        console.log('👤 Usuario mapeado:', updatedUser);
+        console.log('🏷️ alias_mp en usuario mapeado:', updatedUser.alias_mp);  // ✅ AGREGAR ESTE LOG
+        
+        const currentState = this.authState();
+        const newAuthState: AuthState = {
+          ...currentState,
+          user: updatedUser
+        };
+        
+        this.saveAuthState(newAuthState);
+        console.log('✅ Usuario actualizado en el estado:', this.currentUser());
+      }
+    }),
+    catchError(error => {
+      console.error('❌ Error al refrescar usuario:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
 
   /**
    * Inicia el proceso de autenticación con Google
    */
   loginWithGoogle(returnUrl?: string): Observable<{authUrl: string}> {
-    console.log('🔑 AuthService: Iniciando login con Google...');
-    
-    let url = `${this.apiUrl}/auth/google/login`;
-    if (returnUrl && returnUrl !== '/dashboard') {
-      url += `?returnUrl=${encodeURIComponent(returnUrl)}`;
-    }
-    
-    return this.http.get<any>(url).pipe(
-      map((response) => {
-        console.log('📥 AuthService: URL de Google OAuth obtenida');
-        return { authUrl: response.data.authUrl };
-      }),
-      catchError(this.handleError)
-    );
+  console.log('🔑 AuthService.loginWithGoogle()');
+  console.log('   - API URL base:', this.apiUrl);
+  console.log('   - Return URL:', returnUrl);
+  
+  let url = `${this.apiUrl}/auth/google/login`;
+  if (returnUrl && returnUrl !== '/dashboard') {
+    url += `?returnUrl=${encodeURIComponent(returnUrl)}`;
   }
+  
+  console.log('   - URL final:', url);
+  console.log('   - Haciendo petición HTTP GET...');
+  
+  return this.http.get<any>(url).pipe(
+    map((response) => {
+      console.log('📥 AuthService: Respuesta recibida del servidor:');
+      console.log('   - Status:', response.status);
+      console.log('   - Data:', response.data);
+      console.log('   - authUrl:', response.data?.authUrl);
+      
+      return { authUrl: response.data.authUrl };
+    }),
+    catchError((error) => {
+      console.error('❌ AuthService: Error en loginWithGoogle:');
+      console.error('   - Error completo:', error);
+      console.error('   - URL intentada:', url);
+      return this.handleError(error);
+    })
+  );
+}
 
   /**
    * Inicia el proceso de registro con Google

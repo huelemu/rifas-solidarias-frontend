@@ -1,0 +1,70 @@
+   <div class="numero-publico-container">
+      
+      <div *ngIf="loading()" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando...</p>
+      </div>
+
+      <div *ngIf="!loading() && rifa()" class="content">
+        
+        <!-- HEADER -->
+        <div class="header">
+          <img 
+              *ngIf="getRifaImageUrl()" 
+              [src]="getRifaImageUrl()!" 
+              class="rifa-imagen">
+          <h1>{{ rifa()?.nombre }}</h1>
+          <p class="descripcion">{{ rifa()?.descripcion }}</p>
+        </div>
+
+        <!-- NÚMERO DESTACADO -->
+        <div class="numero-destacado">
+          <div class="numero-label">Número</div>
+          <div class="numero-value">{{ numeroSeleccionado() }}</div>
+          <div class="precio">$ {{ rifa()?.precio_numero | number:'1.2-2' }}</div>
+        </div>
+
+        <!-- ESTADO -->
+        <div class="estado-info" [ngClass]="numero()?.estado">
+          <span class="icono">
+            {{ numero()?.estado === 'disponible' ? '✅' : 
+               numero()?.estado === 'reservado' ? '⏰' : '❌' }}
+          </span>
+          <span class="texto">
+            {{ numero()?.estado === 'disponible' ? 'Disponible' : 
+               numero()?.estado === 'reservado' ? 'Reservado' : 'Ya Vendido' }}
+          </span>
+        </div>
+
+        <!-- ✅ NUEVO: Info del vendedor (opcional, solo si querés mostrarlo) -->
+        <div *ngIf="vendedor()" class="vendedor-info">
+          <div class="vendedor-icono">👤</div>
+          <div class="vendedor-datos">
+            <div class="vendedor-nombre">{{ vendedor()?.nombre }}</div>
+            <div class="vendedor-telefono">📱 {{ vendedor()?.telefono }}</div>
+          </div>
+        </div>
+
+        <!-- ACCIÓN -->
+        <button 
+          *ngIf="numero()?.estado === 'disponible'"
+          class="btn-comprar"
+          (click)="contactarVendedor()">
+          💬 Comprar por WhatsApp
+        </button>
+
+        <button 
+          *ngIf="numero()?.estado !== 'disponible'"
+          class="btn-ver-otros"
+          (click)="verOtrosNumeros()">
+          👀 Ver Números Disponibles
+        </button>
+
+        <!-- ✅ NUEVO: Mensaje informativo -->
+        <p class="info-whatsapp" *ngIf="numero()?.estado === 'disponible'">
+          Al hacer clic se abrirá WhatsApp para contactar al vendedor
+        </p>
+
+      </div>
+
+    </div>
