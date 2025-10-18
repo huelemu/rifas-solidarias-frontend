@@ -120,17 +120,39 @@
       </div>
     </div>
 
-    <!-- ✅ GRILLA DE NÚMEROS (SIEMPRE VISIBLE) -->
+    <!-- GRILLA DE NÚMEROS -->
     <div class="numeros-section">
       <div class="numeros-header">
-        <h2>Números Disponibles</h2>
+        <h2>Números Disponibles para Comprar</h2>
         <div class="numeros-controles">
+          <!-- Botón para números aleatorios -->
+          <button 
+            class="btn btn-secondary"
+            (click)="mostrarNumerosAleatorios()"
+            [disabled]="loadingNumeros()">
+            🎲 Al Azar
+          </button>
+          
+          <!-- Toggle ver todos / solo disponibles -->
+          <button 
+            class="btn btn-outline"
+            (click)="toggleModoVisualizacion()"
+            [disabled]="loadingNumeros()">
+            {{ mostrandoTodos() ? '✅ Disponibles' : '📋 Ver Todos' }}
+          </button>
+          
           <input 
             type="number" 
             [(ngModel)]="buscarNumero"
-            placeholder="Buscar número..."
+            placeholder="Buscar..."
             class="input-buscar">
-          <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="select-filtro">
+          
+          <!-- Solo mostrar filtro de estado si se están viendo todos -->
+          <select 
+            *ngIf="mostrandoTodos()"
+            [(ngModel)]="filtroEstado" 
+            (change)="aplicarFiltros()" 
+            class="select-filtro">
             <option value="todos">Todos</option>
             <option value="disponible">Disponibles</option>
             <option value="vendido">Vendidos</option>
@@ -139,25 +161,26 @@
         </div>
       </div>
 
+      <!-- Mensaje informativo -->
+      <div class="info-badge" *ngIf="!mostrandoTodos()">
+        ⚡ Mostrando solo números disponibles con vendedor
+      </div>
+
       <!-- LEYENDA DE COLORES -->
       <div class="leyenda-numeros">
         <h4>Leyenda:</h4>
         <div class="leyenda-items">
           <div class="leyenda-item">
             <span class="color-box disponible">💬</span>
-            <span>Disponible con vendedor (Haz clic para contactar)</span>
+            <span>Disponible (click para contactar)</span>
           </div>
           <div class="leyenda-item">
             <span class="color-box sin-vendedor">⏳</span>
-            <span>Sin vendedor asignado</span>
+            <span>Sin vendedor</span>
           </div>
           <div class="leyenda-item">
             <span class="color-box vendido">✓</span>
-            <span>Ya vendido</span>
-          </div>
-          <div class="leyenda-item">
-            <span class="color-box reservado">⏰</span>
-            <span>Reservado</span>
+            <span>Vendido</span>
           </div>
         </div>
       </div>
@@ -168,51 +191,37 @@
         <p>Cargando números...</p>
       </div>
 
-    <!-- GRILLA DE NÚMEROS -->
-<div class="numeros-section">
-  <div class="numeros-header">
-    <h2>Números Disponibles para Comprar</h2>
-    <div class="numeros-controles">
-      <!-- ✅ Botón para números aleatorios -->
-      <button 
-        class="btn btn-secondary"
-        (click)="mostrarNumerosAleatorios()"
-        [disabled]="loadingNumeros()">
-        🎲 Números al Azar
-      </button>
-      
-      <!-- ✅ Toggle ver todos / solo disponibles -->
-      <button 
-        class="btn btn-outline"
-        (click)="toggleModoVisualizacion()"
-        [disabled]="loadingNumeros()">
-        {{ mostrandoTodos() ? '✅ Solo Disponibles' : '📋 Ver Todos' }}
-      </button>
-      
-      <input 
-        type="number" 
-        [(ngModel)]="buscarNumero"
-        placeholder="Buscar número..."
-        class="input-buscar">
-      
-      <!-- Solo mostrar filtro de estado si se están viendo todos -->
-      <select 
-        *ngIf="mostrandoTodos()"
-        [(ngModel)]="filtroEstado" 
-        (change)="aplicarFiltros()" 
-        class="select-filtro">
-        <option value="todos">Todos</option>
-        <option value="disponible">Disponibles</option>
-        <option value="vendido">Vendidos</option>
-        <option value="reservado">Reservados</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Mensaje informativo -->
-  <div class="info-badge" *ngIf="!mostrandoTodos()">
-    ⚡ Mostrando solo números disponibles para comprar (con vendedor asignado)
-  </div>
+      <!-- GRILLA DE NÚMEROS -->
+      <div *ngIf="!loadingNumeros() && numeros().length > 0" class="numeros-grid">
+        <div 
+          *ngFor="let numero of numerosFiltrados()" 
+          class="numero-card"
+          [class.disponible]="numero.estado === 'disponible' && numero.tiene_vendedor"
+          [class.sin-vendedor]="numero.estado === 'disponible' && !numero.tiene_vendedor"
+          [class.vendido]="numero.estado === 'vendido'"
+          [class.reservado]="numero.estado === 'reservado'"
+          [class.clickeable]="numero.tiene_vendedor && numero.estado !== 'vendido'"
+          [style.cursor]="numero.tiene_vendedor && numero.estado !== 'vendido' ? 'pointer' : 'not-allowed'"
+          (click)="seleccionarNumero(numero)">
+          
+          <div class="numero-numero">
+            {{ numero.numero }}
+            <span *ngIf="numero.tiene_vendedor && numero.estado === 'disponible'" class="whatsapp-icon">💬</span>
+            <span *ngIf="numero.estado === 'vendido'" class="check-icon">✓</span>
+            <span *ngIf="!numero.tiene_vendedor && numero.estado === 'disponible'" class="wait-icon">⏳</span>
+          </div>
+          
+          <div class="numero-estado">
+            <span class="estado-dot" [ngClass]="numero.estado"></span>
+            <span *ngIf="numero.tiene_vendedor">{{ getEstadoNombre(numero.estado) }}</span>
+            <span *ngIf="!numero.tiene_vendedor && numero.estado === 'disponible'">Sin vendedor</span>
+            <span *ngIf="numero.estado === 'vendido'">Vendido</span>
+            <span *ngIf="numero.estado === 'reservado'">Reservado</span>
+          </div>
+          
+          <div class="numero-precio">${{ numero.precio_venta | number:'1.0-0' }}</div>
+        </div>
+      </div>
 
       <!-- MENSAJE SI NO HAY NÚMEROS -->
       <div *ngIf="!loadingNumeros() && numeros().length === 0" class="no-numeros">

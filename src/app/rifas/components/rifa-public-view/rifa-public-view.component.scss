@@ -124,8 +124,8 @@
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -153,7 +153,7 @@
 }
 
 .info-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #7f8c8d;
   margin-bottom: 0.25rem;
   text-transform: uppercase;
@@ -161,7 +161,7 @@
 }
 
 .info-value {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #2c3e50;
 }
@@ -195,17 +195,18 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #2c3e50;
+  font-size: 0.9rem;
 }
 
 .progress-percentage {
   color: #667eea;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .progress-bar {
-  height: 24px;
+  height: 20px;
   background: #e9ecef;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -214,89 +215,18 @@
   height: 100%;
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   transition: width 0.5s ease;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .progress-stats {
   display: flex;
   justify-content: space-between;
   margin-top: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #7f8c8d;
 }
 
-.actions-section {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-}
-
-.actions-section h2 {
-  margin: 0 0 1.5rem 0;
-  color: #2c3e50;
-  text-align: center;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.action-button {
-  background: white;
-  border: 3px solid #e9ecef;
-  border-radius: 12px;
-  padding: 2rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  text-align: left;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &.view-numbers {
-    border-color: #3498db;
-  }
-
-  &.buy {
-    border-color: #27ae60;
-  }
-
-  &.login {
-    border-color: #9b59b6;
-  }
-}
-
-.action-icon {
-  font-size: 3rem;
-  flex-shrink: 0;
-}
-
-.action-content h3 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
-}
-
-.action-content p {
-  margin: 0;
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
+// SECCIÓN DE NÚMEROS
 .numeros-section {
   background: white;
   border-radius: 16px;
@@ -317,29 +247,147 @@
 .numeros-header h2 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.5rem;
 }
 
 .numeros-controles {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .input-buscar, .select-filtro {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  min-width: 100px;
 }
 
-.btn-cerrar {
+.btn {
   padding: 0.5rem 1rem;
-  background: #e74c3c;
-  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+
+  &.btn-primary {
+    background: #667eea;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #5568d3;
+    }
+  }
+
+  &.btn-secondary {
+    background: #9b59b6;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #8e44ad;
+    }
+  }
+
+  &.btn-outline {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+
+    &:hover:not(:disabled) {
+      background: #667eea;
+      color: white;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.info-badge {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.leyenda-numeros {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid #dee2e6;
+  
+  h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.leyenda-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateX(3px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.color-box {
+  width: 35px;
+  height: 35px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  
+  &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+  }
+  
+  &.sin-vendedor {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+  }
+  
+  &.vendido {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+  }
+  
+  &.reservado {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+  }
 }
 
 .loading-numeros {
@@ -357,83 +405,135 @@
   margin: 0 auto 1rem;
 }
 
+// GRILLA DE NÚMEROS
 .numeros-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .numero-card {
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
+  position: relative;
+  border-radius: 10px;
+  padding: 0.75rem;
   text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-
+  border: 2px solid #ddd;
+  transition: all 0.3s ease;
+  background: white;
+  
   &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
     border-color: #27ae60;
-    background: #f0fff4;
-
-    &:hover {
-      background: #d4edda;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+    
+    .estado-dot {
+      background: #fff;
     }
   }
-
-  &.vendido {
-    border-color: #e74c3c;
-    background: #fff5f5;
-    opacity: 0.6;
-    cursor: not-allowed;
-
-    &:hover {
-      transform: none;
-    }
-  }
-
-  &.reservado {
-    border-color: #f39c12;
-    background: #fffbf0;
+  
+  &.sin-vendedor {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+    border-color: #95a5a6;
     opacity: 0.8;
+    cursor: not-allowed !important;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  &.vendido {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border-color: #e74c3c;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  &.reservado {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border-color: #f39c12;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  &.clickeable:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+    border-color: #1e8449;
   }
 }
 
 .numero-numero {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
+  position: relative;
+}
+
+.whatsapp-icon,
+.check-icon,
+.wait-icon {
+  font-size: 0.8rem;
+  margin-left: 0.2rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .numero-estado {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: #7f8c8d;
-  margin-bottom: 0.5rem;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.35rem;
 }
 
 .estado-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-
+  display: inline-block;
+  
   &.disponible {
     background: #27ae60;
   }
-
+  
   &.vendido {
     background: #e74c3c;
   }
-
+  
   &.reservado {
     background: #f39c12;
   }
@@ -441,8 +541,21 @@
 
 .numero-precio {
   font-size: 0.9rem;
-  color: #27ae60;
   font-weight: 600;
+}
+
+.no-numeros {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin: 2rem 0;
+  
+  p {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin: 0;
+  }
 }
 
 .paginacion {
@@ -460,10 +573,15 @@
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 0.9rem;
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: #5568d3;
     }
   }
 }
@@ -471,8 +589,10 @@
 .pagina-actual {
   color: #2c3e50;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
+// INFO ADICIONAL
 .info-adicional {
   margin-bottom: 2rem;
 }
@@ -480,22 +600,25 @@
 .bases-condiciones, .observaciones {
   background: white;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.5rem;
   margin-bottom: 1rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 
   h3 {
     margin: 0 0 1rem 0;
     color: #2c3e50;
+    font-size: 1.2rem;
   }
 
   p {
     margin: 0;
     color: #7f8c8d;
     line-height: 1.6;
+    font-size: 0.95rem;
   }
 }
 
+// COMPARTIR
 .compartir-section {
   background: white;
   border-radius: 16px;
@@ -527,6 +650,7 @@
   align-items: center;
   gap: 0.5rem;
   transition: transform 0.2s;
+  font-size: 0.9rem;
 
   &:hover {
     transform: translateY(-2px);
@@ -545,24 +669,16 @@
   }
 }
 
-.btn {
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s;
-
-  &.btn-primary {
-    background: #667eea;
-    color: white;
-  }
-}
-
+// RESPONSIVE
 @media (max-width: 768px) {
+  .public-view-container {
+    padding: 1rem 0.5rem;
+  }
+
   .public-header {
     flex-direction: column;
     text-align: center;
+    padding: 1.5rem;
   }
 
   .header-info h1 {
@@ -571,374 +687,92 @@
 
   .info-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
-  .actions-grid {
-    grid-template-columns: 1fr;
+  .info-card {
+    padding: 1rem;
+  }
+
+  .info-icon {
+    font-size: 2rem;
+  }
+
+  .info-value {
+    font-size: 1.1rem;
+  }
+
+  .numeros-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .numeros-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .numeros-controles {
+    flex-direction: column;
+  }
+
+  .input-buscar, .select-filtro, .btn {
+    width: 100%;
   }
 
   .numeros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .numero-card {
+    padding: 0.5rem;
+  }
+
+  .numero-numero {
+    font-size: 1.2rem;
+  }
+
+  .numero-estado {
+    font-size: 0.65rem;
+  }
+
+  .numero-precio {
+    font-size: 0.8rem;
+  }
+
+  .leyenda-items {
+    grid-template-columns: 1fr;
+  }
+
+  .leyenda-item {
+    font-size: 0.8rem;
+  }
+
+  .color-box {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
   }
 
   .compartir-buttons {
     flex-direction: column;
   }
-  .numero-card {
-  transition: all 0.3s ease;
-  
-  &.clickeable:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  &.sin-vendedor {
-    background: #e0e0e0;
-    opacity: 0.7;
-    cursor: not-allowed;
-    
-    .numero-numero {
-      color: #999;
-    }
-    
-    .numero-estado {
-      color: #666;
-    }
-  }
-  
-  &.disponible {
-    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-    color: white;
-    border-color: #27ae60;
-    
-    .numero-numero,
-    .numero-estado,
-    .numero-precio {
-      color: white;
-    }
+
+  .btn-compartir {
+    justify-content: center;
   }
 }
 
-.whatsapp-icon {
-  font-size: 0.8em;
-  margin-left: 0.25rem;
-}
+@media (max-width: 480px) {
+  .numeros-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
 
-// Efecto hover solo para números con vendedor
-.numero-card.clickeable:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
-}
-.leyenda-numeros {
-  margin: 2rem 0;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  
-  h4 {
-    margin: 0 0 1rem 0;
+  .numero-numero {
     font-size: 1rem;
-    color: #555;
   }
-}
 
-.leyenda-items {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.leyenda-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.color-box {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  
-  &.disponible {
-    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-    color: white;
+  .whatsapp-icon, .check-icon, .wait-icon {
+    font-size: 0.7rem;
   }
-  
-  &.sin-vendedor {
-    background: #e0e0e0;
-    color: #999;
-  }
-  
-  &.vendido {
-    background: #e74c3c;
-    color: white;
-  }
-}
-// ✅ ESTILOS PARA LA LEYENDA
-.leyenda-numeros {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  border: 2px solid #dee2e6;
-  
-  h4 {
-    margin: 0 0 1rem 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-  }
-}
-
-.leyenda-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.leyenda-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-
-.color-box {
-  width: 45px;
-  height: 45px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  
-  &.disponible {
-    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-    color: white;
-  }
-  
-  &.sin-vendedor {
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-    color: white;
-  }
-  
-  &.vendido {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white;
-  }
-  
-  &.reservado {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-    color: white;
-  }
-}
-
-// ✅ ESTILOS ACTUALIZADOS PARA LOS NÚMEROS
-.numero-card {
-  position: relative;
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-  border: 2px solid #ddd;
-  transition: all 0.3s ease;
-  background: white;
-  
-  // ✅ Números disponibles CON vendedor (clickeables)
-  &.disponible {
-    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-    color: white;
-    border-color: #27ae60;
-    
-    .numero-numero,
-    .numero-estado,
-    .numero-precio {
-      color: white;
-    }
-    
-    .estado-dot {
-      background: #fff;
-    }
-  }
-  
-  // ✅ Números SIN vendedor (no clickeables)
-  &.sin-vendedor {
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-    color: white;
-    border-color: #95a5a6;
-    opacity: 0.8;
-    cursor: not-allowed !important;
-    
-    .numero-numero,
-    .numero-estado,
-    .numero-precio {
-      color: white;
-    }
-  }
-  
-  // ✅ Números vendidos
-  &.vendido {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white;
-    border-color: #e74c3c;
-    cursor: not-allowed !important;
-    opacity: 0.7;
-    
-    .numero-numero,
-    .numero-estado,
-    .numero-precio {
-      color: white;
-    }
-  }
-  
-  // ✅ Números reservados
-  &.reservado {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-    color: white;
-    border-color: #f39c12;
-    
-    .numero-numero,
-    .numero-estado,
-    .numero-precio {
-      color: white;
-    }
-  }
-  
-  // ✅ Efecto hover SOLO para clickeables
-  &.clickeable:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4);
-    border-color: #1e8449;
-  }
-}
-
-.numero-numero {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  position: relative;
-}
-
-.whatsapp-icon,
-.check-icon,
-.wait-icon {
-  font-size: 1rem;
-  margin-left: 0.25rem;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
-}
-
-.numero-estado {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.estado-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  
-  &.disponible {
-    background: #27ae60;
-  }
-  
-  &.vendido {
-    background: #e74c3c;
-  }
-  
-  &.reservado {
-    background: #f39c12;
-  }
-}
-
-.numero-precio {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-// ✅ Responsive
-@media (max-width: 768px) {
-  .leyenda-items {
-    grid-template-columns: 1fr;
-  }
-  
-  .leyenda-item {
-    font-size: 0.85rem;
-  }
-  
-  .color-box {
-    width: 35px;
-    height: 35px;
-    font-size: 1.1rem;
-  }
-}
-.no-numeros {
-  text-align: center;
-  padding: 3rem;
-  background: #f8f9fa;
-  border-radius: 12px;
-  margin: 2rem 0;
-  
-  p {
-    font-size: 1.2rem;
-    color: #6c757d;
-    margin: 0;
-  }
-}
-.info-badge {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-}
-
-.numeros-controles {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.btn-secondary {
-  background: #9b59b6;
-  color: white;
-  
-  &:hover {
-    background: #8e44ad;
-  }
-}
 }
