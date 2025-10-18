@@ -1,19 +1,21 @@
 // src/app/rifas/components/rifa-public-view/rifa-public-view.component.ts
-// ✅ ACTUALIZAR MÉTODO comprarNumero PARA PRE-SELECCIONAR
 
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
+import { RifasPublicService } from '../../../services/rifas-public.service'; // ✅ AGREGAR
 import { AuthService } from '../../../auth/services/auth.service';
 import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
 
 interface NumeroPublico {
+  id: number; // ✅ AGREGAR id
   numero: number;
   estado: 'disponible' | 'reservado' | 'vendido';
   qr_code: string;
   precio_venta: number;
+  tiene_vendedor?: boolean; // ✅ AGREGAR
 }
 
 @Component({
@@ -24,12 +26,10 @@ interface NumeroPublico {
   styleUrls: ['./rifa-public-view.component.scss']
 })
 export class RifaPublicViewComponent implements OnInit {
-seleccionarNumero(_t126: NumeroPublico) {
-throw new Error('Method not implemented.');
-}
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly rifasService = inject(RifasService);
+  private readonly rifasPublicService = inject(RifasPublicService); // ✅ AGREGAR
   private readonly authService = inject(AuthService);
 
   readonly ImageUrlHelper = ImageUrlHelper;
@@ -37,6 +37,7 @@ throw new Error('Method not implemented.');
   // Signals
   readonly rifa = signal<any>(null);
   readonly numeros = signal<NumeroPublico[]>([]);
+  readonly numerosConVendedor = signal<number[]>([]); // ✅ AGREGAR - IDs de números con vendedor
   readonly loading = signal(true);
   readonly loadingNumeros = signal(false);
   readonly error = signal<string | null>(null);
@@ -65,29 +66,32 @@ throw new Error('Method not implemented.');
     return resultado.sort((a, b) => a.numero - b.numero);
   });
 
-ngOnInit(): void {
-    this.route.params.subscribe((params) => {
-      // ✅ IMPORTANTE: Obtener el ID correctamente
-      const rifaIdParam = params['id'] || params['rifaId'];
-      
-      if (!rifaIdParam) {
-        console.error('❌ No se proporcionó ID de rifa en la URL');
-        this.error.set('ID de rifa inválido');
-        return;
-      }
+  ngOnInit(): void {
+  this.route.params.subscribe((params) => {
+    const rifaIdParam = params['id'] || params['rifaId'];
+    
+    if (!rifaIdParam) {
+      console.error('❌ No se proporcionó ID de rifa en la URL');
+      this.error.set('ID de rifa inválido');
+      return;
+    }
 
-      const rifaId = parseInt(rifaIdParam, 10);
+    const rifaId = parseInt(rifaIdParam, 10);
 
-      if (isNaN(rifaId) || rifaId <= 0) {
-        console.error('❌ ID de rifa inválido:', rifaIdParam);
-        this.error.set('ID de rifa inválido');
-        return;
-      }
+    if (isNaN(rifaId) || rifaId <= 0) {
+      console.error('❌ ID de rifa inválido:', rifaIdParam);
+      this.error.set('ID de rifa inválido');
+      return;
+    }
 
-      console.log('✅ Cargando rifa pública:', rifaId);
-      this.cargarRifaPublica(rifaId);
-    });
-  }
+    console.log('✅ Cargando rifa pública:', rifaId);
+    this.cargarRifaPublica(rifaId);
+    this.cargarNumerosConVendedor(rifaId);
+    
+    // ✅ CARGAR NÚMEROS AUTOMÁTICAMENTE
+    this.cargarNumeros(1);
+  });
+}
 
   cargarRifaPublica(rifaId: number): void {
     this.loading.set(true);
@@ -105,6 +109,22 @@ ngOnInit(): void {
         console.error('❌ Error cargando rifa pública:', err);
         this.error.set('No se pudo cargar la información de la rifa');
         this.loading.set(false);
+      }
+    });
+  }
+
+  // ✅ NUEVO: Cargar qué números tienen vendedor asignado
+  cargarNumerosConVendedor(rifaId: number): void {
+    this.rifasPublicService.getNumerosConVendedor(rifaId).subscribe({
+      next: (response) => {
+        const ids = response.data || [];
+        this.numerosConVendedor.set(ids);
+        console.log('✅ Números con vendedor:', ids.length);
+      },
+      error: (err) => {
+        console.error('❌ Error cargando vendedores:', err);
+        // Si falla, asumir que ninguno tiene vendedor
+        this.numerosConVendedor.set([]);
       }
     });
   }
@@ -135,7 +155,14 @@ ngOnInit(): void {
     this.rifasService.getPublicNumbers(rifaId, params).subscribe({
       next: (response: any) => {
         console.log('✅ Números públicos cargados:', response);
-        this.numeros.set(response.data?.numeros || []);
+        
+        // ✅ MARCAR cuáles tienen vendedor
+        const numeros = (response.data?.numeros || []).map((n: any) => ({
+          ...n,
+          tiene_vendedor: this.tieneVendedor(n.id)
+        }));
+        
+        this.numeros.set(numeros);
         this.paginaActual.set(response.pagination?.page || 1);
         this.totalPaginas.set(response.pagination?.totalPages || 1);
         this.loadingNumeros.set(false);
@@ -147,6 +174,11 @@ ngOnInit(): void {
     });
   }
 
+  // ✅ NUEVO: Verificar si un número tiene vendedor asignado
+  tieneVendedor(numeroId: number): boolean {
+    return this.numerosConVendedor().includes(numeroId);
+  }
+
   aplicarFiltros(): void {
     this.cargarNumeros(1);
   }
@@ -156,8 +188,29 @@ ngOnInit(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // ✅ IMPLEMENTAR: Seleccionar número para contactar vendedor
+  seleccionarNumero(numero: NumeroPublico): void {
+    const rifaId = this.rifa()?.id;
+    
+    // Verificar que tenga vendedor asignado
+    if (!numero.tiene_vendedor) {
+      alert('⚠️ Este número aún no tiene un vendedor asignado. Por favor, intenta más tarde.');
+      return;
+    }
+
+    // Verificar que esté disponible
+    if (numero.estado === 'vendido') {
+      alert('❌ Este número ya fue vendido.');
+      return;
+    }
+
+    // Navegar a la página de detalle con WhatsApp
+    console.log('📱 Navegando a número:', numero.numero);
+    this.router.navigate(['/public/rifas', rifaId, 'numero', numero.numero]);
+  }
+
   /**
-   * ✅ MEJORADO: Comprar número específico con pre-selección
+   * Comprar número específico con pre-selección
    */
   comprarNumero(numero: any): void {
     if (numero.estado !== 'disponible') {
@@ -172,7 +225,6 @@ ngOnInit(): void {
       return;
     }
 
-    // ✅ Redirigir a compra con el número pre-seleccionado
     this.router.navigate(['/rifas', this.rifa()?.id, 'comprar'], {
       queryParams: { numero: numero.numero }
     });
@@ -216,9 +268,6 @@ ngOnInit(): void {
     return usuario?.role === 'comprador' || usuario?.role === 'vendedor';
   }
 
-  /**
-   * ✅ MEJORADO: Ir a comprar con returnUrl
-   */
   irAComprar(): void {
     if (!this.estaAutenticado()) {
       this.irALogin();
@@ -227,9 +276,6 @@ ngOnInit(): void {
     this.router.navigate(['/rifas', this.rifa()?.id, 'comprar']);
   }
 
-  /**
-   * ✅ MEJORADO: Login con returnUrl
-   */
   irALogin(): void {
     const returnUrl = this.router.url;
     this.router.navigate(['/login'], {
@@ -238,38 +284,35 @@ ngOnInit(): void {
   }
 
   // Métodos de compartir
-compartirWhatsApp(): void {
-  const url = window.location.href;
-  const logoUrl = this.rifa()?.imagen_url;
-  const imagenCompleta = logoUrl ? 
-    (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
-  
-  const nombre = this.rifa()?.nombre || '';
-  const precio = this.rifa()?.precio_numero || 0;
-  const disponibles = this.rifa()?.numeros_disponibles || 0;
-  const total = this.rifa()?.cantidad_numeros || 0;
-  const fechaSorteo = this.rifa()?.fecha_sorteo ? 
-    new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
-    'A confirmar';
-  
-  // ✅ Obtener el vendedor actual (usuario logueado)
-  const vendedor = this.authService.currentUser();
-  
-  let mensaje = `🎟️ *${nombre}*\n\n`;
-  mensaje += `💰 Precio: $${precio.toLocaleString('es-AR')}\n`;
-  mensaje += `📊 Disponibles: ${disponibles} de ${total}\n`;
-  mensaje += `🎯 Cuando?: ${fechaSorteo}\n\n`;
-  
-  mensaje += `👉 ${url}`;
-  
-  // ✅ AGREGAR ALIAS MP SI EXISTE
-  if (vendedor && (vendedor as any).alias_mp) {
-    mensaje += `\n💳 Alias: ${(vendedor as any).alias_mp}`;
+  compartirWhatsApp(): void {
+    const url = window.location.href;
+    const logoUrl = this.rifa()?.imagen_url;
+    const imagenCompleta = logoUrl ? 
+      (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`) : '';
+    
+    const nombre = this.rifa()?.nombre || '';
+    const precio = this.rifa()?.precio_numero || 0;
+    const disponibles = this.rifa()?.numeros_disponibles || 0;
+    const total = this.rifa()?.cantidad_numeros || 0;
+    const fechaSorteo = this.rifa()?.fecha_sorteo ? 
+      new Date(this.rifa()?.fecha_sorteo).toLocaleDateString('es-AR') : 
+      'A confirmar';
+    
+    const vendedor = this.authService.currentUser();
+    
+    let mensaje = `🎟️ *${nombre}*\n\n`;
+    mensaje += `💰 Precio: $${precio.toLocaleString('es-AR')}\n`;
+    mensaje += `📊 Disponibles: ${disponibles} de ${total}\n`;
+    mensaje += `🎯 Cuando?: ${fechaSorteo}\n\n`;
+    mensaje += `👉 ${url}`;
+    
+    if (vendedor && (vendedor as any).alias_mp) {
+      mensaje += `\n💳 Alias: ${(vendedor as any).alias_mp}`;
+    }
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
   }
-  
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-  window.open(whatsappUrl, '_blank');
-}
 
   compartirFacebook(): void {
     const url = window.location.href;

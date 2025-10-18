@@ -395,20 +395,22 @@ venderNumeroVendedor(rifaId: number, numero: number, datos: any): Observable<any
     return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${id}`);
   }
 
-  /**
-   * ✅ NUEVO: Obtener números públicos de una rifa
-   */
-  getPublicNumbers(rifaId: number, params: any = {}): Observable<any> {
-    let httpParams = new HttpParams();
-    
-    if (params.estado) httpParams = httpParams.set('estado', params.estado);
-    if (params.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
 
-    return this.http.get<any>(`${this.baseUrl}/rifas/publicas/${rifaId}/numeros`, { 
-      params: httpParams 
-    });
-  }
+  /**
+ * Obtener números públicos de una rifa
+ */
+getPublicNumbers(rifaId: number, params: any = {}): Observable<any> {
+  let httpParams = new HttpParams();
+ 
+  if (params.estado) httpParams = httpParams.set('estado', params.estado);
+  if (params.page) httpParams = httpParams.set('page', params.page.toString());
+  if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+  
+  // ✅ IMPORTANTE: debe apuntar a /public/rifas/${rifaId}/numeros
+  return this.http.get<any>(`${this.baseUrl}/public/rifas/${rifaId}/numeros`, {
+    params: httpParams
+  });
+}
 
   /**
    * ✅ MEJORADO: Obtener números de rifa (con autenticación)

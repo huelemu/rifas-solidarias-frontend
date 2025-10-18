@@ -33,6 +33,13 @@ export class RifasPublicService {
     return this.http.get(`${this.apiUrl}/rifas/${rifaId}`);
   }
 
+/**
+ * Obtiene los IDs de números que tienen vendedor asignado
+ */
+getNumerosConVendedor(rifaId: number): Observable<any> {
+  return this.http.get(`${this.apiUrl}/rifas/${rifaId}/numeros-con-vendedor`);
+}
+
   /**
    * Obtiene todas las rifas activas
    */

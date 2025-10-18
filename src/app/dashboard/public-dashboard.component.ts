@@ -6,8 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { RifasService } from '../rifas/services/rifas.service';
 import { AuthService } from '../auth/services/auth.service';
-import { NavbarComponent } from '../shared/components/navbar/navbar.component';
-
+import { ImageUrlHelper } from '../shared/utils/image-url.helper'; // ✅ IMPORTAR
 
 interface DashboardData {
   publico: {
@@ -40,9 +39,7 @@ interface DashboardData {
   template: `
     <div class="public-dashboard">
       
-      <!-- ============================================
-           HERO SECTION - Banner Principal
-           ============================================ -->
+      <!-- HERO SECTION - Banner Principal -->
       <section class="hero-section">
         <div class="hero-content">
           <div class="hero-text">
@@ -68,6 +65,7 @@ interface DashboardData {
                 <div class="hero-stat-label">Recaudado</div>
             </div>
             </div>
+            
             <!-- CTA Buttons -->
             <div class="hero-actions">
               @if (!isAuthenticated()) {
@@ -101,9 +99,7 @@ interface DashboardData {
 
       <div class="dashboard-main">
 
-        <!-- ============================================
-             RIFAS ACTIVAS - Grid Principal
-             ============================================ -->
+        <!-- RIFAS ACTIVAS - Grid Principal -->
         <section class="section rifas-section">
           <div class="section-header">
             <h2 class="section-title">🎰 Rifas Activas</h2>
@@ -128,10 +124,13 @@ interface DashboardData {
               @for (rifa of rifasActivas(); track rifa.id) {
                 <div class="rifa-card" (click)="goToRifaDetail(rifa.id)">
                   
-                  <!-- Imagen de la rifa -->
+                  <!-- ✅ Imagen de la rifa CORREGIDA -->
                   <div class="rifa-image">
-                    @if (rifa.imagen_url) {
-                      <img [src]="rifa.imagen_url" [alt]="rifa.nombre" />
+                    @if (getRifaImageUrl(rifa.imagen_url)) {
+                      <img 
+                        [src]="getRifaImageUrl(rifa.imagen_url)!" 
+                        [alt]="rifa.nombre"
+                        (error)="handleImageError($event)" />
                     } @else {
                       <div class="rifa-image-placeholder">
                         <span class="placeholder-icon">🎁</span>
@@ -194,9 +193,7 @@ interface DashboardData {
           }
         </section>
 
-        <!-- ============================================
-             PRÓXIMOS SORTEOS - Timeline
-             ============================================ -->
+        <!-- PRÓXIMOS SORTEOS - Timeline -->
         @if (proximosSorteos().length > 0) {
           <section class="section sorteos-section">
             <div class="section-header">
@@ -229,9 +226,7 @@ interface DashboardData {
           </section>
         }
 
-        <!-- ============================================
-             ÚLTIMOS GANADORES - Feed de Confianza
-             ============================================ -->
+        <!-- ÚLTIMOS GANADORES - Feed de Confianza -->
         @if (ultimosGanadores().length > 0) {
           <section class="section ganadores-section">
             <div class="section-header">
@@ -266,9 +261,7 @@ interface DashboardData {
           </section>
         }
 
-        <!-- ============================================
-             SECCIÓN PERSONAL (Solo si está autenticado)
-             ============================================ -->
+        <!-- SECCIÓN PERSONAL (Solo si está autenticado) -->
         @if (isAuthenticated() && data()?.personal) {
           <section class="section personal-section">
             <div class="section-header">
@@ -330,9 +323,7 @@ interface DashboardData {
           </section>
         }
 
-        <!-- ============================================
-             CALL TO ACTION FINAL
-             ============================================ -->
+        <!-- CALL TO ACTION FINAL -->
         @if (!isAuthenticated()) {
           <section class="cta-section">
             <div class="cta-content">
@@ -393,6 +384,20 @@ export class PublicDashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  // ✅ NUEVO: Helper para obtener URL de imagen de rifa
+  getRifaImageUrl(imagenUrl: string | null): string | null {
+    return ImageUrlHelper.getRifaImageUrl(imagenUrl);
+  }
+
+  // ✅ NUEVO: Manejar error de carga de imagen
+  handleImageError(event: any): void {
+    event.target.style.display = 'none';
+    const placeholder = document.createElement('div');
+    placeholder.className = 'rifa-image-placeholder';
+    placeholder.innerHTML = '<span class="placeholder-icon">🎁</span>';
+    event.target.parentElement.appendChild(placeholder);
   }
 
   // ===================================================

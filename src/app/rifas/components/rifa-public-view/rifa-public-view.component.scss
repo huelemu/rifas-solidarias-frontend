@@ -584,4 +584,335 @@
   .compartir-buttons {
     flex-direction: column;
   }
+  .numero-card {
+  transition: all 0.3s ease;
+  
+  &.clickeable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &.sin-vendedor {
+    background: #e0e0e0;
+    opacity: 0.7;
+    cursor: not-allowed;
+    
+    .numero-numero {
+      color: #999;
+    }
+    
+    .numero-estado {
+      color: #666;
+    }
+  }
+  
+  &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+    border-color: #27ae60;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+}
+
+.whatsapp-icon {
+  font-size: 0.8em;
+  margin-left: 0.25rem;
+}
+
+// Efecto hover solo para números con vendedor
+.numero-card.clickeable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+}
+.leyenda-numeros {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  
+  h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: #555;
+  }
+}
+
+.leyenda-items {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.color-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  
+  &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+  }
+  
+  &.sin-vendedor {
+    background: #e0e0e0;
+    color: #999;
+  }
+  
+  &.vendido {
+    background: #e74c3c;
+    color: white;
+  }
+}
+// ✅ ESTILOS PARA LA LEYENDA
+.leyenda-numeros {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid #dee2e6;
+  
+  h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.leyenda-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.color-box {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  
+  &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+  }
+  
+  &.sin-vendedor {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+  }
+  
+  &.vendido {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+  }
+  
+  &.reservado {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+  }
+}
+
+// ✅ ESTILOS ACTUALIZADOS PARA LOS NÚMEROS
+.numero-card {
+  position: relative;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  border: 2px solid #ddd;
+  transition: all 0.3s ease;
+  background: white;
+  
+  // ✅ Números disponibles CON vendedor (clickeables)
+  &.disponible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+    border-color: #27ae60;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+    
+    .estado-dot {
+      background: #fff;
+    }
+  }
+  
+  // ✅ Números SIN vendedor (no clickeables)
+  &.sin-vendedor {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+    border-color: #95a5a6;
+    opacity: 0.8;
+    cursor: not-allowed !important;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  // ✅ Números vendidos
+  &.vendido {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border-color: #e74c3c;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  // ✅ Números reservados
+  &.reservado {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border-color: #f39c12;
+    
+    .numero-numero,
+    .numero-estado,
+    .numero-precio {
+      color: white;
+    }
+  }
+  
+  // ✅ Efecto hover SOLO para clickeables
+  &.clickeable:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4);
+    border-color: #1e8449;
+  }
+}
+
+.numero-numero {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.whatsapp-icon,
+.check-icon,
+.wait-icon {
+  font-size: 1rem;
+  margin-left: 0.25rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.numero-estado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.estado-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  
+  &.disponible {
+    background: #27ae60;
+  }
+  
+  &.vendido {
+    background: #e74c3c;
+  }
+  
+  &.reservado {
+    background: #f39c12;
+  }
+}
+
+.numero-precio {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+// ✅ Responsive
+@media (max-width: 768px) {
+  .leyenda-items {
+    grid-template-columns: 1fr;
+  }
+  
+  .leyenda-item {
+    font-size: 0.85rem;
+  }
+  
+  .color-box {
+    width: 35px;
+    height: 35px;
+    font-size: 1.1rem;
+  }
+}
+.no-numeros {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin: 2rem 0;
+  
+  p {
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin: 0;
+  }
+}
 }
