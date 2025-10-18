@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 
@@ -40,6 +40,16 @@ getNumerosConVendedor(rifaId: number): Observable<any> {
   return this.http.get(`${this.apiUrl}/rifas/${rifaId}/numeros-con-vendedor`);
 }
 
+/**
+ * Obtener solo números DISPONIBLES con vendedor (rápido)
+ */
+getNumerosDisponibles(rifaId: number, limit: number = 100, aleatorios: boolean = false): Observable<any> {
+  let params = new HttpParams()
+    .set('limit', limit.toString())
+    .set('aleatorios', aleatorios.toString());
+  
+  return this.http.get(`${this.apiUrl}/rifas/${rifaId}/numeros-disponibles`, { params });
+}
   /**
    * Obtiene todas las rifas activas
    */

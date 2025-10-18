@@ -5,17 +5,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RifasService } from '../../services/rifas.service';
-import { RifasPublicService } from '../../../services/rifas-public.service'; // ✅ AGREGAR
+import { RifasPublicService } from '../../../services/rifas-public.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ImageUrlHelper } from '../../../shared/utils/image-url.helper';
 
 interface NumeroPublico {
-  id: number; // ✅ AGREGAR id
+  id: number;
   numero: number;
   estado: 'disponible' | 'reservado' | 'vendido';
   qr_code: string;
   precio_venta: number;
-  tiene_vendedor?: boolean; // ✅ AGREGAR
+  tiene_vendedor?: boolean;
 }
 
 @Component({
@@ -29,7 +29,7 @@ export class RifaPublicViewComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly rifasService = inject(RifasService);
-  private readonly rifasPublicService = inject(RifasPublicService); // ✅ AGREGAR
+  private readonly rifasPublicService = inject(RifasPublicService);
   private readonly authService = inject(AuthService);
 
   readonly ImageUrlHelper = ImageUrlHelper;
@@ -37,11 +37,13 @@ export class RifaPublicViewComponent implements OnInit {
   // Signals
   readonly rifa = signal<any>(null);
   readonly numeros = signal<NumeroPublico[]>([]);
-  readonly numerosConVendedor = signal<number[]>([]); // ✅ AGREGAR - IDs de números con vendedor
+  readonly numerosConVendedor = signal<number[]>([]);
   readonly loading = signal(true);
   readonly loadingNumeros = signal(false);
   readonly error = signal<string | null>(null);
-  readonly mostrarNumerosFlag = signal(false);
+  readonly mostrarNumerosFlag = signal(true);
+  readonly mostrarSoloDisponibles = signal(true);
+  readonly mostrandoTodos = signal(false);
 
   // Filtros
   filtroEstado = 'todos';
@@ -67,37 +69,33 @@ export class RifaPublicViewComponent implements OnInit {
   });
 
   ngOnInit(): void {
-  this.route.params.subscribe((params) => {
-    const rifaIdParam = params['id'] || params['rifaId'];
-    
-    if (!rifaIdParam) {
-      console.error('❌ No se proporcionó ID de rifa en la URL');
-      this.error.set('ID de rifa inválido');
-      return;
-    }
+    this.route.params.subscribe((params) => {
+      const rifaIdParam = params['id'] || params['rifaId'];
+      
+      if (!rifaIdParam) {
+        console.error('❌ No se proporcionó ID de rifa en la URL');
+        this.error.set('ID de rifa inválido');
+        return;
+      }
 
-    const rifaId = parseInt(rifaIdParam, 10);
+      const rifaId = parseInt(rifaIdParam, 10);
 
-    if (isNaN(rifaId) || rifaId <= 0) {
-      console.error('❌ ID de rifa inválido:', rifaIdParam);
-      this.error.set('ID de rifa inválido');
-      return;
-    }
+      if (isNaN(rifaId) || rifaId <= 0) {
+        console.error('❌ ID de rifa inválido:', rifaIdParam);
+        this.error.set('ID de rifa inválido');
+        return;
+      }
 
-    console.log('✅ Cargando rifa pública:', rifaId);
-    this.cargarRifaPublica(rifaId);
-    this.cargarNumerosConVendedor(rifaId);
-    
-    // ✅ CARGAR NÚMEROS AUTOMÁTICAMENTE
-    this.cargarNumeros(1);
-  });
-}
+      console.log('✅ Cargando rifa pública:', rifaId);
+      this.cargarRifaPublica(rifaId);
+      this.cargarNumerosConVendedor(rifaId);
+      this.cargarNumerosDisponibles(1);
+    });
+  }
 
   cargarRifaPublica(rifaId: number): void {
     this.loading.set(true);
     this.error.set(null);
-
-    console.log('📡 Cargando rifa pública:', rifaId);
 
     this.rifasService.getPublicRifa(rifaId).subscribe({
       next: (response: any) => {
@@ -113,7 +111,6 @@ export class RifaPublicViewComponent implements OnInit {
     });
   }
 
-  // ✅ NUEVO: Cargar qué números tienen vendedor asignado
   cargarNumerosConVendedor(rifaId: number): void {
     this.rifasPublicService.getNumerosConVendedor(rifaId).subscribe({
       next: (response) => {
@@ -123,28 +120,55 @@ export class RifaPublicViewComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error cargando vendedores:', err);
-        // Si falla, asumir que ninguno tiene vendedor
         this.numerosConVendedor.set([]);
       }
     });
   }
 
-  verNumerosDisponibles(): void {
-    if (this.numeros().length === 0) {
-      this.cargarNumeros();
+  // ✅ NUEVO: Cargar solo números DISPONIBLES con vendedor (RÁPIDO)
+  cargarNumerosDisponibles(pagina: number = 1, aleatorios: boolean = false): void {
+    this.loadingNumeros.set(true);
+    const rifaId = this.rifa()?.id;
+
+    if (!rifaId) {
+      this.loadingNumeros.set(false);
+      return;
     }
-    this.mostrarNumerosFlag.set(true);
+
+    console.log('⚡ Cargando números disponibles...');
+
+    this.rifasPublicService.getNumerosDisponibles(rifaId, 100, aleatorios).subscribe({
+      next: (response: any) => {
+        console.log('✅ Números disponibles recibidos:', response);
+        
+        const numerosData = response.data?.numeros || [];
+        
+        const numerosConVendedor = numerosData.map((n: any) => ({
+          ...n,
+          tiene_vendedor: true
+        }));
+
+        this.numeros.set(numerosConVendedor);
+        this.mostrandoTodos.set(false);
+        this.loadingNumeros.set(false);
+        
+        console.log(`✅ ${numerosConVendedor.length} de ${response.data?.total || 0} disponibles`);
+      },
+      error: (err) => {
+        console.error('❌ Error:', err);
+        this.loadingNumeros.set(false);
+      }
+    });
   }
 
-  ocultarNumeros(): void {
-    this.mostrarNumerosFlag.set(false);
-  }
-
-  cargarNumeros(pagina: number = 1): void {
+  // ✅ MODIFICADO: Cargar TODOS los números (opción secundaria)
+  cargarTodosLosNumeros(pagina: number = 1): void {
     this.loadingNumeros.set(true);
     const rifaId = this.rifa()?.id;
 
     if (!rifaId) return;
+
+    console.log('🔍 Cargando TODOS los números...');
 
     const params = {
       estado: this.filtroEstado === 'todos' ? undefined : this.filtroEstado,
@@ -154,29 +178,67 @@ export class RifaPublicViewComponent implements OnInit {
 
     this.rifasService.getPublicNumbers(rifaId, params).subscribe({
       next: (response: any) => {
-        console.log('✅ Números públicos cargados:', response);
+        console.log('✅ Todos los números cargados:', response);
         
-        // ✅ MARCAR cuáles tienen vendedor
-        const numeros = (response.data?.numeros || []).map((n: any) => ({
+        const numerosData = response.data?.numeros || [];
+        
+        const numerosConVendedor = numerosData.map((n: any) => ({
           ...n,
           tiene_vendedor: this.tieneVendedor(n.id)
         }));
+
+        this.numeros.set(numerosConVendedor);
+        this.mostrandoTodos.set(true);
         
-        this.numeros.set(numeros);
-        this.paginaActual.set(response.pagination?.page || 1);
-        this.totalPaginas.set(response.pagination?.totalPages || 1);
+        if (response.pagination) {
+          this.paginaActual.set(response.pagination.page || 1);
+          this.totalPaginas.set(response.pagination.totalPages || 1);
+        }
+
         this.loadingNumeros.set(false);
       },
       error: (err) => {
-        console.error('❌ Error cargando números:', err);
+        console.error('❌ Error:', err);
         this.loadingNumeros.set(false);
       }
     });
   }
 
-  // ✅ NUEVO: Verificar si un número tiene vendedor asignado
+  // ✅ NUEVO: Toggle entre modos de visualización
+  toggleModoVisualizacion(): void {
+    if (this.mostrandoTodos()) {
+      this.cargarNumerosDisponibles(1);
+    } else {
+      this.cargarTodosLosNumeros(1);
+    }
+  }
+
+  // ✅ NUEVO: Mostrar números aleatorios
+  mostrarNumerosAleatorios(): void {
+    this.cargarNumerosDisponibles(1, true);
+  }
+
   tieneVendedor(numeroId: number): boolean {
     return this.numerosConVendedor().includes(numeroId);
+  }
+
+  verNumerosDisponibles(): void {
+    if (this.numeros().length === 0) {
+      this.cargarNumerosDisponibles();
+    }
+    this.mostrarNumerosFlag.set(true);
+  }
+
+  ocultarNumeros(): void {
+    this.mostrarNumerosFlag.set(false);
+  }
+
+  cargarNumeros(pagina: number = 1): void {
+    if (this.mostrandoTodos()) {
+      this.cargarTodosLosNumeros(pagina);
+    } else {
+      this.cargarNumerosDisponibles(pagina);
+    }
   }
 
   aplicarFiltros(): void {
@@ -188,30 +250,23 @@ export class RifaPublicViewComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ✅ IMPLEMENTAR: Seleccionar número para contactar vendedor
   seleccionarNumero(numero: NumeroPublico): void {
     const rifaId = this.rifa()?.id;
     
-    // Verificar que tenga vendedor asignado
     if (!numero.tiene_vendedor) {
       alert('⚠️ Este número aún no tiene un vendedor asignado. Por favor, intenta más tarde.');
       return;
     }
 
-    // Verificar que esté disponible
     if (numero.estado === 'vendido') {
       alert('❌ Este número ya fue vendido.');
       return;
     }
 
-    // Navegar a la página de detalle con WhatsApp
     console.log('📱 Navegando a número:', numero.numero);
     this.router.navigate(['/public/rifas', rifaId, 'numero', numero.numero]);
   }
 
-  /**
-   * Comprar número específico con pre-selección
-   */
   comprarNumero(numero: any): void {
     if (numero.estado !== 'disponible') {
       alert('⚠️ Este número no está disponible para compra');
@@ -283,7 +338,6 @@ export class RifaPublicViewComponent implements OnInit {
     });
   }
 
-  // Métodos de compartir
   compartirWhatsApp(): void {
     const url = window.location.href;
     const logoUrl = this.rifa()?.imagen_url;

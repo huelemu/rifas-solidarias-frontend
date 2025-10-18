@@ -915,4 +915,30 @@
     margin: 0;
   }
 }
+.info-badge {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.numeros-controles {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-secondary {
+  background: #9b59b6;
+  color: white;
+  
+  &:hover {
+    background: #8e44ad;
+  }
+}
 }
