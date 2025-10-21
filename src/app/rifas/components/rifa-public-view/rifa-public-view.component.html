@@ -21,28 +21,36 @@
   <!-- CONTENIDO PRINCIPAL -->
   <div *ngIf="!loading() && !error() && rifa()" class="content">
 
-    <!-- HEADER -->
-    <div class="public-header">
-      <div class="logo-container">
-        <img 
-          *ngIf="getLogoUrl()" 
-          [src]="getLogoUrl()!" 
-          [alt]="rifa()?.institucion_nombre"
-          class="institucion-logo"
-          (error)="$event.target.src='assets/img/logo-placeholder.png'">
-        <div *ngIf="!getLogoUrl()" class="logo-placeholder">
-          {{ getLogoPlaceholder() }}
-        </div>
-      </div>
-      
-      <div class="header-info">
-        <h1>{{ rifa()?.nombre }}</h1>
-        <p class="institucion-name">{{ rifa()?.institucion_nombre }}</p>
-        <p class="rifa-description" *ngIf="rifa()?.descripcion">
-          {{ rifa()?.descripcion }}
-        </p>
-      </div>
+<!-- HEADER -->
+<div class="public-header">
+  <div class="logo-container">
+    <!-- ✅ USAR EL MÉTODO HELPER -->
+    <img 
+      *ngIf="getLogoUrl()" 
+      [src]="getLogoUrl()!" 
+      [alt]="rifa()?.institucion_nombre"
+      class="institucion-logo"
+      (error)="$event.target.src='assets/img/logo-placeholder.png'">
+    <div *ngIf="!getLogoUrl()" class="logo-placeholder">
+      {{ getLogoPlaceholder() }}
     </div>
+  </div>
+  
+  <div class="header-info">
+    <h1>{{ rifa()?.nombre }}</h1>
+    <p class="institucion-name">{{ rifa()?.institucion_nombre }}</p>
+    <p class="rifa-description" *ngIf="rifa()?.descripcion">
+      {{ rifa()?.descripcion }}
+    </p>
+  </div>
+
+  <!-- ✅ NUEVO: Botón de Login a la derecha -->
+  <div class="header-actions" *ngIf="!estaAutenticado()">
+    <button class="btn-login" (click)="irALogin()">
+      🔐 Iniciar Sesión
+    </button>
+  </div>
+</div>
 
     <!-- IMAGEN DE LA RIFA -->
     <div *ngIf="getRifaImageUrl()" class="rifa-imagen-container">

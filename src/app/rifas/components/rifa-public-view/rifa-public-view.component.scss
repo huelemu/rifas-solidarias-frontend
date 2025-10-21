@@ -54,6 +54,7 @@
   display: flex;
   gap: 2rem;
   align-items: center;
+  justify-content: space-between;
 }
 
 .logo-container {
@@ -99,6 +100,49 @@
   color: #95a5a6;
   margin: 0;
   line-height: 1.6;
+}
+
+.rifa-description {
+  color: #95a5a6;
+  margin: 0;
+  line-height: 1.6;
+}
+
+// ✅ AGREGAR TODO ESTO DESDE AQUÍ ⬇️
+// ============================================
+// HEADER ACTIONS - BOTÓN LOGIN
+// ============================================
+
+.header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.btn-login {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .rifa-imagen-container {
@@ -681,6 +725,15 @@
     padding: 1.5rem;
   }
 
+    .header-actions {
+    width: 100%;
+  }
+
+  .btn-login {
+    width: 100%;
+    justify-content: center;
+  }
+
   .header-info h1 {
     font-size: 1.5rem;
   }
@@ -776,3 +829,5 @@
     font-size: 0.7rem;
   }
 }
+
+
