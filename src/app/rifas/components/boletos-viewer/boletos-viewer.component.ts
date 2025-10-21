@@ -54,7 +54,8 @@ export class BoletosViewerComponent implements OnInit {
   
   // ✅ Modo vendedor como signal
   readonly modoVendedor = signal(false);
-  
+  readonly vendedores = signal<Array<{ id: number, nombre: string }>>([]);
+
   // Modal de venta
   readonly showSaleModal = signal(false);
   readonly selectedNumero = signal<NumeroBoleto | null>(null);
@@ -76,9 +77,11 @@ export class BoletosViewerComponent implements OnInit {
       resultado = resultado.filter(n => n.estado === this.filtroEstado);
     }
 
-    if (this.filtroVendedor) {
-      resultado = resultado.filter(n => n.vendedor_id === this.filtroVendedor);
-    }
+  // ✅ Filtro por vendedor (convertir a número)
+  if (this.filtroVendedor !== null && this.filtroVendedor !== undefined) {
+    const vendedorIdFiltro = Number(this.filtroVendedor);
+    resultado = resultado.filter(n => n.vendedor_id === vendedorIdFiltro);
+  }
 
     if (this.buscarNumero) {
       resultado = resultado.filter(n => n.numero === this.buscarNumero);
@@ -87,16 +90,16 @@ export class BoletosViewerComponent implements OnInit {
     return resultado.sort((a, b) => a.numero - b.numero);
   });
 
-  constructor() {
-    this.saleForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellido: ['', [Validators.required, Validators.minLength(2)]],
-      telefono: ['', Validators.required],
-      email: ['', [Validators.email]],
-      metodo_pago: ['efectivo', Validators.required],
-      observaciones: ['']
-    });
-  }
+constructor() {
+  this.saleForm = this.fb.group({
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    apellido: ['', [Validators.required, Validators.minLength(2)]],
+    telefono: ['', Validators.required],
+    email: ['', [Validators.email]],
+    metodo_pago: ['efectivo', Validators.required],
+    observaciones: ['']
+  });
+}
 
   ngOnInit(): void {
     // ✅ Detectar si viene de ruta de vendedor
@@ -176,6 +179,7 @@ export class BoletosViewerComponent implements OnInit {
           const numerosConQR = await this.regenerarQRs(numerosData, rifaId);
           this.numeros.set(numerosConQR);
           this.loading.set(false);
+          this.extraerVendedoresUnicos();
         },
         error: (err) => {
           console.error('❌ Error cargando números:', err);
@@ -378,69 +382,101 @@ export class BoletosViewerComponent implements OnInit {
     this.saleForm.reset();
   }
 
-  confirmSale(): void {
-    if (this.saleForm.invalid) {
-      this.markFormGroupTouched();
-      this.notificationService.warning('Complete todos los campos obligatorios', 'Formulario incompleto');
-      return;
-    }
-
-    const numero = this.selectedNumero();
-    if (!numero) return;
-
-    this.processing.set(true);
-
-    const formData = this.saleForm.value;
-    const saleData = {
-      numeros: [numero.numero],
-      comprador_info: {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        telefono: formData.telefono,
-        email: formData.email
-      },
-      metodo_pago: formData.metodo_pago,
-      observaciones: formData.observaciones
-    };
-
-    const rifaId = this.rifa()?.id;
-    
-    this.rifasService.comprarNumeros(rifaId, saleData).subscribe({
-      next: (response) => {
-        console.log('✅ Venta exitosa:', response);
-        this.processing.set(false);
-        this.closeSaleModal();
-        
-        this.notificationService.success(
-          `Número ${numero.numero} vendido exitosamente`,
-          '¡Venta registrada!'
-        );
-
-        this.notificationService.addNotification(
-          'success',
-          'Venta de número exitosa',
-          `Vendiste el número ${numero.numero} a ${formData.nombre} ${formData.apellido}`,
-          `/rifas/${rifaId}/boletos`,
-          'Ver boletos'
-        );
-
-        this.recargarDatos();
-      },
-      error: (error) => {
-        console.error('❌ Error en la venta:', error);
-        this.processing.set(false);
-        
-        const errorMessage = error?.error?.message || error.message || 'Error desconocido';
-        this.notificationService.error(errorMessage, 'Error en la venta');
-      }
-    });
+confirmSale(): void {
+  if (this.saleForm.invalid) {
+    this.markFormGroupTouched();
+    this.notificationService.warning('Complete todos los campos obligatorios', 'Formulario incompleto');
+    return;
   }
+
+  const numero = this.selectedNumero();
+  if (!numero) return;
+
+  this.processing.set(true);
+
+  const formData = this.saleForm.value;
+  const rifaId = this.rifa()?.id;
+  
+  // ✅ LOGS DETALLADOS
+  console.log('=== INICIO VENTA ===');
+  console.log('📋 Form Data COMPLETO:', formData);
+  console.log('📧 Email del form:', formData.email);
+  console.log('📧 Email tipo:', typeof formData.email);
+  console.log('📧 Email length:', formData.email?.length);
+  console.log('📧 Email es vacío?:', formData.email === '');
+  console.log('📧 Email es null?:', formData.email === null);
+  console.log('📧 Email es undefined?:', formData.email === undefined);
+  
+  const datosVenta = {
+    comprador_nombre: formData.nombre,
+    comprador_apellido: formData.apellido,
+    comprador_telefono: formData.telefono,
+    comprador_email: formData.email || '', // ✅ Vacío si no hay
+    metodo_pago: formData.metodo_pago,
+    observaciones: formData.observaciones || ''
+  };
+
+  console.log('📤 Datos que SE ENVIARÁN al backend:', datosVenta);
+  console.log('📤 JSON.stringify:', JSON.stringify(datosVenta));
+  console.log('=== FIN PREPARACIÓN ===');
+  
+  this.rifasService.venderNumero(rifaId, numero.numero, datosVenta).subscribe({
+    next: (response) => {
+      console.log('✅ RESPUESTA del backend:', response);
+      this.processing.set(false);
+      this.closeSaleModal();
+      
+      const mensaje = response.email_enviado 
+        ? `Número ${numero.numero} vendido exitosamente. Email de confirmación enviado a ${formData.email}`
+        : `Número ${numero.numero} vendido exitosamente`;
+      
+      this.notificationService.success(mensaje, '¡Venta registrada!');
+      
+      // Recargar datos
+      this.cargarBoletos(rifaId);
+    },
+    error: (error) => {
+      console.error('❌ ERROR del backend:', error);
+      console.error('❌ Error completo:', JSON.stringify(error));
+      this.processing.set(false);
+      
+      const mensaje = error.error?.message || 'Error al registrar la venta';
+      this.notificationService.error(mensaje, 'Error');
+    }
+  });
+}
 
   private markFormGroupTouched(): void {
     Object.keys(this.saleForm.controls).forEach(key => {
       this.saleForm.get(key)?.markAsTouched();
     });
   }
+
+  /**
+ * ✅ Extraer vendedores únicos de los números cargados
+ */
+private extraerVendedoresUnicos(): void {
+  const numeros = this.numeros();
+  
+  // Crear mapa de vendedores únicos
+  const vendedoresMap = new Map<number, string>();
+  
+  numeros.forEach(numero => {
+    if (numero.vendedor_id && numero.vendedor_nombre) {
+      const nombreCompleto = `${numero.vendedor_nombre} ${numero.vendedor_apellido || ''}`.trim();
+      vendedoresMap.set(numero.vendedor_id, nombreCompleto);
+    }
+  });
+  
+  // Convertir a array y ordenar alfabéticamente
+  const vendedoresArray = Array.from(vendedoresMap.entries())
+    .map(([id, nombre]) => ({ id, nombre }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  
+  this.vendedores.set(vendedoresArray);
+  
+  console.log('👥 Vendedores únicos encontrados:', vendedoresArray.length);
+}
 
   formatPrice(amount: number): string {
     return new Intl.NumberFormat('es-AR', {

@@ -28,21 +28,24 @@
 
       <div class="filter-group">
         <label>Filtrar por vendedor:</label>
-        <input 
-          type="text"
-          [(ngModel)]="filtroVendedor"
-          (ngModelChange)="aplicarFiltros()"
-          placeholder="Nombre o apellido..."
-          class="form-control">
+        <select 
+          [(ngModel)]="filtroVendedor" 
+          (change)="aplicarFiltros()" 
+          class="form-select">
+          <option [value]="null">Todos los vendedores</option>
+          @for (vendedor of vendedores(); track vendedor.id) {
+            <option [value]="vendedor.id">{{ vendedor.nombre }}</option>
+          }
+        </select>
       </div>
 
       <div class="filter-group">
-        <label>Buscar número:</label>
+        <label>Buscar ticket:</label>
         <input 
           type="number" 
           [(ngModel)]="buscarNumero"
           (ngModelChange)="aplicarFiltros()"
-          placeholder="Número..."
+          placeholder="Ticket..."
           class="form-control">
       </div>
 
@@ -122,7 +125,7 @@
       <div class="boleto-qr">
         <img 
           [src]="numero.qr_code" 
-          [alt]="'QR Número ' + numero.numero"
+          [alt]="'QR Ticket ' + numero.numero"
           class="qr-image"
           (click)="verQR(numero)"
           title="Click para ver en grande">
@@ -131,7 +134,7 @@
       <!-- INFORMACIÓN DEL BOLETO -->
       <div class="boleto-info">
         <div class="info-row">
-          <span class="info-label">Rifa:</span>
+          <span class="info-label">Evento:</span>
           <span class="info-value">{{ rifa()?.nombre }}</span>
         </div>
 
@@ -216,7 +219,7 @@
     <div class="modal-content modal-sale" (click)="$event.stopPropagation()">
       <form [formGroup]="saleForm" (ngSubmit)="confirmSale()">
         <div class="modal-header">
-          <h3>💳 Vender Número {{ selectedNumero()?.numero }}</h3>
+          <h3>💳 Vender Ticket {{ selectedNumero()?.numero }}</h3>
           <button type="button" class="close-btn" (click)="closeSaleModal()">✕</button>
         </div>
         
@@ -224,7 +227,7 @@
           <!-- Resumen del número -->
           <div class="sale-summary">
             <div class="summary-item">
-              <span class="label">Número:</span>
+              <span class="label">Ticket:</span>
               <span class="value">#{{ selectedNumero()?.numero }}</span>
             </div>
             <div class="summary-item">
@@ -232,7 +235,7 @@
               <span class="value highlight">{{ formatPrice(getPrecioNumero(selectedNumero()!)) }}</span>
             </div>
             <div class="summary-item">
-              <span class="label">Rifa:</span>
+              <span class="label">Evento:</span>
               <span class="value">{{ rifa()?.nombre }}</span>
             </div>
           </div>
@@ -298,6 +301,9 @@
                 @if (saleForm.get('email')?.invalid && saleForm.get('email')?.touched) {
                   <small class="error-text">Email inválido</small>
                 }
+                  <small class="help-text">
+                💡 Si proporcionas un email, se enviará una confirmación automática
+                  </small>
               </div>
             </div>
 

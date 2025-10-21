@@ -11,7 +11,7 @@
   <!-- ERROR -->
   <div *ngIf="error()" class="error-container">
     <div class="error-icon">❌</div>
-    <h2>Error al cargar la rifa</h2>
+    <h2>Error al cargar el Evento</h2>
     <p>{{ error() }}</p>
     <button class="btn btn-primary" (click)="cargarRifaPublica(rifa()?.id || 1)">
       Reintentar
@@ -59,7 +59,7 @@
         <div class="info-card">
           <div class="info-icon">💰</div>
           <div class="info-content">
-            <div class="info-label">Precio del Número</div>
+            <div class="info-label">Precio del Ticket</div>
             <div class="info-value">${{ rifa()?.precio_numero | number:'1.2-2' }}</div>
           </div>
         </div>
@@ -67,7 +67,7 @@
         <div class="info-card">
           <div class="info-icon">🎫</div>
           <div class="info-content">
-            <div class="info-label">Números Vendidos</div>
+            <div class="info-label">Tickets Vendidos</div>
             <div class="info-value">
               {{ rifa()?.numeros_vendidos || 0 }} / {{ rifa()?.cantidad_numeros || 0 }}
             </div>
@@ -77,7 +77,7 @@
         <div class="info-card">
           <div class="info-icon">📅</div>
           <div class="info-content">
-            <div class="info-label">Fecha Sorteo</div>
+            <div class="info-label">Fecha del Evento</div>
             <div class="info-value">
               {{ rifa()?.fecha_sorteo | date:'dd/MM/yyyy' }}
             </div>
@@ -261,7 +261,7 @@
 
     <!-- COMPARTIR -->
     <div class="compartir-section">
-      <h3>🔗 Compartir esta Rifa</h3>
+      <h3>🔗 Compartir este Evento</h3>
       <div class="compartir-buttons">
         <button class="btn-compartir whatsapp" (click)="compartirWhatsApp()">
           <span class="icon">📱</span> WhatsApp

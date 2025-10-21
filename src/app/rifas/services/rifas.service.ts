@@ -437,6 +437,16 @@ getPublicNumbers(rifaId: number, params: any = {}): Observable<any> {
   }
 
   /**
+ * Vender número (guarda email del comprador)
+ */
+venderNumero(rifaId: number, numero: number, datosVenta: any): Observable<any> {
+  return this.http.post<any>(
+    `${this.baseUrl}/rifas/${rifaId}/numeros/${numero}/vender`,
+    datosVenta
+  );
+}
+
+  /**
    * ✅ NUEVO: Obtener boletos de una rifa
    */
   getRifaBoletos(rifaId: number, params: any = {}): Observable<any> {
