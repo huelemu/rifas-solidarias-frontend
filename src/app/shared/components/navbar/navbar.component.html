@@ -2,7 +2,7 @@
   <div class="navbar-content">
     <div class="navbar-left">
       <a (click)="goToHome()" class="navbar-brand">
-        🎫 Rifas Solidarias
+        🎫 Eventos Huelemu
       </a>
       
       <nav class="navbar-nav">
@@ -16,7 +16,7 @@
           Instituciones
         </a>
         <a routerLink="/rifas" routerLinkActive="active" *ngIf="!esVendedor()">
-          Rifas
+          Eventos
         </a>
         <a routerLink="/vendedor/mis-ventas" routerLinkActive="active" *ngIf="esVendedor()">
           💰 Mis Ventas

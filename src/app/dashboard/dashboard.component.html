@@ -47,7 +47,7 @@
           <div class="stat-icon">🎫</div>
           <div class="stat-info">
             <div class="stat-value">{{ stats().rifas_activas }}</div>
-            <div class="stat-label">Rifas Activas</div>
+            <div class="stat-label">Eventos Activos</div>
           </div>
         </div>
 
@@ -74,7 +74,7 @@
           <div class="stat-icon">🎯</div>
           <div class="stat-info">
             <div class="stat-value">{{ stats().mis_rifas_activas }}</div>
-            <div class="stat-label">Rifas Participando</div>
+            <div class="stat-label">Eventos Participando</div>
           </div>
         </div>
 
@@ -116,18 +116,18 @@
           
           <button class="action-btn" (click)="goToRifas()">
             <span class="action-icon">🎫</span>
-            <span class="action-text">Ver Rifas</span>
+            <span class="action-text">Ver Eventos</span>
           </button>
 
           <button class="action-btn" (click)="goToMisNumeros()">
             <span class="action-icon">🎟️</span>
-            <span class="action-text">Mis Números</span>
+            <span class="action-text">Mis Tickets</span>
           </button>
 
           @if (isAdmin()) {
             <button class="action-btn" (click)="router.navigate(['/rifas/crear'])">
               <span class="action-icon">➕</span>
-              <span class="action-text">Nueva Rifa</span>
+              <span class="action-text">Nuevo Evento</span>
             </button>
 
             <button class="action-btn" (click)="goToInstituciones()">

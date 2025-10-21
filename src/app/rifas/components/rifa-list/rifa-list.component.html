@@ -11,7 +11,7 @@
         <div class="rifas-stat-icon">🎫</div>
         <div class="rifas-stat-content">
           <div class="stat-number">{{ rifas().length }}</div>
-          <div class="stat-label">Total Rifas</div>
+          <div class="stat-label">Total Eventos</div>
         </div>
       </div>
       
@@ -49,7 +49,7 @@
         <input
           type="text"
           class="rifas-search-input"
-          placeholder="🔍 Buscar rifas por nombre..."
+          placeholder="🔍 Buscar eventos por ticket..."
           [(ngModel)]="currentFilters().search"
           (ngModelChange)="onFilterChange()">
         
@@ -87,7 +87,7 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Nueva Rifa
+          Nuevo Evento
         </button>
       </div>
     </div>
@@ -97,7 +97,7 @@
          ============================================ -->
     <div *ngIf="loading()" class="rifas-loading-card">
       <div class="rifas-spinner"></div>
-      <h3>Cargando rifas...</h3>
+      <h3>Cargando eventos...</h3>
       <p>Por favor espera un momento</p>
     </div>
 
@@ -105,7 +105,7 @@
          ESTADO DE ERROR
          ============================================ -->
     <div *ngIf="error() && !loading()" class="rifas-error-card">
-      <h3>⚠️ Error al cargar rifas</h3>
+      <h3>⚠️ Error al cargar eventos</h3>
       <p>{{ error() }}</p>
       <button class="btn btn-primary" (click)="recargarRifas()">
         Reintentar
@@ -116,14 +116,14 @@
          ESTADO VACÍO
          ============================================ -->
     <div *ngIf="!loading() && !error() && rifas().length === 0" class="rifas-empty-card">
-      <h3>📭 No hay rifas disponibles</h3>
-      <p>{{ currentFilters().search ? 'No se encontraron resultados' : 'Comienza creando tu primera rifa' }}</p>
+      <h3>📭 No hay eventos disponibles</h3>
+      <p>{{ currentFilters().search ? 'No se encontraron resultados' : 'Comienza creando tu primer evento' }}</p>
       <button *ngIf="canCreateRifa()" class="btn btn-primary" (click)="crearRifa()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Crear Primera Rifa
+        Crear Primer Evento
       </button>
     </div>
 

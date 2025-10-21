@@ -6,7 +6,7 @@
       @if (loading()) {
         <div class="loading-container">
           <div class="loading-spinner"></div>
-          <p>Cargando detalle de la rifa...</p>
+          <p>Cargando detalle del evento...</p>
         </div>
       }
 
@@ -54,12 +54,12 @@
               </div>
               
               <div class="detail-item">
-                <label>Total de Números:</label>
+                <label>Total de Tickets:</label>
                 <span>{{ rifa().cantidad_numeros | number }}</span>
               </div>
               
               <div class="detail-item">
-                <label>Precio por Número:</label>
+                <label>Precio por Ticket:</label>
                 <span>{{ formatPrice(rifa().precio_numero) }}</span>
               </div>
               
@@ -86,7 +86,7 @@
               
               @if (rifa().fecha_sorteo) {
                 <div class="detail-item">
-                  <label>Fecha de Sorteo:</label>
+                  <label>Fecha del Evento:</label>
                   <span>{{ formatDate(rifa().fecha_sorteo) }}</span>
                 </div>
               }
@@ -105,7 +105,7 @@
               <div class="stats-grid">
                 <div class="stat-card">
                   <div class="stat-number">{{ rifa().numeros_vendidos | number }}</div>
-                  <div class="stat-label">Números Vendidos</div>
+                  <div class="stat-label">Tickets Vendidos</div>
                 </div>
                 
                 <div class="stat-card">
@@ -134,7 +134,7 @@
                 <button 
                   class="btn btn-primary"
                   (click)="verNumeros()">
-                  🔢 Gestionar Números
+                  🔢 Gestionar Ticket
                 </button>
                 
             
@@ -142,7 +142,7 @@
               <button 
                 class="btn btn-success"
                 (click)="comprarNumeros()">
-                🛒 Comprar Números
+                🛒 Comprar Ticket
               </button>
             }
 
@@ -156,7 +156,7 @@
                   <button 
                     class="btn btn-success"
                     (click)="activarRifa()">
-                    🟢 Activar Rifa
+                    🟢 Activar Evento
                   </button>
                 }
                 
@@ -164,7 +164,7 @@
                   <button 
                     class="btn btn-warning"
                     (click)="pausarRifa()">
-                    ⏸️ Pausar Rifa
+                    ⏸️ Pausar Evento
                   </button>
                 }
 
@@ -172,7 +172,7 @@
                     <button 
                         class="btn btn-primary"
                         (click)="irAAsignarNumeros()">
-                        👥 Asignar Números a Vendedores
+                        👥 Asignar Ticket a Vendedores
                     </button>
                 }
               </div>

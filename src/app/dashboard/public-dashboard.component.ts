@@ -44,17 +44,17 @@ interface DashboardData {
         <div class="hero-content">
           <div class="hero-text">
             <h1 class="hero-title">
-              🎯 Rifas Solidarias
+              🎯 Eventos Huelemu
             </h1>
             <p class="hero-subtitle">
-              Participa en rifas benéficas y ayuda a instituciones que transforman vidas
+              Participa en Eventos benéficos y ayuda a instituciones que transforman vidas
             </p>
             
             <!-- Estadísticas Hero -->
             <div class="hero-stats">
             <div class="hero-stat">
                 <div class="hero-stat-value">{{ data()?.publico?.estadisticas_globales?.total_rifas_activas || 0 }}</div>
-                <div class="hero-stat-label">Rifas Activas</div>
+                <div class="hero-stat-label">Eventos Activos</div>
             </div>
             <div class="hero-stat">
                 <div class="hero-stat-value">{{ data()?.publico?.estadisticas_globales?.total_participantes || 0 }}</div>
@@ -77,10 +77,10 @@ interface DashboardData {
                 </button>
               } @else {
                 <button class="btn btn-primary btn-lg" (click)="goToRifas()">
-                  🎰 Ver Todas las Rifas
+                  🎰 Ver Todas los Eventos
                 </button>
                 <button class="btn btn-outline btn-lg" (click)="goToMyNumbers()">
-                  🎁 Mis Números
+                  🎁 Mis Tickets
                 </button>
               }
             </div>
@@ -102,7 +102,7 @@ interface DashboardData {
         <!-- RIFAS ACTIVAS - Grid Principal -->
         <section class="section rifas-section">
           <div class="section-header">
-            <h2 class="section-title">🎰 Rifas Activas</h2>
+            <h2 class="section-title">🎰 Eventos Activos</h2>
             <button class="btn btn-text" (click)="goToRifas()">
               Ver todas →
             </button>
@@ -117,7 +117,7 @@ interface DashboardData {
           } @else if (rifasActivas().length === 0) {
             <div class="empty-state">
               <div class="empty-icon">🎫</div>
-              <p>No hay rifas activas en este momento</p>
+              <p>No hay eventos activos en este momento</p>
             </div>
           } @else {
             <div class="rifas-grid">
@@ -176,7 +176,7 @@ interface DashboardData {
                     <!-- Fecha sorteo -->
                     @if (rifa.fecha_sorteo) {
                       <div class="rifa-sorteo">
-                        🎲 Sorteo: {{ formatDate(rifa.fecha_sorteo) }}
+                        🎲 Evento: {{ formatDate(rifa.fecha_sorteo) }}
                       </div>
                     }
                   </div>
@@ -184,7 +184,7 @@ interface DashboardData {
                   <!-- Footer con acción -->
                   <div class="rifa-footer">
                     <button class="btn btn-primary btn-block">
-                      Comprar Números
+                      Comprar Tickets
                     </button>
                   </div>
                 </div>
@@ -273,7 +273,7 @@ interface DashboardData {
                 <div class="stat-icon">🎫</div>
                 <div class="stat-content">
                   <div class="stat-value">{{ data()?.personal?.estadisticas?.rifas_participando || 0 }}</div>
-                  <div class="stat-label">Rifas Participando</div>
+                  <div class="stat-label">Eventos Participando</div>
                 </div>
               </div>
 
@@ -281,7 +281,7 @@ interface DashboardData {
                 <div class="stat-icon">🎁</div>
                 <div class="stat-content">
                   <div class="stat-value">{{ data()?.personal?.estadisticas?.numeros_comprados || 0 }}</div>
-                  <div class="stat-label">Números Comprados</div>
+                  <div class="stat-label">Tickets Comprados</div>
                 </div>
               </div>
 
@@ -305,7 +305,7 @@ interface DashboardData {
             <!-- Mis últimos números -->
             @if (data()?.personal?.mis_numeros && data()!.personal!.mis_numeros.length > 0) {
               <div class="mis-numeros-preview">
-                <h3>Mis Últimos Números</h3>
+                <h3>Mis Últimos Tickets</h3>
                 <div class="numeros-list">
                   @for (numero of data()!.personal!.mis_numeros.slice(0, 5); track numero.id) {
                     <div class="numero-item" [class]="'estado-' + numero.estado_numero">
@@ -316,7 +316,7 @@ interface DashboardData {
                   }
                 </div>
                 <button class="btn btn-text" (click)="goToMyNumbers()">
-                  Ver todos mis números →
+                  Ver todos mis tickets →
                 </button>
               </div>
             }
@@ -329,7 +329,7 @@ interface DashboardData {
             <div class="cta-content">
               <h2 class="cta-title">¿Listo para participar?</h2>
               <p class="cta-subtitle">
-                Únete a miles de personas que ya participan en rifas solidarias
+                Únete a miles de personas que ya participan en eventos Huelemu
               </p>
               <div class="cta-actions">
                 <button class="btn btn-primary btn-lg" (click)="goToRegister()">

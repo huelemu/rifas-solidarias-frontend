@@ -23,7 +23,7 @@ import { AuthService } from '../../../auth/services/auth.service';
               ← Volver
             </button>
             <div class="header-title">
-              <h1>🔢 Gestión de Números</h1>
+              <h1>🔢 Gestión de Tickets</h1>
               @if (rifa()) {
                 <p>{{ rifa().nombre }}</p>
               }
@@ -38,7 +38,7 @@ import { AuthService } from '../../../auth/services/auth.service';
                 @if (generando()) {
                   ⏳ Generando...
                 } @else {
-                  🎯 Generar Números
+                  🎯 Generar Tickets
                 }
               </button>
             }
@@ -138,7 +138,7 @@ import { AuthService } from '../../../auth/services/auth.service';
       @if (loading()) {
         <div class="loading-container">
           <div class="loading-spinner"></div>
-          <p>Cargando números...</p>
+          <p>Cargando tickets...</p>
         </div>
       }
 
@@ -163,7 +163,7 @@ import { AuthService } from '../../../auth/services/auth.service';
           <div class="empty-state">
             <div class="empty-icon">🎫</div>
             <h3>No hay números generados</h3>
-            <p>Esta rifa aún no tiene números generados. Haz clic en "Generar Números" para crear los números de la rifa.</p>
+            <p>Este evento aún no tiene Tickets generados. Haz clic en "Generar Tickets" para crear los tickets del evento.</p>
             @if (rifa()) {
               <button 
                 class="btn btn-primary"
@@ -172,7 +172,7 @@ import { AuthService } from '../../../auth/services/auth.service';
                 @if (generando()) {
                   ⏳ Generando...
                 } @else {
-                  🎯 Generar Números Ahora
+                  🎯 Generar Tickets Ahora
                 }
               </button>
             }
@@ -180,9 +180,9 @@ import { AuthService } from '../../../auth/services/auth.service';
         } @else {
           <div class="numbers-section">
             <div class="numbers-header">
-              <h2>📋 Números de la Rifa</h2>
+              <h2>📋 Tickets del Evento</h2>
               <div class="numbers-info">
-                Mostrando {{ numeros().length }} números
+                Mostrando {{ numeros().length }} tickets
               </div>
             </div>
 

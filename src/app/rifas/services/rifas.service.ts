@@ -180,6 +180,16 @@ export class RifasService { // NOMBRE CORRECTO: RifasService
   }
 
 /**
+ * Actualizar cantidad de números de una rifa
+ */
+actualizarCantidadNumeros(rifaId: number, nuevaCantidad: number): Observable<any> {
+  return this.http.patch<any>(
+    `${this.baseUrl}/rifas/${rifaId}/cantidad-numeros`,
+    { nueva_cantidad: nuevaCantidad }
+  );
+}
+
+/**
  * Obtener mis números comprados
  */
 getMisNumeros(rifaId?: number): Observable<any> {
