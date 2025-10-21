@@ -123,7 +123,7 @@
     <!-- GRILLA DE NÚMEROS -->
     <div class="numeros-section">
       <div class="numeros-header">
-        <h2>Números Disponibles para Comprar</h2>
+        <h2>Tickets Disponibles para Comprar</h2>
         <div class="numeros-controles">
           <!-- Botón para números aleatorios -->
           <button 
@@ -163,7 +163,7 @@
 
       <!-- Mensaje informativo -->
       <div class="info-badge" *ngIf="!mostrandoTodos()">
-        ⚡ Mostrando solo números disponibles con vendedor
+        ⚡ Mostrando solo Tickets disponibles con vendedor
       </div>
 
       <!-- LEYENDA DE COLORES -->
@@ -188,7 +188,7 @@
       <!-- LOADING NÚMEROS -->
       <div *ngIf="loadingNumeros()" class="loading-numeros">
         <div class="spinner"></div>
-        <p>Cargando números...</p>
+        <p>Cargando tickets...</p>
       </div>
 
       <!-- GRILLA DE NÚMEROS -->
@@ -225,7 +225,7 @@
 
       <!-- MENSAJE SI NO HAY NÚMEROS -->
       <div *ngIf="!loadingNumeros() && numeros().length === 0" class="no-numeros">
-        <p>No hay números disponibles en este momento.</p>
+        <p>No hay Tickets disponibles en este momento.</p>
       </div>
 
       <!-- PAGINACIÓN -->
